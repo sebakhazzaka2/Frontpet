@@ -87,7 +87,7 @@ frontpet/
 │   │   └── db/migration/       Migraciones Flyway
 │   ├── docker-compose.yml      Postgres local
 │   └── pom.xml
-├── web/                        (Next.js)
+├── frontend/                        (Next.js)
 │   ├── app/
 │   │   ├── (public)/           Rutas públicas (landing, catálogo, booking)
 │   │   ├── (admin)/            Rutas del panel admin
@@ -189,6 +189,8 @@ Estas son lecciones aprendidas y decisiones tomadas. **No las violes sin discuti
 - ❌ **No instales librerías que no aporten valor real.** Antes de `npm install X`,
   preguntate si el problema se resuelve con código vanilla.
 - ❌ **No uses valores arbitrarios fuera del design system** (ver sección 5).
+- ❌ **No muevas el Nav al root layout.** Vive en `(public)/layout.tsx`. El admin tiene
+  su propio layout independiente. Ver ADR 006.
 - ❌ **No aceptes código generado por IA que no entendés línea por línea.**
 - ❌ **No compres infraestructura (VPS, dominio, Cloudflare, Sentry) hasta tener algo concreto
   que hostear.** El despliegue está planificado entre Sprint 2 y 3.
@@ -356,5 +358,5 @@ Antes de marcar una tarea como completa:
 
 ---
 
-**Última actualización**: mayo 2026
-**Versión del documento**: 1.2
+**Última actualización**: 2026-05-18
+**Versión del documento**: 1.3

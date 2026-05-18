@@ -1,130 +1,318 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-:root {
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
+/* ─── app/globals.css ─── FrontPet ───────────────────────────────────── */
+ 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+/* ─────────────────────────────────────────────────────────────────────────
+   FONTS — Next.js font optimization
+   Reemplazar por next/font/google en app/layout.tsx para mejor performance.
+   Docs: https://nextjs.org/docs/app/building-your-application/optimizing/fonts
+ 
+   En layout.tsx:
+     import { DM_Sans, DM_Serif_Display } from 'next/font/google'
+     const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
+     const dmSerif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-display' })
+     <body className={`${dmSans.variable} ${dmSerif.variable}`}>
+ 
+   Si preferís cargar directo desde CSS (dev rápido, menos óptimo):
+───────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES — espejo de los tokens de Tailwind.
+   Usarlas cuando necesités inline styles o variables en JS.
+   En componentes, preferir clases de Tailwind.
+───────────────────────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  :root {
+    /* ── Brand ─────────────────── */
+    --color-brand:        #F97316;
+    --color-brand-hover:  #EA580C;
+    --color-brand-subtle: #FFF7ED;
+    --color-brand-muted:  #FFEDD5;
+ 
+    /* ── WhatsApp ───────────────── */
+    --color-wa:       #25D366;
+    --color-wa-dark:  #128C7E;
+    --color-wa-light: #DCF8C6;
+ 
+    /* ── Amber / Acento ─────────── */
+    --color-amber:        #FBBF24;
+    --color-amber-subtle: #FFFBEB;
+ 
+    /* ── Stone / Neutrales ─────── */
+    --color-bg:         #FAFAF9;
+    --color-bg-warm:    #FFF7ED;
+    --color-surface:    #ffffff;
+    --color-border:     #E7E5E4;
+    --color-border-md:  #D6D3D1;
+    --color-text:       #1C1917;
+    --color-text-muted: #78716C;
+ 
+    /* ── Semánticos ─────────────── */
+    --color-success:        #22C55E;
+    --color-success-subtle: #F0FFF4;
+    --color-success-dark:   #15803D;
+    --color-danger:         #EF4444;
+    --color-danger-subtle:  #FEF2F2;
+    --color-danger-dark:    #DC2626;
+    --color-warning:        #F59E0B;
+    --color-warning-subtle: #FFFBEB;
+    --color-warning-dark:   #D97706;
+ 
+    /* ── Sombras ────────────────── */
+    --shadow-sm:       0 1px 4px rgba(28, 25, 23, 0.06);
+    --shadow-md:       0 4px 16px rgba(28, 25, 23, 0.08);
+    --shadow-lg:       0 8px 32px rgba(28, 25, 23, 0.13);
+    --shadow-xl:       0 20px 60px rgba(28, 25, 23, 0.18);
+    --shadow-brand:    0 4px 20px rgba(249, 115, 22, 0.25);
+    --shadow-brand-lg: 0 8px 32px rgba(249, 115, 22, 0.35);
+    --shadow-wa:       0 4px 18px rgba(37, 211, 102, 0.38);
+    --shadow-wa-lg:    0 6px 26px rgba(37, 211, 102, 0.48);
+ 
+    /* ── Radios ─────────────────── */
+    --radius-sm:   4px;
+    --radius-md:   8px;
+    --radius-lg:   12px;
+    --radius-xl:   16px;
+    --radius-2xl:  24px;
+    --radius-full: 9999px;
+ 
+    /* ── Transiciones ───────────── */
+    --transition-fast:    150ms ease;
+    --transition-default: 200ms ease;
+    --transition-slow:    350ms ease;
   }
-  body {
-    @apply bg-background text-foreground;
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────────
+   BASE STYLES
+───────────────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    @apply box-border;
   }
+ 
   html {
-    @apply font-sans;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
+ 
+  body {
+    @apply bg-stone-50 text-stone-900 font-sans text-base antialiased;
+    line-height: 1.625;
+  }
+ 
+  /* Titulares: siempre DM Serif Display */
+  h1 {
+    @apply font-display text-3xl font-normal;
+    /* letter-spacing ya viene de la escala tipográfica */
+  }
+ 
+  h2 {
+    @apply font-display text-2xl font-normal;
+  }
+ 
+  /* Sub-titulares y titles de sección: DM Sans semibold */
+  h3 {
+    @apply font-sans text-xl font-semibold text-stone-900;
+  }
+ 
+  h4, h5, h6 {
+    @apply font-sans font-semibold text-stone-900;
+  }
+ 
+  p {
+    @apply text-stone-700;
+    line-height: 1.75;
+  }
+ 
+  /* Links */
+  a {
+    @apply text-inherit no-underline;
+    transition: color var(--transition-fast);
+  }
+ 
+  /* Focus ring accesible */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+ 
+  /* Scrollbar sutil */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #D6D3D1 transparent;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 3px; }
+ 
+  /* Inputs y selects — base limpia */
+  input, select, textarea {
+    @apply font-sans text-sm text-stone-900 bg-white border border-stone-200 rounded;
+    @apply outline-none transition-all;
+    padding: 10px 14px;
+  }
+  input:focus, select:focus, textarea:focus {
+    @apply border-brand-500;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  }
+  input::placeholder, textarea::placeholder {
+    @apply text-stone-400;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 72px;
+  }
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────────
+   COMPONENT LAYER — clases reutilizables de alto nivel.
+   Documentar cada una. No agregar sin discutir.
+───────────────────────────────────────────────────────────────────────── */
+@layer components {
+ 
+  /* ── Botón primario — naranja, pill ─────────────────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full;
+    @apply bg-brand-500 text-white font-semibold text-sm;
+    @apply transition-all duration-200 cursor-pointer border-0;
+    box-shadow: var(--shadow-brand);
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply bg-brand-600;
+    box-shadow: var(--shadow-brand-lg);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+ 
+  /* ── Botón WhatsApp ─────────────────────────────────────────────── */
+  .btn-wa {
+    @apply inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full;
+    @apply bg-wa text-white font-semibold text-sm;
+    @apply transition-all duration-200 cursor-pointer border-0;
+    box-shadow: var(--shadow-wa);
+  }
+  .btn-wa:hover:not(:disabled) {
+    background-color: var(--color-wa-dark);
+    transform: translateY(-1px);
+  }
+  .btn-wa:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+ 
+  /* ── Botón outline (borde naranja) ──────────────────────────────── */
+  .btn-outline {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full;
+    @apply bg-transparent text-brand-500 border-2 border-brand-500;
+    @apply font-semibold text-sm transition-all duration-200 cursor-pointer;
+  }
+  .btn-outline:hover:not(:disabled) {
+    @apply bg-brand-500 text-white;
+  }
+ 
+  /* ── Card base ──────────────────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-xl border border-stone-200 overflow-hidden;
+    @apply transition-all duration-200;
+    box-shadow: var(--shadow-md);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+ 
+  /* ── Badge / chip ───────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm;
+    @apply text-xs font-bold uppercase tracking-wide;
+    /* Ejemplo de uso: <span class="badge" style="background: var(--color-brand); color: white;"> */
+  }
+ 
+  /* ── Section container ──────────────────────────────────────────── */
+  .container-main {
+    @apply max-w-content mx-auto px-4;
+    /* max-w-content = 1200px definido en tailwind.config */
+  }
+ 
+  /* ── Eyebrow text (texto pequeño sobre títulos) ──────────────────── */
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-widest text-brand-500;
+  }
+ 
+  /* ── Sección separada visualmente ──────────────────────────────── */
+  .section {
+    @apply py-16 px-4;
+  }
+ 
+  /* ── Animaciones de entrada (usar con animate-fade-in etc.) ─────── */
+  .animate-stagger > * {
+    opacity: 0;
+    animation: slideUpSm 0.4s ease forwards;
+  }
+  .animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .animate-stagger > *:nth-child(2) { animation-delay: 80ms; }
+  .animate-stagger > *:nth-child(3) { animation-delay: 160ms; }
+  .animate-stagger > *:nth-child(4) { animation-delay: 240ms; }
+ 
+  /* ── Floating WhatsApp button ───────────────────────────────────── */
+  .float-wa {
+    @apply fixed bottom-6 right-5 z-50 w-14 h-14 rounded-full;
+    @apply bg-wa flex items-center justify-content;
+    box-shadow: var(--shadow-wa-lg);
+    transition: transform var(--transition-fast);
+  }
+  .float-wa:hover {
+    transform: scale(1.08);
+  }
+ 
+  /* ── Input de búsqueda con ícono ─────────────────────────────────── */
+  .input-search {
+    @apply pl-10 pr-4 py-3 rounded-full border border-stone-200 text-sm;
+    @apply w-full bg-white transition-all;
+  }
+  .input-search:focus {
+    @apply border-brand-500;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  }
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────────
+   KEYFRAMES (complementa lo de tailwind.config.ts)
+───────────────────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+ 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+@keyframes slideUpSm {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+@keyframes pulseBrand {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.04); }
+}
+ 
+@keyframes waPulse {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(1.7); opacity: 0; }
 }
