@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: frontpet-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/frontpet
+    username: frontpet
+    password: frontpet_dev_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.frontpet: DEBUG

@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: frontpet-postgres
+    environment:
+      POSTGRES_DB: frontpet
+      POSTGRES_USER: frontpet
+      POSTGRES_PASSWORD: frontpet_dev_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

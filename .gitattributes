@@ -1,0 +1,10 @@
+# Default: normalizar LF en el repo
+* text=auto eol=lf
+
+# Scripts de Windows usan CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Scripts Unix/shell usan LF
+*.sh text eol=lf
+mvnw text eol=lf
