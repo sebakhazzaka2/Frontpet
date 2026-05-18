@@ -180,8 +180,8 @@ pnpm typecheck                  # Verificación TypeScript
 
 ## Equipo
 
-- **Desarrollador**: [tu nombre]
-- **Cliente piloto**: FrontPet (Pehuajó, Buenos Aires)
+- **Desarrollador**: Sebastian Khazzaka
+- **Cliente piloto**: FrontPet
 
 ---
 
