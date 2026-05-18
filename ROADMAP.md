@@ -1,8 +1,7 @@
 # Roadmap FrontPet MVP1
 
 > Plan detallado de ejecución del MVP1. Sprints de 2 semanas, 8 a 10 horas semanales,
-> 19 semanas totales (16 activas + 3 colchón). Total estimado: ~166 hs trabajadas
-> + ~26 hs de buffer = ~192 hs disponibles.
+> 19 semanas totales. Total estimado: ~171 hs trabajadas + ~21 hs de buffer = ~192 hs disponibles.
 
 ---
 
@@ -10,83 +9,137 @@
 
 | Sprint | Semanas | Foco | Hs estimadas |
 |--------|---------|------|-------------:|
-| 0 | Previa | Pre-kickoff (compras, accesos) | 6 |
-| 1 | 1-2 | Setup infraestructura completa | 18 |
-| 2 | 3-4 | Landing pública responsive | 20 |
-| 3 | 5-7 | Catálogo + backend de productos | 24 |
-| 4 | 8-9 | **Carrito + pedidos WhatsApp + Admin productos** | 27 |
-| 5 | 10-11 | Booking backend (disponibilidad + reservas) | 18 |
-| 6 | 12-13 | Booking frontend + Admin de turnos | 16 |
-| 7 | 14-15 | Mini-dashboard + Meta Pixel + Plausible + Polish | 23 |
-| 8 | 16 | Capacitación + entrega formal | 14 |
-| Colchón | 17-19 | Imprevistos, ajustes, parciales, viajes | 26 |
+| 0 | Previa | Pre-kickoff (GitHub Projects + modelo DB) | 3 |
+| 1 | 1-2 | Setup local: backend + frontend + testing (sin deploy) | 14 |
+| 2 | 3-4 | Landing pública responsive (local) | 22 |
+| Despliegue | 5 | **Compra infra + despliegue inicial + landing en vivo** | 10 |
+| 3 | 6-8 | Catálogo + backend de productos | 24 |
+| 4 | 9-10 | **Carrito + pedidos WhatsApp + Admin productos** | 27 |
+| 5 | 11-12 | Booking backend (disponibilidad + reservas) | 18 |
+| 6 | 13-14 | Booking frontend + Admin de turnos | 16 |
+| 7 | 15-16 | Mini-dashboard + Meta Pixel + Plausible + Polish | 23 |
+| 8 | 17 | Capacitación + entrega formal | 14 |
+| Colchón | 18-19 | Imprevistos, ajustes, parciales, viajes | 21 |
 | **Total** | **19 sem** | | **~192 hs** |
 
 **Hitos clave**:
-- 🎯 Sprint 4 (semana 9): Primera venta posible
-- 🎯 Sprint 6 (semana 13): Primera reserva online posible
-- 🎯 Sprint 8 (semana 16): MVP completo entregado
+- 🎯 Sprint Despliegue (semana 5): primera URL pública con landing en vivo
+- 🎯 Sprint 4 (semana 10): primera venta posible
+- 🎯 Sprint 6 (semana 14): primera reserva online posible
+- 🎯 Sprint 8 (semana 17): MVP completo entregado
 
 ---
 
-## Sprint 0 — Pre-kickoff (semana previa, ~6 hs)
+## Prácticas recurrentes (aplican a todo el proyecto)
 
-**Objetivo**: Tener toda la infraestructura comprada y accesos listos antes de
-arrancar oficialmente el contrato.
+Estas no son tareas de un sprint puntual: son hábitos que se ejecutan **durante todo el
+proyecto**. El costo está distribuido y no se contabiliza como tareas separadas.
 
-| # | Tarea | Hs |
-|---|-------|----|
-| 0.1 | Compra de VPS Hetzner CX22 (€4.50/mes) y SSH key inicial | 1 |
-| 0.2 | Compra de dominio y configuración DNS apuntando al VPS | 1 |
-| 0.3 | Cuenta Cloudflare: R2 + Pages + DNS proxy | 1 |
-| 0.4 | Cuenta Sentry (tier gratis), Plausible o Umami | 0.5 |
-| 0.5 | Creación de los 2 repos en GitHub (backend + frontend) | 0.5 |
-| 0.6 | Subir `CLAUDE.md`, `ROADMAP.md` y `docs/decisions/001-005.md` a ambos repos | 1 |
-| 0.7 | Setup de GitHub Projects (Kanban con las fases como milestones) | 1 |
+### Por cada feature no trivial
+1. **Plan antes de código**: escribir en prosa qué se va a hacer (query, edge cases, tests)
+   antes de generar implementación. Especialmente con asistencia de IA.
+2. **Referencias visuales antes de UI**: si la tarea toca diseño, abrir Mobbin / Awwwards /
+   capturas de productos similares antes de tirar Tailwind.
+3. **Tests del happy path**: nada se mergea a `main` sin al menos 1 test de integración
+   del camino feliz (cuando aplique).
+4. **Validación mobile real**: probar en celular físico vía red local, no solo DevTools.
 
-**Entregable**: VPS pingueando, dominio resolviendo, repos creados y documentados.
+### Por cada decisión técnica
+- Si se elige una tecnología, patrón o approach que **no estaba en `docs/decisions/`**,
+  se crea un ADR corto antes de implementar. Plantilla: contexto → opciones → decisión →
+  consecuencias.
+
+### Por cada semana
+- **Demo en Loom** (3-5 min) los viernes mostrando lo nuevo. Aunque nadie la mire al
+  principio, queda registro para el cliente y para tu portfolio.
+- **Una sesión de "no escribir código"**: leer docs, blog posts, repos open source en
+  el stack. La diferencia entre junior y mid es saber qué *no* hay que hacer, y eso solo
+  se aprende leyendo.
+
+### Por cada bug que tome más de 2 horas
+- Documentarlo en `docs/learnings.md` (causa raíz + cómo se detectó + cómo se resolvió).
+  No es opcional, es la práctica más subestimada de toda la carrera.
+
+### Por cada nueva dependencia
+- Aplicar el test del CLAUDE.md sección 6: "¿esto se resuelve con vanilla?". Si la respuesta
+  es sí, no se instala.
+
+### Cada 2 sprints (demo formal al cliente)
+- Video Loom + mensaje con pedido explícito de feedback:
+  > "Te dejo el avance del mes. ¿Hay algo que quieras cambiar antes de seguir?
+  > Si no me respondés en 3 días, sigo con el plan original."
 
 ---
 
-## Sprint 1 — Setup completo (semanas 1-2, 18 hs)
+## Sprint 0 — Pre-kickoff (semana previa, ~3 hs)
 
-**Objetivo**: Backend "hello world" andando, frontend con primera pantalla, deploys
-automatizados via push a main.
+**Objetivo**: cerrar lo pendiente del setup base antes de arrancar el desarrollo.
+
+**Ya completado** (no consume horas):
+- ✅ Repo en GitHub creado (monorepo)
+- ✅ `CLAUDE.md`, `ROADMAP.md` subidos al repo
+- ✅ `tailwind.config.ts` con design tokens definidos
+- ✅ `docs/design-system.md` con paleta, escalas y tipografía documentadas
+
+**Pendiente**:
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 1.1 | Instalar Coolify en el VPS, configurar HTTPS automático | 3 |
-| 1.2 | Setup Spring Boot 3 con estructura modular: `tenant`, `identity`, `catalog`, `booking`, `orders`, `notifications` | 4 |
-| 1.3 | Configurar Postgres en Docker Compose, Flyway, primera migración con tablas `tenants` y `users` | 2 |
-| 1.4 | Spring Security + JWT en cookie HttpOnly, endpoint `POST /api/v1/auth/login` funcional | 3 |
-| 1.5 | Setup Next.js 14 + TypeScript strict + Tailwind + shadcn/ui + Framer Motion | 2 |
-| 1.6 | Configurar Cloudflare Pages con auto-deploy desde GitHub | 1 |
-| 1.7 | Configurar CORS, primer endpoint conectado frontend-backend | 1 |
-| 1.8 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
+| 0.1 | Setup de GitHub Projects (Kanban con sprints como milestones, issues iniciales) | 1.5 |
+| 0.2 | **Modelo de DB inicial en DBdiagram.io**: `tenants`, `users`, `categories`, `products`, `services`, `appointments`, `orders`. Exportar PNG a `docs/db-model.png` | 1.5 |
+
+**Entregable**: Kanban operativo + modelo de DB visualizable antes de la primera migración.
+
+> 💡 Por qué la 0.2: dibujar la DB antes de migrar te ahorra 2-3 refactors de schema
+> en sprints 3-5. Cuesta 1.5 hs ahora, te ahorra 10 hs después.
+
+---
+
+## Sprint 1 — Setup local (semanas 1-2, ~14 hs)
+
+**Objetivo**: backend y frontend corriendo en localhost con auth, primer endpoint conectado,
+testing y observabilidad locales listos. **No hay despliegue todavía** — todo en localhost
+contra Postgres en Docker.
+
+| # | Tarea | Hs |
+|---|-------|----|
+| 1.1 | Setup Spring Boot 3 con estructura modular: `tenant`, `identity`, `catalog`, `booking`, `orders`, `notifications` | 4 |
+| 1.2 | Postgres en Docker Compose + Flyway + primera migración (`tenants`, `users`) | 2 |
+| 1.3 | Spring Security + JWT en cookie HttpOnly + endpoint `POST /api/v1/auth/login` funcional | 3 |
+| 1.4 | Setup Next.js 14 + Framer Motion + TanStack Query + React Hook Form. Verificar que el design system de `tailwind.config.ts` funciona end-to-end con una pantalla mínima | 1.5 |
+| 1.5 | CORS configurado, primer endpoint del frontend consumiendo backend local | 1 |
+| 1.6 | **Testcontainers + primer test de integración** del endpoint de login. Sirve como template para todos los siguientes | 2 |
+| 1.7 | **Logback con JSON structured output** + endpoint `/actuator/health` configurado y testeado | 0.5 |
 
 **Entregable**:
-- `https://frontpet.com` (frontend) y `https://api.frontpet.com` (backend) accesibles
-- Página "hello world" en el frontend
-- Login funcional contra base de datos real
-- Push a `main` → deploy automático
+- Backend en `localhost:8080`, frontend en `localhost:3000`, ambos conectados
+- Login funcional contra DB real (Postgres en Docker)
+- Test de integración del login corriendo verde
+- Estructura de proyecto lista para empezar a sumar features
 
-**Hito**: Infraestructura operativa end-to-end.
+**Hito**: stack local operativo end-to-end.
 
 **Riesgos**:
-- Coolify es nuevo para vos → revisá su doc antes de empezar (1 hora extra fuera del sprint)
 - Postgres + Flyway dentro de Docker puede dar problemas de conexión la primera vez
+- Testcontainers tarda la primera vez si descarga imágenes (~10 min)
+- JWT en cookie HttpOnly + CORS local puede requerir ajuste fino con SameSite=Lax
+
+> 💡 Por qué el test de integración va acá y no después: si no instalás testing en el
+> sprint 1, no lo vas a instalar nunca. El costo marginal ahora es 2 hs; después de
+> tener 10 features, son 15 hs y media de refactor.
 
 ---
 
-## Sprint 2 — Landing pública (semanas 3-4, 20 hs)
+## Sprint 2 — Landing pública (semanas 3-4, ~22 hs)
 
-**Objetivo**: Landing comercial pulida y mobile-first, lista para que FrontPet la apruebe
-visualmente. Basada en el espíritu del prototipo `frontpet-landing.html`, no copiada literal.
+**Objetivo**: landing comercial pulida y mobile-first, lista para mostrar al cliente.
+Sigue corriendo en local — el despliegue es la siguiente etapa.
 
 | # | Tarea | Hs |
 |---|-------|----|
+| 2.0 | **Estudio de referencias + moodboard**: revisar Chewy, Bond Vet, Mobbin (categoría ecommerce mobile), Awwwards. Capturar 10-15 screenshots en `docs/moodboard/`. Definir 3 anclas visuales claras antes de codear | 2 |
 | 2.1 | Estructura general de la landing en componentes React | 3 |
-| 2.2 | `<Hero>` con animaciones (Framer Motion: fade-in, slide-up) | 3 |
+| 2.2 | `<Hero>` con animaciones Framer Motion (fade-in, slide-up) | 3 |
 | 2.3 | `<TrustBar>` y `<AnnouncementBar>` superior | 1 |
 | 2.4 | `<ServiceCard>` (preview, sin booking todavía, link a `/turnos`) | 2 |
 | 2.5 | `<ProductCard>` con CTA WhatsApp directo (variante para landing) | 2 |
@@ -96,19 +149,65 @@ visualmente. Basada en el espíritu del prototipo `frontpet-landing.html`, no co
 | 2.9 | Optimización Lighthouse: imágenes, fuentes, Core Web Vitals > 90 | 3 |
 | 2.10 | Responsive completo: 320px / 768px / 1024px / 1440px | 2 |
 
-**Entregable**: Landing en producción, accesible y pulida.
+**Entregable**: landing pulida en `localhost:3000`, lista para deployar la próxima semana.
 
-**Hito**: Aprobación visual del cliente (mostrar y pedir feedback explícito).
+**Hito**: aprobación visual del cliente (screenshots + Loom).
+
+> 💡 La tarea 2.0 es la palanca más grande de calidad por hora invertida. Arrancar la
+> landing sin moodboard es el camino más rápido a "queda como hecho con IA".
 
 ---
 
-## Sprint 3 — Catálogo + Backend de productos (semanas 5-7, 24 hs)
+## Sprint Despliegue (semana 5, ~10 hs)
 
-**Objetivo**: Catálogo dinámico desde DB con detalle por producto y CRUD vía API.
+**Objetivo**: comprar la infraestructura, configurar todo, **dejar la landing en vivo**
+con dominio propio. Este sprint dura 1 semana sola.
+
+> Este sprint se ejecuta cuando ya hay algo concreto que hostear (la landing del Sprint 2).
+> Las compras y configuraciones se agrupan acá para no fragmentar gastos ni atención.
+
+### Compras y cuentas (~3.5 hs)
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 3.1 | Migración SQL: `categories`, `products`, `product_images` con `tenant_id` | 2 |
+| D.1 | Compra de VPS Hetzner CX22 (€4.50/mes) + SSH key inicial | 1 |
+| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
+| D.3 | Cuenta Cloudflare: R2 + Pages + DNS proxy activado | 1 |
+| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
+
+### Configuración y deploy (~6.5 hs)
+
+| # | Tarea | Hs |
+|---|-------|----|
+| D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 |
+| D.6 | Configurar Cloudflare Pages con auto-deploy del frontend desde GitHub | 1 |
+| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
+| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
+
+**Entregable**:
+- `https://frontpet.com` con landing en vivo
+- `https://api.frontpet.com` respondiendo (health check OK)
+- Push a `main` dispara deploy automático (frontend y backend)
+- Backups corriendo
+- Sentry recibiendo errores
+
+**Hito** 🎯: primera URL pública. Es buen momento para enviar Loom al cliente con el link
+en vivo y empezar a recibir feedback con tráfico real.
+
+**Riesgos**:
+- Coolify es nuevo → invertir 1 hora extra fuera del sprint para leer su doc antes de arrancar
+- DNS puede tardar hasta 48hs en propagar
+- Primer deploy de Spring Boot a contenedor puede requerir ajuste de memoria del VPS
+
+---
+
+## Sprint 3 — Catálogo + Backend de productos (semanas 6-8, ~24 hs)
+
+**Objetivo**: catálogo dinámico desde DB con detalle por producto y CRUD vía API.
+
+| # | Tarea | Hs |
+|---|-------|----|
+| 3.1 | Migración SQL: `categories`, `products`, `product_images` con `tenant_id`. **Actualizar `docs/db-model.png`** | 2 |
 | 3.2 | Modelos JPA + repositorios + servicios | 2 |
 | 3.3 | Endpoints públicos: `GET /api/v1/products`, `GET /api/v1/products/{slug}`, `GET /api/v1/categories` | 3 |
 | 3.4 | Endpoints admin protegidos: `POST/PUT/DELETE /api/v1/admin/products` | 2 |
@@ -121,9 +220,9 @@ visualmente. Basada en el espíritu del prototipo `frontpet-landing.html`, no co
 | 3.11 | ISR / `revalidate` en Next.js para catálogo (60s) | 1 |
 | 3.12 | Seed con 10 productos de prueba | 1 |
 
-**Entregable**: Catálogo navegable real, indexable por Google, optimizado.
+**Entregable**: catálogo navegable real en producción, indexable por Google, optimizado.
 
-**Hito**: Cliente puede empezar a planificar sus fotos y descripciones reales.
+**Hito**: cliente puede empezar a planificar sus fotos y descripciones reales.
 
 **Riesgos**:
 - Upload de imágenes a R2 con presigned URLs puede tomar 2 hs extra la primera vez
@@ -131,13 +230,13 @@ visualmente. Basada en el espíritu del prototipo `frontpet-landing.html`, no co
 
 ---
 
-## Sprint 4 — Carrito + Pedidos WhatsApp + Admin productos (semanas 8-9, 27 hs)
+## Sprint 4 — Carrito + Pedidos WhatsApp + Admin productos (semanas 9-10, ~27 hs)
 
-**Objetivo**: Cierre del flujo de venta + autonomía del cliente sobre el catálogo.
+**Objetivo**: cierre del flujo de venta + autonomía del cliente sobre el catálogo.
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 4.1 | Migración SQL: `orders`, `order_items`, `customers` | 1 |
+| 4.1 | Migración SQL: `orders`, `order_items`, `customers`. **Actualizar `docs/db-model.png`** | 1 |
 | 4.2 | Hook `useCart()` con sessionStorage: add, remove, update qty, clear | 3 |
 | 4.3 | `<CartButton>` flotante con contador animado | 1 |
 | 4.4 | `<CartDrawer>` o `/carrito` con lista editable | 3 |
@@ -154,20 +253,20 @@ visualmente. Basada en el espíritu del prototipo `frontpet-landing.html`, no co
 
 **Entregable**: **FrontPet puede vender por WhatsApp y gestionar su catálogo.**
 
-**Hito** 🎯: **Primera venta real posible** (semana 9). Avisale al cliente, es buen
+**Hito** 🎯: **primera venta real posible** (semana 10). Avisale al cliente, es buen
 momento para validar el modelo con tráfico real.
 
 ---
 
-## Sprint 5 — Booking backend (semanas 10-11, 18 hs)
+## Sprint 5 — Booking backend (semanas 11-12, ~18 hs)
 
-**Objetivo**: Modelar la agenda y resolver el query difícil de slots disponibles.
+**Objetivo**: modelar la agenda y resolver el query difícil de slots disponibles.
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 5.1 | Migración SQL: `services`, `resources`, `schedule_rules`, `appointments`, `schedule_blocks` | 2 |
+| 5.1 | Migración SQL: `services`, `resources`, `schedule_rules`, `appointments`, `schedule_blocks`. **Actualizar `docs/db-model.png`** | 2 |
 | 5.2 | Modelos JPA + repositorios | 2 |
-| 5.3 | **Servicio de cálculo de slots disponibles** (el query difícil) | 5 |
+| 5.3 | **Servicio de cálculo de slots disponibles** (el query difícil). Antes de codear: plan en prosa en `docs/decisions/006-calculo-slots.md` | 5 |
 | 5.4 | Endpoint `GET /api/v1/availability?service=X&date=Y` | 2 |
 | 5.5 | Endpoint `POST /api/v1/appointments` con validación de solapamientos | 3 |
 | 5.6 | Tests de integración: race conditions, slots de borde, servicios largos | 3 |
@@ -175,7 +274,7 @@ momento para validar el modelo con tráfico real.
 
 **Entregable**: API de booking funcional (sin frontend público todavía).
 
-**Hito**: Punto técnicamente más complejo del MVP superado.
+**Hito**: punto técnicamente más complejo del MVP superado.
 
 **Riesgos**:
 - El query de slots puede tomar 1-2 hs más de lo estimado → revisá el ADR-005 antes de arrancar
@@ -183,9 +282,9 @@ momento para validar el modelo con tráfico real.
 
 ---
 
-## Sprint 6 — Booking frontend + Admin de turnos (semanas 12-13, 16 hs)
+## Sprint 6 — Booking frontend + Admin de turnos (semanas 13-14, ~16 hs)
 
-**Objetivo**: Cierre del flujo de reservas end-to-end.
+**Objetivo**: cierre del flujo de reservas end-to-end.
 
 | # | Tarea | Hs |
 |---|-------|----|
@@ -199,13 +298,13 @@ momento para validar el modelo con tráfico real.
 
 **Entregable**: **FrontPet puede recibir reservas online.**
 
-**Hito** 🎯: **Primera reserva online posible** (semana 13).
+**Hito** 🎯: **primera reserva online posible** (semana 14).
 
 ---
 
-## Sprint 7 — Dashboard + Marketing + Polish (semanas 14-15, 23 hs)
+## Sprint 7 — Dashboard + Marketing + Polish (semanas 15-16, ~23 hs)
 
-**Objetivo**: Sumar visibilidad de métricas, marketing tools y llevar todo a calidad de entrega.
+**Objetivo**: sumar visibilidad de métricas, marketing tools y llevar todo a calidad de entrega.
 
 | # | Tarea | Hs |
 |---|-------|----|
@@ -220,17 +319,17 @@ momento para validar el modelo con tráfico real.
 | 7.9 | SEO básico: meta tags, Open Graph, sitemap.xml, robots.txt | 2 |
 | 7.10 | Optimización de imágenes: WebP, lazy loading, srcset | 1 |
 | 7.11 | Testing manual en navegadores reales (Chrome mobile, Safari iOS, Firefox) | 2 |
-| 7.12 | Sentry: configurar para frontend y backend, probar primer error capturado | 1.5 |
+| 7.12 | Sentry: revisar dashboard, ajustar rate limits y alertas | 1.5 |
 | 7.13 | Uptime Kuma o equivalente, monitorear endpoints clave | 1 |
 | 7.14 | Verificación de backups: simulación de restore en otro entorno | 1 |
 
-**Entregable**: Sistema en estado de entrega.
+**Entregable**: sistema en estado de entrega.
 
 ---
 
-## Sprint 8 — Capacitación + Entrega formal (semana 16, 14 hs)
+## Sprint 8 — Capacitación + Entrega formal (semana 17, ~14 hs)
 
-**Objetivo**: Que FrontPet pueda operar de forma autónoma.
+**Objetivo**: que FrontPet pueda operar de forma autónoma.
 
 | # | Tarea | Hs |
 |---|-------|----|
@@ -247,11 +346,11 @@ momento para validar el modelo con tráfico real.
 
 **Entregable**: MVP1 entregado y operando en producción.
 
-**Hito** 🎯: **Segundo pago de USD 250 liberado.**
+**Hito** 🎯: **segundo pago de USD 250 liberado.**
 
 ---
 
-## Colchón — Sprint 9 (semanas 17-19, hasta 26 hs)
+## Colchón — Sprint 9 (semanas 18-19, hasta 21 hs)
 
 Buffer para:
 
@@ -271,11 +370,15 @@ features extras que el cliente pida durante el colchón se documentan y se cotiz
 Antes de marcar una tarea como completa:
 
 - ✅ Código en `main` sin warnings de compilación
-- ✅ Funciona en mobile real (probado en celular, no solo DevTools)
+- ✅ Funciona en mobile real (probado en celular vía red local, no solo DevTools)
 - ✅ Si toca backend: test de integración del happy path
 - ✅ Si toca UI: validación visual a 320px, 768px, 1024px
-- ✅ Deployado en preview/staging
 - ✅ Si afecta UX visible: screenshot guardado en la issue de GitHub
+- ✅ Si introdujo decisión técnica: ADR creado o actualizado
+- ✅ Si tocó schema de DB: `docs/db-model.png` regenerado
+
+**Desde Sprint Despliegue en adelante también aplica:**
+- ✅ Deployado en preview/staging
 - ✅ Sin errores nuevos en Sentry post-deploy
 
 ---
@@ -289,13 +392,14 @@ Antes de marcar una tarea como completa:
   > Si no me respondés en 3 días, sigo con el plan original."
 
 Calendario tentativo de demos:
-- **Demo 1**: fin de Sprint 2 (semana 4) → landing pulida
-- **Demo 2**: fin de Sprint 4 (semana 9) → primera venta posible 🎯
-- **Demo 3**: fin de Sprint 6 (semana 13) → primera reserva posible 🎯
-- **Demo 4**: fin de Sprint 7 (semana 15) → sistema completo
-- **Entrega final**: semana 16
+- **Demo 1**: fin de Sprint 2 (semana 4) → landing pulida (Loom + screenshots)
+- **Demo 2**: fin de Sprint Despliegue (semana 5) → landing en vivo con URL pública 🎯
+- **Demo 3**: fin de Sprint 4 (semana 10) → primera venta posible 🎯
+- **Demo 4**: fin de Sprint 6 (semana 14) → primera reserva posible 🎯
+- **Demo 5**: fin de Sprint 7 (semana 16) → sistema completo
+- **Entrega final**: semana 17
 
 ---
 
 **Última actualización**: mayo 2026
-**Versión del documento**: 1.0
+**Versión del documento**: 1.2

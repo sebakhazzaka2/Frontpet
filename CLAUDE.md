@@ -1,11 +1,5 @@
-# FrontPet — Contexto del proyecto para Claude
-
-> Este archivo es el punto de entrada para cualquier asistente de IA que trabaje en este repo.
-> Leelo completo antes de generar código. Si vas a tomar una decisión técnica que contradiga
-> lo que está acá, primero confirmá con el desarrollador.
-
+# FrontPet
 ---
-
 ## 1. Qué es FrontPet
 
 Plataforma web comercial para FrontPet, un petshop local. Permite:
@@ -30,6 +24,7 @@ barberías, gimnasios, etc.). Pero **eso es visión futura, no MVP1**.
 - **Maven** para build
 - **Lombok** OK
 - **JUnit 5** + **Testcontainers** para tests de integración
+- **Logback con JSON output** para structured logging desde el día uno
 
 ### Frontend
 - **Next.js 14** (App Router, no Pages Router)
@@ -39,7 +34,7 @@ barberías, gimnasios, etc.). Pero **eso es visión futura, no MVP1**.
 - **TanStack Query** para data fetching
 - **React Hook Form** + **Zod** para validación de formularios
 
-### Infraestructura
+### Infraestructura (a desplegar cuando haya algo funcional para hostear)
 - **VPS Hetzner CX22** (Ubuntu 24.04)
 - **Coolify** como PaaS auto-hosteado
 - **Docker** + **Docker Compose**
@@ -49,6 +44,10 @@ barberías, gimnasios, etc.). Pero **eso es visión futura, no MVP1**.
 - **GitHub Actions** para CI
 - **Sentry** para error tracking
 - **Plausible** para analytics de visitas
+
+> Durante Sprint 0, 1 y 2 todo corre en **localhost**. Las compras de VPS, dominio,
+> Cloudflare y Sentry se hacen recién en el **Sprint Despliegue** (entre Sprint 2 y 3),
+> cuando ya hay landing terminada para mostrar al cliente.
 
 ### Tracking
 - **Meta Pixel** instalado en el frontend público (eventos estándar: Contact, ViewContent, Schedule, Purchase)
@@ -61,6 +60,7 @@ barberías, gimnasios, etc.). Pero **eso es visión futura, no MVP1**.
 Las decisiones detalladas están en `docs/decisions/`. Resumen:
 
 - **Monolito modular**, no microservicios
+- **Monorepo** (un solo repo con `backend/` y `web/`), no dos repos separados
 - **Multi-tenant ready**: toda tabla del dominio lleva `tenant_id` desde el día uno
 - **API REST** (no GraphQL)
 - **Auth con JWT en cookie HttpOnly**, no en localStorage
@@ -71,50 +71,69 @@ Las decisiones detalladas están en `docs/decisions/`. Resumen:
 
 ---
 
-## 4. Estructura del repositorio
-
-El proyecto está dividido en dos repos:
+## 4. Estructura del repositorio (monorepo)
 
 ```
-frontpet-backend/          (Spring Boot)
-├── src/main/java/com/frontpet/
-│   ├── tenant/             Configuración del negocio
-│   ├── identity/           Usuarios admin, auth
-│   ├── catalog/            Productos, categorías
-│   ├── booking/            Servicios, recursos, reservas
-│   ├── orders/             Pedidos, items
-│   └── notifications/      Generación de mensajes WhatsApp
-├── src/main/resources/
-│   └── db/migration/       Migraciones Flyway
-└── docker-compose.yml
-
-frontpet-web/              (Next.js)
-├── app/
-│   ├── (public)/           Rutas públicas (landing, catálogo, booking)
-│   ├── (admin)/            Rutas del panel admin
-│   └── api/                API routes mínimas (proxy a backend si hace falta)
-├── components/
-│   ├── ui/                 Componentes shadcn/ui
-│   ├── public/             Componentes de la web pública
-│   └── admin/              Componentes del admin
-├── lib/                    Utilidades, API client, hooks
-└── tailwind.config.ts
+frontpet/
+├── backend/                    (Spring Boot)
+│   ├── src/main/java/com/frontpet/
+│   │   ├── tenant/             Configuración del negocio
+│   │   ├── identity/           Usuarios admin, auth
+│   │   ├── catalog/            Productos, categorías
+│   │   ├── booking/            Servicios, recursos, reservas
+│   │   ├── orders/             Pedidos, items
+│   │   └── notifications/      Generación de mensajes WhatsApp
+│   ├── src/main/resources/
+│   │   └── db/migration/       Migraciones Flyway
+│   ├── docker-compose.yml      Postgres local
+│   └── pom.xml
+├── web/                        (Next.js)
+│   ├── app/
+│   │   ├── (public)/           Rutas públicas (landing, catálogo, booking)
+│   │   ├── (admin)/            Rutas del panel admin
+│   │   └── api/                API routes mínimas (proxy a backend si hace falta)
+│   ├── components/
+│   │   ├── ui/                 Componentes shadcn/ui
+│   │   ├── public/             Componentes de la web pública
+│   │   └── admin/              Componentes del admin
+│   ├── lib/                    Utilidades, API client, hooks
+│   ├── tailwind.config.ts      ← design tokens (ya definidos)
+│   └── package.json
+├── docs/
+│   ├── decisions/              Architectural Decision Records (ADRs)
+│   ├── design-system.md        Tokens, escalas, paleta documentadas
+│   ├── db-model.png            Modelo de DB visual (DBdiagram.io export)
+│   └── learnings.md            Bugs >2h con causa raíz
+├── prototypes/                 Referencias visuales (no se copian literal)
+│   ├── FrontPet.jsx
+│   └── frontpet-landing.html
+├── CLAUDE.md
+├── ROADMAP.md
+└── README.md
 ```
+
+> Si la estructura real del repo difiere de esta, actualizá esta sección para que refleje
+> lo que está en disco. Esta sección debe ser fuente de verdad.
 
 ---
 
 ## 5. Convenciones de código
 
 ### Commits
-Conventional Commits **en español**:
+Conventional Commits **en ingles**:
 - `feat: agrega flujo de checkout multi-producto`
 - `fix: corrige cálculo de slots para servicios largos`
 - `refactor: extrae servicio de cálculo de disponibilidad`
 - `docs: actualiza README de setup local`
 - `chore: actualiza dependencias menores`
 
+En monorepo, prefijar con scope cuando ayude a separar contextos:
+`feat(web): ...`, `fix(backend): ...`.
+
+El usuario es quien se encarga de los commits, solamente sugiere nombre y archivos a commitear
+
 ### Branches
-- `main` siempre desplegable
+- `main` siempre desplegable (una vez que haya despliegue activo)
 - `feat/nombre-corto`, `fix/nombre-corto`
 - Vida corta (1-3 días máximo)
 - Squash merge a main
@@ -141,6 +160,15 @@ Conventional Commits **en español**:
 - Versionado en URL: `/api/v1/products` (preparado para v2 futura)
 - Códigos HTTP estándar: 200, 201, 400, 401, 403, 404, 409, 422, 500
 
+### Design system (frontend)
+- Tokens ya definidos en `web/tailwind.config.ts` y documentados en `docs/design-system.md`
+- **Prohibido usar valores arbitrarios** fuera de la escala (ej. `mt-[13px]` no entra)
+- Escala de spacing: `4, 8, 12, 16, 24, 32, 48, 64` (y nada más)
+- Escala tipográfica acotada: máximo 6 tamaños
+- Paleta: 3 colores base + variantes, todo derivado de la paleta
+- Escala de radius: `sm (4) / md (8) / lg (12) / xl (16)`
+- Escala de shadow: `sm / md / lg` (no más)
+
 ---
 
 ## 6. Reglas estrictas — qué NO hacer
@@ -160,6 +188,10 @@ Estas son lecciones aprendidas y decisiones tomadas. **No las violes sin discuti
 - ❌ **No persistas el carrito en backend** hasta el momento del checkout.
 - ❌ **No instales librerías que no aporten valor real.** Antes de `npm install X`,
   preguntate si el problema se resuelve con código vanilla.
+- ❌ **No uses valores arbitrarios fuera del design system** (ver sección 5).
+- ❌ **No aceptes código generado por IA que no entendés línea por línea.**
+- ❌ **No compres infraestructura (VPS, dominio, Cloudflare, Sentry) hasta tener algo concreto
+  que hostear.** El despliegue está planificado entre Sprint 2 y 3.
 
 ---
 
@@ -212,13 +244,13 @@ Estas son lecciones aprendidas y decisiones tomadas. **No las violes sin discuti
 
 ---
 
-## 8. Cómo Claude debería trabajar en este repo
+## 8. Cómo deberia trabajar en esta repo Claude
 
-Cuando Claude (Code o web) reciba pedidos en este proyecto, debería:
+Cuando Claude reciba pedidos debería:
 
-1. **Primero leer este archivo** antes de generar código
+1. **Primero leer este archivo** antes de generar código.
 2. **Respetar las decisiones de la sección 3 y 6** sin debatirlas (a menos que el desarrollador
-   abra explícitamente la discusión)
+   abra explícitamente la discusión).
 3. **Si una tarea cae fuera del scope MVP1** (sección 7), avisar antes de implementar:
    "Esta tarea parece ser Fase 2 según `CLAUDE.md`. ¿Confirmás que querés que la haga?"
 4. **Para preguntas de "qué library uso"**: revisar primero la sección 2. Si la decisión
@@ -227,39 +259,102 @@ Cuando Claude (Code o web) reciba pedidos en este proyecto, debería:
    complejos.
 6. **Para tests**: priorizar tests de integración del happy path antes que coverage exhaustivo.
 
----
+### Preferencias de interacción
 
-## 9. Comandos útiles del proyecto
-
-```bash
-# Backend
-./mvnw spring-boot:run                  # Levantar backend local
-./mvnw test                             # Correr tests
-./mvnw flyway:migrate                   # Aplicar migraciones DB
-docker compose up -d                    # Levantar Postgres local
-
-# Frontend
-pnpm dev                                # Servidor de desarrollo
-pnpm build                              # Build de producción
-pnpm lint                               # Linter
-pnpm typecheck                          # Verificación de tipos TS
-
-# Deploy (automático vía push a main)
-git push origin main                    # Trigger del CI/CD
-```
+- **Pedir plan antes de código** cuando la feature sea no-trivial. Sebastián prefiere ver el
+  approach en prosa (qué query, qué edge cases, qué tests) antes de recibir 200 líneas.
+- **Dar pushback activo.** Si una decisión parece frágil, decilo. Sebastián no busca
+  confirmación, busca el mejor diseño posible.
+- **Para UI / diseño**: usar referencias visuales. Si Sebastián manda screenshots, comparar
+  contra ellos. Si no manda, pedirlos antes de codear estilos.
+- **Iterar.** El primer output rara vez es el bueno. Después de generar algo, ofrecer
+  variantes ("¿lo querés más minimal? ¿más denso?") en vez de dar por cerrado.
+- **Explicar línea por línea cuando se pida.** Si Sebastián pregunta "¿qué hace esto?",
+  explicar el código *real*, no una descripción genérica.
+- **Validar facts contra docs oficiales.** Las APIs de Spring Boot y Next.js cambian; si hay
+  duda, decirlo y proponer verificar en la doc en vez de inventar.
 
 ---
 
-## 10. Contactos y referencias
+## 9. Prácticas que Claude debe sugerirme proactivamente
 
-- **Desarrollador**: [tu nombre]
-- **Cliente piloto**: FrontPet (Pehuajó, Buenos Aires)
-- **Repos**: [pendiente — completar al crearlos]
-- **Producción**: [pendiente — completar al desplegar]
-- **Diseño de referencia**: ver `FrontPet.jsx` y `frontpet-landing.html` en `/prototypes/`
-  (los prototipos son **referencia visual**, no se copian literalmente)
+Esta sección lista hábitos que Sebastián quiere internalizar. Claude debe **sugerirlos
+activamente** cuando el contexto lo amerite, no esperar a que se los pida. Funcionan como
+triggers: "si pasa X, recordame Y".
+
+### Antes de codear
+
+- **Al arrancar una feature con lógica no trivial** (booking, checkout, queries agregados):
+  → "¿Querés que escriba primero el plan en prosa antes de tirar código?"
+- **Al modelar una nueva tabla o entidad**:
+  → "¿Actualizaste el diagrama de DB en `docs/db-model.png`? Si no, conviene hacerlo
+  antes de la migración."
+- **Al tomar una decisión técnica que no esté en `docs/decisions/`**:
+  → "Esto amerita un ADR nuevo en `docs/decisions/00X-titulo.md`. ¿Lo armamos antes
+  de implementar?"
+- **Antes de tocar UI nueva**:
+  → "¿Tenés referencias visuales (Mobbin, Awwwards, screenshots de productos similares)?
+  Es más fácil iterar con anclas concretas."
+
+### Durante el desarrollo
+
+- **Al sugerir `npm install` / nueva dependencia**:
+  → Aplicar el test de la sección 6: "¿esto se resuelve con vanilla?" Si la respuesta no
+  es clara, decirlo explícitamente.
+- **Si Claude genera código que parece denso o tricky**:
+  → "Te recomiendo que pidas que te lo explique línea por línea antes de mergear."
+- **Si Sebastián lleva más de 2 horas con un mismo bug**:
+  → "Esto vale para `docs/learnings.md` cuando lo resolvamos."
+- **Si una feature crece más allá del estimado del sprint**:
+  → "Esto se está expandiendo. ¿Querés acotar el scope o lo movemos a colchón / Fase 2?"
+
+### Al cerrar trabajo
+
+- **Antes de cada PR / merge a main**:
+  → Recordatorio de Definition of Done (sección 10): tests del happy path, mobile real,
+  sin warnings. Deploy a preview aplica desde Sprint Despliegue en adelante.
+- **Al cerrar un sprint**:
+  → "Toca Loom de 3-5 min mostrando lo nuevo. ¿Te ayudo a armar el guión?"
+- **Al cerrar una decisión que se discutió largo**:
+  → "Conviene capturarla como ADR aunque sea corto."
+
+### Anti-patrones a interrumpir
+
+Claude debe **detener el flujo y avisar** si parece estar:
+
+- Aceptando código generado sin entenderlo (señal: pedir "ahora hacelo funcionar" sin haber
+  preguntado qué hace).
+- Skippeando tests para ir más rápido (señal: feature merged sin test de integración).
+- Hardcodeando algo específico de petshop en código que debería ser genérico.
+- Instalando librerías sin justificación clara.
+- Postergando ADRs ("después lo documento" — casi nunca pasa).
+- Avanzando hacia compras de infraestructura antes del Sprint Despliegue.
+
+---
+
+## 10. Definition of Done
+
+Antes de marcar una tarea como completa:
+
+- ✅ Código en `main` sin warnings de compilación
+- ✅ Funciona en mobile real (probado en celular vía red local, no solo DevTools)
+- ✅ Si toca backend: test de integración del happy path
+- ✅ Si toca UI: validación visual a 320px, 768px, 1024px
+- ✅ Si afecta UX visible: screenshot guardado en la issue de GitHub
+- ✅ Si introdujo decisión técnica: ADR creado o actualizado
+- ✅ Si tocó schema de DB: `docs/db-model.png` regenerado
+
+
+## 12. Contactos y referencias
+
+- **Desarrollador**: Sebastián Khazzaka
+- **Cliente piloto**: FrontPet (Santana do Livramento, Brasil)
+- **Repo**: https://github.com/sebakhazzaka2/Frontpet
+- **Producción**: [pendiente — se completa al final del Sprint Despliegue]
+- **Diseño de referencia**: ver `prototypes/FrontPet.jsx` y `prototypes/frontpet-landing.html`
+  (son **referencia visual**, no se copian)
 
 ---
 
 **Última actualización**: mayo 2026
-**Versión del documento**: 1.0
+**Versión del documento**: 1.2
