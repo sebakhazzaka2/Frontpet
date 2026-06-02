@@ -48,3 +48,8 @@ Crear un ADR cuando:
 | [003](./003-pedidos-whatsapp.md) | Pedidos vía WhatsApp click-to-chat | Aceptada | 2026-05-17 |
 | [004](./004-auth-jwt-cookie.md) | Autenticación con JWT en cookie HttpOnly | Aceptada | 2026-05-17 |
 | [005](./005-slots-dinamicos.md) | Cálculo dinámico de slots de booking | Aceptada | 2026-05-17 |
+| [006](./006-frontend-layout-structure.md) | Estructura de layouts del frontend | Aceptada | 2026-05-18 |
+| [007](./007-product-language-ptbr.md) | Idioma del producto: portugués brasileño (PT-BR) | Aceptada | 2026-05-20 |
+| [008](./008-agendamentos-sin-whatsapp.md) | Agendamentos persisten en DB sin abrir WhatsApp en el submit | Aceptada | 2026-05-25 |
+| [009](./009-servicos-fixos-capacidade-simples.md) | Serviços fixos en DB seed + capacidade simples (no profissionais nominais) | Aceptada | 2026-05-25 |
+| [010](./010-whatsapp-templates-confirmacao.md) | Templates de mensagem pré-formatada para confirmação por WhatsApp | Aceptada | 2026-05-25 |

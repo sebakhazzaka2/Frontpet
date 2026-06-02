@@ -169,6 +169,14 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
 - Escala de radius: `sm (4) / md (8) / lg (12) / xl (16)`
 - Escala de shadow: `sm / md / lg` (no más)
 
+### Idioma del producto
+- **UI y copy del producto en portugués brasileño (PT-BR)**. Cliente piloto opera en Santana do Livramento (RS, Brasil) y su Instagram (@frontpet.br) ya publica en PT-BR. Ver ADR 007.
+- **Documentación interna, ADRs, comentarios de código, commits y CLAUDE.md siguen en español/inglés** como hasta ahora. Solo cambia la capa de presentación al usuario final.
+- Mensajes pre-cargados de WhatsApp (botones "Pedir pelo WhatsApp", confirmaciones, etc.): en PT-BR.
+- Validaciones de formulario y mensajes de error visibles: en PT-BR.
+- Nombres de servicios respetan los del Instagram del cliente: "Banho & Tosa", no "Baño y Corte".
+- Si en Fase 2+ aparece demanda real de español para clientes uruguayos (Rivera), se evalúa selector de idioma con `next-intl` o similar. **No anticipar en MVP1**.
+
 ---
 
 ## 6. Reglas estrictas — qué NO hacer
@@ -194,6 +202,36 @@ Estas son lecciones aprendidas y decisiones tomadas. **No las violes sin discuti
 - ❌ **No aceptes código generado por IA que no entendés línea por línea.**
 - ❌ **No compres infraestructura (VPS, dominio, Cloudflare, Sentry) hasta tener algo concreto
   que hostear.** El despliegue está planificado entre Sprint 2 y 3.
+
+### Decisiones operacionales del admin (MVP1)
+
+Reglas surgidas del diseño de las pantallas admin, alineadas con MVP1:
+
+- ❌ **Admin es desktop-first.** No usar patrones mobile-native como bottom tab bar, floating
+  action button (FAB), swipe gestures. Mobile usa hamburger + drawer desde la top bar.
+- ❌ **No mostrar métricas analíticas en el admin MVP1.** Sin porcentajes de conversão,
+  sin "Faturamento", sin "Novos Clientes", sin "Ticket médio", sin trend pills verdes/rojos
+  (verde +X%, rojo -X%). El admin de MVP1 muestra solo **conteos operacionales** (cuántos
+  pedidos hoy, cuántos turnos próximos). Las métricas reales viven en Fase 2 con tracking
+  propio. Ver ADR 003 y ADR 008.
+- ❌ **No mostrar métodos de pago** (PIX / Cartão / Dinheiro / Boleto) en los pedidos. MVP1
+  no tem pagamento online — el pago se hace offline al recibir. Mostrar método de pago crea
+  expectativa falsa.
+- ❌ **No mostrar frete como valor numérico.** Siempre "A combinar". El sistema no calcula
+  envío; se negocia caso por caso por WhatsApp. En totals: `Total = Subtotal`.
+- ❌ **No "Imprimir Pedido"** en MVP1. Negócio chico, no usa papel. Evaluar en Fase 2.
+- ❌ **No selector de loja / branch indicator** en el top bar admin. MVP1 é single-tenant
+  single-location. Multi-branch es Fase 2+.
+- ❌ **No CRUD completo de servicios** en MVP1 — admin **edita** los 3 serviços fixos
+  (Banho & Tosa, Tosa Higiênica, Spa Premium) pero **no cria nem deleta**. Ver ADR 009.
+- ❌ **No "Profissionais nominais"** en MVP1 — capacidade do tenant se modela como un único
+  número (`tenant.config.capacidade_atendimento`). Ver ADR 009.
+- ✅ **Templates de WhatsApp pré-formatados** para confirmação de pedidos e agendamentos,
+  versionados em código, com variantes por status (Pendente / Confirmado / Cancelado).
+  Ver ADR 010.
+- ✅ **Categorias canônicas (tentativas)**: `Rações, Petiscos, Higiene, Saúde, Acessórios,
+  Brinquedos, Camas`. **Espécies**: `Cães, Gatos, Aves, Peixes, Roedores`. Ajustar com o
+  cliente conforme catálogo real.
 
 ---
 
@@ -358,5 +396,5 @@ Antes de marcar una tarea como completa:
 
 ---
 
-**Última actualización**: 2026-05-18
-**Versión del documento**: 1.3
+**Última actualización**: 2026-05-25
+**Versión del documento**: 1.5
