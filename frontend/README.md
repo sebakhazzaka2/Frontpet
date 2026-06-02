@@ -20,6 +20,40 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Testing (shift-left)
+
+Estrategia: meter testing temprano, empezando por lo barato y de alto valor.
+Seguimos la pirámide de testing — muchos unit tests rápidos, pocos E2E lentos.
+
+### Qué está configurado hoy
+
+**Vitest + Testing Library** para unit e integration tests:
+
+- `vitest.config.ts` — config (entorno jsdom, alias `@`, dónde busca tests).
+- `vitest.setup.ts` — matchers de jest-dom (`toBeInTheDocument`, etc.) + cleanup.
+- Los tests viven **al lado del código**: `lib/utils.ts` → `lib/utils.test.ts`.
+
+```bash
+pnpm test          # corre todos los tests una vez (modo CI)
+pnpm test:watch    # modo watch mientras desarrollás
+```
+
+Qué testear acá: lógica pura (cálculo de carrito, builder de mensajes de
+WhatsApp, validaciones Zod) y componentes aislados. Corre en milisegundos,
+sin navegador real (jsdom simula el DOM en memoria → rápido pero no 100% fiel).
+
+### Qué NO está configurado todavía: E2E
+
+**E2E (end-to-end)** prueba el flujo completo en un navegador real (abrir la
+web, buscar producto, agregar al carrito, ir al checkout, verificar el link de
+WhatsApp). Las herramientas líderes son **Playwright** (Microsoft) y **Cypress**.
+
+Decisión: cuando llegue el momento, ir con **Playwright** (prueba en WebKit/Safari
+real — importa porque los clientes usan iPhone — y paraleliza mejor que Cypress).
+
+**No está montado a propósito.** Montar E2E ahora, sin flujos funcionando, es
+testear el vacío. Se agrega en Sprint 1/2, cuando existan checkout y booking.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
