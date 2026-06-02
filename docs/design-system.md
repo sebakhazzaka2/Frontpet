@@ -4,9 +4,16 @@
 > Antes de crear un componente nuevo, consultá esta guía.
 > Si necesitás agregar un token que no está acá, discutirlo primero.
 
-**Versión**: 1.0  
-**Última actualización**: mayo 2026  
-**Archivos fuente**: `tailwind.config.ts` · `app/globals.css`
+**Versión**: 2.0
+**Última actualización**: 2026-05-25
+**Archivos fuente**: `tailwind.config.ts` · `app/globals.css` · DESIGN.md (Stitch canónico)
+
+> ⚠️ **v2.0 (mayo 2026)**: paleta y tipografía actualizadas al sistema canónico
+> definido en Stitch. La sección **Colores** y **Tipografía** ya reflejan los 4
+> colores base (Primary Navy / Secondary Orange / Tertiary Green / Neutral Slate)
+> y la familia tipográfica final (Fredoka headlines + Plus Jakarta Sans body).
+> Las secciones de spacing, radius y componentes pueden tener ajustes pendientes —
+> el DESIGN.md de Stitch tiene la verdad final.
 
 ---
 
@@ -50,37 +57,45 @@ Una animación bien hecha en el hero vale más que diez micro-animaciones en tod
 
 | Variable Tailwind | Familia | Uso |
 |---|---|---|
-| `font-display` | DM Serif Display | h1, h2, hero titles |
-| `font-sans` | DM Sans | Todo lo demás: body, labels, botones, nav |
+| `font-display` | **Fredoka** | Headlines (h1, h2, h3), nombres de servicios, valores destacados en KPIs |
+| `font-sans` | **Plus Jakarta Sans** | Body, labels, botones, nav, todo lo demás |
 | `font-mono` | JetBrains Mono | Código, SKUs, IDs técnicos |
+
+**Por qué Fredoka**: serif redondeado y friendly, perfecto para el vibe "petshop premium accessible". Reemplaza el DM Serif Display anterior que era demasiado high-contrast.
+
+**Por qué Plus Jakarta Sans**: única familia para todo el body. Pesos limitados a 400/500/600 (nunca 700+) para mantener consistencia visual.
 
 **Instalación en `app/layout.tsx`:**
 
 ```tsx
-import { DM_Sans, DM_Serif_Display } from 'next/font/google'
+import { Fredoka, Plus_Jakarta_Sans } from 'next/font/google'
 
-const dmSans = DM_Sans({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600'],
 })
 
-const dmSerif = DM_Serif_Display({
+const fredoka = Fredoka({
   subsets: ['latin'],
-  weight: '400',
   variable: '--font-display',
+  weight: ['400', '500', '600'],
 })
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className={`${dmSans.variable} ${dmSerif.variable}`}>
+    <html lang="pt-BR">
+      <body className={`${plusJakarta.variable} ${fredoka.variable}`}>
         {children}
       </body>
     </html>
   )
 }
 ```
+
+> **Regla estricta**: nunca usar pesos 700+ en ninguna fuente. Mantener el tono
+> friendly y airy de la paleta. Si necesitás más jerarquía, usar tamaño + color,
+> no más peso.
 
 ### Escala tipográfica
 
@@ -148,80 +163,111 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## 3. Colores
 
-### brand — naranja principal
+> **Actualizado mayo 2026**: paleta alineada con el DESIGN.md canónico generado en
+> Stitch. Son **4 colores base** + sus escalas tonales + semánticos. Cualquier color
+> fuera de esta paleta está prohibido.
+
+### primary — Deep Navy (identidad)
+
+Anchor de marca. Estructura UI, navegação, branding de alto nivel. Transmite
+autoridade e confiabilidade.
 
 | Token | Hex | Uso |
 |---|---|---|
-| `brand-50` | `#FFF7ED` | Fondos cálidos, secciones hero |
-| `brand-100` | `#FFEDD5` | Backgrounds de badges, chips |
-| `brand-200` | `#FED7AA` | Bordes de elementos seleccionados |
-| `brand-500` | `#F97316` | **Color primario — botones, íconos, accents** |
-| `brand-600` | `#EA580C` | Hover state de botones |
-| `brand-700` | `#C2410C` | Active state, textos sobre fondo claro |
-| `brand-900` | `#7C2D12` | Textos sobre fondos muy claros brand |
+| `primary` | `#011E5A` | **Color principal de identidad** — wordmark, sidebars admin, footer, headers oscuros, botões "main system actions" (login, salvar) |
+| `primary-dark` | `#000A2C` | Hover state de botões primary |
+| `primary-light` | `#2A3F73` | Borders activos, accents sutiles |
 
-### stone — gris cálido (neutros)
+### secondary — Vibrant Orange (acción comercial)
 
-| Token | Hex | Uso |
-|---|---|---|
-| `stone-50` | `#FAFAF9` | Background del body |
-| `stone-100` | `#F5F5F4` | Superficies secundarias, inputs deshabilitados |
-| `stone-200` | `#E7E5E4` | Bordes por defecto |
-| `stone-300` | `#D6D3D1` | Bordes de hover, separadores |
-| `stone-400` | `#A8A29E` | Placeholders |
-| `stone-500` | `#78716C` | Texto muted / secundario |
-| `stone-700` | `#44403C` | Texto de párrafos |
-| `stone-900` | `#1C1917` | Texto principal / headings |
-
-### wa — WhatsApp / verde
+Color de **alta visibilidad** para elementos de conversión (Add to Cart, Reservar,
+ofertas, badges promocionais).
 
 | Token | Hex | Uso |
 |---|---|---|
-| `wa-light` | `#DCF8C6` | Background de banners WA |
-| `wa` | `#25D366` | Botones principales de WhatsApp |
-| `wa-dark` | `#128C7E` | Hover de botones WA, texto sobre fondo claro |
+| `secondary` | `#F4640D` | **Color de ação principal** — botões "Adicionar à sacola", "Agendar", "Novo produto", pills "MAIS VENDIDO", precios destacados, accent del logo "Pet" |
+| `secondary-dark` | `#C2400A` | Hover de botões secondary |
+| `secondary-soft` | `#FFEDD5` | Background de pills/badges naranjas (status Pendente, eyebrows) |
 
-### amber — acento
+### tertiary — WhatsApp Green (comunicación)
+
+Color funcional **exclusivo** para acciones de WhatsApp y status de éxito.
 
 | Token | Hex | Uso |
 |---|---|---|
-| `amber-50` | `#FFFBEB` | Background suave de info |
-| `amber-400` | `#FBBF24` | Estrellas de rating, highlights |
-| `amber-600` | `#D97706` | Textos de alerta suave |
+| `tertiary` | `#25D366` | **Botões WhatsApp** — "Pedir pelo WhatsApp", "Enviar confirmação", "Falar", floating WA button |
+| `tertiary-dark` | `#1FB256` | Hover state |
+| `success` | `#00A048` | Status "Confirmado" (pills, dots, borders) |
+| `success-soft` | `rgba(0,160,72,0.10)` | Background de pills "Confirmado", "Em estoque" |
 
-### Colores semánticos
+### neutral — Slate Grey (texto y estructura)
+
+Balanced slate para texto secundario, borders, y elementos estructurais.
+
+| Token | Hex | Uso |
+|---|---|---|
+| `ink` | `#0B1C30` | **Texto principal** — headlines, body text con énfasis |
+| `muted-strong` | `#444650` | Texto secundario "premium" — labels, meta, breadcrumbs activos |
+| `neutral` | `#64748B` | Sub-texto, captions, helper text |
+| `muted` | `#6B7280` | Texto muted/desabilitado, placeholders |
+| `line` | `#C5C6D1` | **Borders 1px default** |
+| `surface` | `#F8F9FF` | Background main da página |
+| `surface-alt` | `#EFF4FF` | Background alternativo de secciones, info banners |
+| `hover` | `#F5F5F4` | Hover state em rows e items |
+| `card` | `#FFFFFF` | Background de cards e superfícies |
+
+### semánticos (estados)
 
 | Token | Uso |
 |---|---|
-| `success-light` / `success` / `success-dark` | Stock disponible, confirmaciones, badges "Disponible" |
-| `danger-light` / `danger` / `danger-dark` | Errores de form, stock bajo, eliminaciones |
-| `warning-light` / `warning` / `warning-dark` | Alertas de stock, avisos no críticos |
+| `error` / `error-soft` | `#BA1A1A` / `rgba(186,26,26,0.06)` — Erros de form, alertas críticas, status "Cancelado" |
+| `warning` / `warning-soft` | `#A33E00` / `#FFEDD5` — Status "Pendente", avisos não críticos (usa los mismos tonos del orange secondary-soft) |
+| `info` / `info-soft` | `#011E5A` / `#EFF4FF` — Banners informativos, helper text destacado |
 
 ### Reglas de uso de color
 
 ```tsx
-// ✅ Texto principal siempre stone-900
-<p className="text-stone-900">...</p>
+// ✅ Texto principal
+<p className="text-ink">...</p>
 
-// ✅ Texto secundario / muted
-<p className="text-stone-500">Descripción breve...</p>
+// ✅ Texto secundario
+<p className="text-muted-strong">Detalhes adicionais...</p>
 
-// ✅ Botón con naranja
-<button className="bg-brand-500 hover:bg-brand-600 text-white">...</button>
+// ✅ Botão de "main system action" (admin)
+<button className="bg-primary hover:bg-primary-dark text-white">Entrar</button>
 
-// ✅ Badge de stock bajo
-<span className="bg-danger-light text-danger-dark">⚡ Solo 3 disponibles</span>
+// ✅ Botão de "commercial action"
+<button className="bg-secondary hover:bg-secondary-dark text-white">Adicionar à sacola</button>
 
-// ✅ Badge de stock ok
-<span className="bg-success-light text-success-dark">✓ En stock</span>
+// ✅ Botão de WhatsApp
+<a className="bg-tertiary hover:bg-tertiary-dark text-white">Pedir pelo WhatsApp</a>
 
-// ❌ Nunca usar colores que no están en la paleta
+// ✅ Pill de status pendente
+<span className="bg-secondary-soft text-warning">Pendente</span>
+
+// ✅ Pill de status confirmado
+<span className="bg-success-soft text-success">Confirmado</span>
+
+// ❌ Nunca usar colores fuera de la paleta
 <p className="text-purple-500">...</p>
-<div className="bg-sky-100">...</div>
+<div className="bg-stone-50">...</div>  {/* paleta vieja, eliminada */}
 
 // ❌ Nunca usar valores arbitrarios
 <div className="bg-[#ff6b35]">...</div>
+
+// ❌ Nunca usar Navy como background grande
+<header className="bg-primary">...</header>  {/* OK SOLO en sidebar admin e footer público */}
 ```
+
+### Decisiones de uso
+
+- **Navy `#011E5A` solo como superficie estructural** (sidebar admin, footer público,
+  nav público) — nunca como botão fill en contexto comercial. Ver ADR 002.
+- **Orange `#F4640D` para ações comerciais** — NUNCA para "main system actions" tipo
+  login/salvar (eso es navy).
+- **Green `#25D366` reservado para WhatsApp** — nunca para botões genéricos de "salvar"
+  ou "confirmar". Si la acción es "send to WhatsApp", es verde; si no, no.
+- **Sem dark mode** em MVP1. Todo light theme. Ver ADR 007 + sección 6 do CLAUDE.md.
 
 ---
 

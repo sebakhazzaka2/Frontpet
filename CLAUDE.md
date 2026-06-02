@@ -161,13 +161,18 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
 - Códigos HTTP estándar: 200, 201, 400, 401, 403, 404, 409, 422, 500
 
 ### Design system (frontend)
-- Tokens ya definidos en `web/tailwind.config.ts` y documentados en `docs/design-system.md`
+- Tokens definidos en `tailwind.config.ts` y documentados en `docs/design-system.md` (v2.0)
+- **Fuente canônica final**: DESIGN.md gerado em Stitch (los 4 colores base + tipografia + radius son la verdad)
 - **Prohibido usar valores arbitrarios** fuera de la escala (ej. `mt-[13px]` no entra)
-- Escala de spacing: `4, 8, 12, 16, 24, 32, 48, 64` (y nada más)
-- Escala tipográfica acotada: máximo 6 tamaños
-- Paleta: 3 colores base + variantes, todo derivado de la paleta
-- Escala de radius: `sm (4) / md (8) / lg (12) / xl (16)`
-- Escala de shadow: `sm / md / lg` (no más)
+- Escala de spacing: `4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80` (y nada más — múltiplos de 4)
+- **Paleta: 4 colores base**:
+  - Primary Navy `#011E5A` — identidad, estructural (sidebar admin, footer), botão "main system action"
+  - Secondary Orange `#F4640D` — ações comerciais (Adicionar à sacola, Agendar, pills, prices)
+  - Tertiary Green `#25D366` — WhatsApp CTAs exclusivamente
+  - Neutral Slate `#64748B` — texto secundário, borders, structural elements
+- **Tipografia**: Fredoka (headlines) + Plus Jakarta Sans (body) — pesos solo 400/500/600 (nunca 700+)
+- Escala de radius: buttons/inputs `8px` (rounded-md) · cards `16px` (rounded-lg) · modais `24px` (rounded-xl)
+- Sombras suaves: `0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)` default / hover más diffuse
 
 ### Idioma del producto
 - **UI y copy del producto en portugués brasileño (PT-BR)**. Cliente piloto opera en Santana do Livramento (RS, Brasil) y su Instagram (@frontpet.br) ya publica en PT-BR. Ver ADR 007.
@@ -397,4 +402,4 @@ Antes de marcar una tarea como completa:
 ---
 
 **Última actualización**: 2026-05-25
-**Versión del documento**: 1.5
+**Versión del documento**: 1.6
