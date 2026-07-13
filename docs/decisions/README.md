@@ -51,5 +51,8 @@ Crear un ADR cuando:
 | [006](./006-frontend-layout-structure.md) | Estructura de layouts del frontend | Aceptada | 2026-05-18 |
 | [007](./007-product-language-ptbr.md) | Idioma del producto: portugués brasileño (PT-BR) | Aceptada | 2026-05-20 |
 | [008](./008-agendamentos-sin-whatsapp.md) | Agendamentos persisten en DB sin abrir WhatsApp en el submit | Aceptada | 2026-05-25 |
-| [009](./009-servicos-fixos-capacidade-simples.md) | Serviços fixos en DB seed + capacidade simples (no profissionais nominais) | Aceptada | 2026-05-25 |
+| [009](./009-servicos-fixos-capacidade-simples.md) | Serviços fixos en DB seed + capacidade simples (no profissionais nominais) | Parcial. reemplazada por 011 | 2026-05-25 |
 | [010](./010-whatsapp-templates-confirmacao.md) | Templates de mensagem pré-formatada para confirmação por WhatsApp | Aceptada | 2026-05-25 |
+| [011](./011-modelo-servicos-banhos-adicionais.md) | Modelo de serviços: banhos base + adicionais, preço/duração por porte | Aceptada | 2026-07-09 |
+| [012](./012-booking-sin-integracion-erp.md) | Booking sin integración ERP: la web es la autoridad de disponibilidad | Aceptada | 2026-07-09 |
+| [013](./013-modelo-datos-mvp1.md) | Modelo de datos MVP1: decisiones de esquema y reutilización | Aceptada | 2026-07-13 |

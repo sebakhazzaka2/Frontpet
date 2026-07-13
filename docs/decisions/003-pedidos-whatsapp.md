@@ -90,6 +90,40 @@ mejora si persistimos al hacer click en "enviar pedido", aunque después no se c
 - Si el cliente no envía el WA, FrontPet puede contactarlo proactivamente con los
   datos del pedido (nombre + WA + items) que sí quedaron en la DB
 
+## Actualización 2026-07-09 — Campos de checkout, forma de pagamento y frete
+
+Al relevar la operación real con el cliente, el checkout y las reglas de pedido se precisaron.
+Dos puntos **contradicen reglas escritas en CLAUDE.md sección 6** y se resuelven acá:
+
+### Datos que se capturan en el checkout
+Nombre, teléfono, **endereço (obrigatório)**, **forma de pagamento**, **horário de entrega**,
+e os itens do pedido.
+
+### Forma de pagamento — se captura, NO es pago online
+CLAUDE.md dice "❌ No mostrar métodos de pago". Esa regla apuntaba a **no crear expectativa
+de pago online** (checkout con PIX/cartão que cobra en el momento). Lo que el cliente pide es
+distinto: que el comprador **indique cómo va a pagar al recibir** (dato operativo para
+logística). **Decisión**: se captura `forma_pagamento` como texto/enum en el pedido. **No hay
+cobro online, no hay pasarela.** El pago sigue siendo offline al entregar/retirar.
+→ *CLAUDE.md §6 debe actualizarse para reflejar este matiz.*
+
+### Frete — regra concreta, no "sempre a combinar"
+CLAUDE.md dice "frete siempre 'A combinar', nunca valor numérico". La regla real del cliente:
+- **Grátis até 5km.**
+- **Mais de 5km: a combinar.**
+- Llegan a toda Rivera y Livramento.
+
+**Decisión**: el pedido guarda la modalidad de frete resultante (`GRATIS` / `A_COMBINAR`), no
+un valor calculado (el sistema no calcula distancia en MVP1; la determina el admin/logística).
+En el total sigue valiendo `Total = Subtotal` (el frete no suma un número al total).
+→ *CLAUDE.md §6 debe actualizarse.*
+
+### Estado del pedido
+Se alinea con CLAUDE.md §6: `PENDING / CONFIRMED / CANCELLED` (sin `PENDING_WHATSAPP`, que
+este ADR usaba antes). El estado inicial es `PENDING`.
+
+---
+
 ## Notas para el futuro
 
 Cuando se justifique (volumen alto de pedidos + necesidad de métricas reales):

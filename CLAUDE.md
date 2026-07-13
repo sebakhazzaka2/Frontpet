@@ -219,24 +219,29 @@ Reglas surgidas del diseño de las pantallas admin, alineadas con MVP1:
   (verde +X%, rojo -X%). El admin de MVP1 muestra solo **conteos operacionales** (cuántos
   pedidos hoy, cuántos turnos próximos). Las métricas reales viven en Fase 2 con tracking
   propio. Ver ADR 003 y ADR 008.
-- ❌ **No mostrar métodos de pago** (PIX / Cartão / Dinheiro / Boleto) en los pedidos. MVP1
-  no tem pagamento online — el pago se hace offline al recibir. Mostrar método de pago crea
-  expectativa falsa.
-- ❌ **No mostrar frete como valor numérico.** Siempre "A combinar". El sistema no calcula
-  envío; se negocia caso por caso por WhatsApp. En totals: `Total = Subtotal`.
+- ⚠️ **Forma de pagamento: se CAPTURA, pero NO hay pago online.** El cliente indica en el
+  checkout cómo va a pagar al recibir (dato operativo para logística). No hay pasarela, no
+  hay cobro online. No crear UI que sugiera cobro en el momento. Ver ADR 003 (actualización).
+- ⚠️ **Frete: grátis até 5km, mais de 5km "a combinar".** No se guarda un valor numérico
+  calculado (el sistema no calcula distancia en MVP1); se guarda la modalidad
+  (`GRATIS` / `A_COMBINAR`), la determina el admin/logística. En totals: `Total = Subtotal`
+  (el frete no suma un número al total). Ver ADR 003 (actualización).
 - ❌ **No "Imprimir Pedido"** en MVP1. Negócio chico, no usa papel. Evaluar en Fase 2.
 - ❌ **No selector de loja / branch indicator** en el top bar admin. MVP1 é single-tenant
   single-location. Multi-branch es Fase 2+.
-- ❌ **No CRUD completo de servicios** en MVP1 — admin **edita** los 3 serviços fixos
-  (Banho & Tosa, Tosa Higiênica, Spa Premium) pero **no cria nem deleta**. Ver ADR 009.
+- ❌ **No CRUD completo de servicios** en MVP1 — admin **edita** el catálogo de serviços
+  pero **no cria nem deleta** desde la UI. El catálogo real son **2 banhos base**
+  (Esencial, Premium) **+ adicionais** (tosa higiênica, tosa completa, carding, hidratação,
+  banho antisséptico, banho antipulga), con **preço/duração por porte** (P/M/G/GG). Un turno
+  = 1 banho base + N adicionais. Ver ADR 011 (reemplaza el catálogo del ADR 009).
 - ❌ **No "Profissionais nominais"** en MVP1 — capacidade do tenant se modela como un único
   número (`tenant.config.capacidade_atendimento`). Ver ADR 009.
 - ✅ **Templates de WhatsApp pré-formatados** para confirmação de pedidos e agendamentos,
   versionados em código, com variantes por status (Pendente / Confirmado / Cancelado).
   Ver ADR 010.
-- ✅ **Categorias canônicas (tentativas)**: `Rações, Petiscos, Higiene, Saúde, Acessórios,
-  Brinquedos, Camas`. **Espécies**: `Cães, Gatos, Aves, Peixes, Roedores`. Ajustar com o
-  cliente conforme catálogo real.
+- ✅ **Categorias canônicas (confirmadas con el cliente)**: `Rações, Acessórios, Higiene,
+  Petiscos, Conforto, Brinquedos` (Conforto = casas, camas, colchonetes). **Espécies**:
+  `Cães, Gatos, Aves, Peixes, Roedores`. Un producto puede estar en varias (N:M).
 
 ---
 
@@ -247,7 +252,7 @@ Reglas surgidas del diseño de las pantallas admin, alineadas con MVP1:
 **Público**
 - Landing comercial responsive
 - Catálogo con búsqueda y filtro por categoría
-- Detalle de producto con galería
+- Detalle de producto (una foto por producto en MVP1; galería queda para Fase 2)
 - **Carrito multi-producto** en sessionStorage
 - Checkout con mensaje WhatsApp dinámico (todos los items del carrito)
 - Página de servicios
@@ -401,5 +406,5 @@ Antes de marcar una tarea como completa:
 
 ---
 
-**Última actualización**: 2026-05-25
-**Versión del documento**: 1.6
+**Última actualización**: 2026-07-09
+**Versión del documento**: 1.7

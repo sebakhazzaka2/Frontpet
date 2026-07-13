@@ -1,8 +1,30 @@
 # ADR 009 — Serviços fijos en DB seed + capacidade simples en lugar de profissionais nominais
 
-**Estado**: Aceptada
+**Estado**: Parcialmente reemplazada — ver Actualización 2026-07-09
 **Fecha**: 2026-05-25
 **Sprint**: 2
+
+---
+
+## Actualización 2026-07-09 (post-respuestas del cliente)
+
+Tras relevar la operación real de FrontPet, **el catálogo concreto de servicios de este ADR
+quedó obsoleto**. Ya no son "3 serviços fixos" (Banho & Tosa, Tosa Higiênica, Spa Premium),
+sino un modelo de **2 banhos base + adicionais con preço/duração por porte**. Ese modelo se
+documenta en **[ADR 011](./011-modelo-servicos-banhos-adicionais.md)**, que reemplaza la
+sección "Serviços" de este documento.
+
+**Lo que de este ADR SIGUE VIGENTE** (no cambia):
+- **Capacidade simples = un único número por tenant** (no profissionais nominais). Confirmado
+  con el cliente: 2 atendimentos en simultáneo para cualquier servicio. Sin agenda por
+  profesional en MVP1.
+- **Admin edita, no cria ni deleta** servicios desde la UI.
+- **Horários con full CRUD** y bloqueos por excepción.
+
+**Lo que queda obsoleto** (ver ADR 011):
+- La lista concreta de "3 serviços fixos".
+- El supuesto de un único `duration_minutes` plano por servicio → ahora preço y duração
+  dependen del **porte** (P/M/G/GG).
 
 ---
 
