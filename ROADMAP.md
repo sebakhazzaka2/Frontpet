@@ -166,13 +166,17 @@ con dominio propio. Este sprint dura 1 semana sola.
 > Este sprint se ejecuta cuando ya hay algo concreto que hostear (la landing del Sprint 2).
 > Las compras y configuraciones se agrupan acá para no fragmentar gastos ni atención.
 
+> **Arquitectura de deploy definida en el [ADR 016](docs/decisions/016-deploy-frontend-vps-coolify.md)**:
+> un solo VPS sirve backend + frontend vía Coolify. Cloudflare queda como DNS + CDN + R2.
+> No hay Cloudflare Pages ni adapter de OpenNext.
+
 ### Compras y cuentas (~3.5 hs)
 
 | # | Tarea | Hs |
 |---|-------|----|
-| D.1 | Compra de VPS Hetzner CX22 (€4.50/mes) + SSH key inicial | 1 |
+| D.1 | Compra de VPS Hetzner **CX32** (4 vCPU / 8 GB, ~€7.50/mes) **región US East (Ashburn)** + SSH key inicial | 1 |
 | D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
-| D.3 | Cuenta Cloudflare: R2 + Pages + DNS proxy activado | 1 |
+| D.3 | Cuenta Cloudflare: **R2 + DNS proxy activado** (sin Pages — ver ADR 016) | 1 |
 | D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
 
 ### Configuración y deploy (~6.5 hs)
@@ -180,7 +184,7 @@ con dominio propio. Este sprint dura 1 semana sola.
 | # | Tarea | Hs |
 |---|-------|----|
 | D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 |
-| D.6 | Configurar Cloudflare Pages con auto-deploy del frontend desde GitHub | 1 |
+| D.6 | Configurar Coolify para buildear y servir el **frontend Next 16** con auto-deploy desde GitHub (junto al backend) | 1 |
 | D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
 | D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
 
@@ -198,6 +202,8 @@ en vivo y empezar a recibir feedback con tráfico real.
 - Coolify es nuevo → invertir 1 hora extra fuera del sprint para leer su doc antes de arrancar
 - DNS puede tardar hasta 48hs en propagar
 - Primer deploy de Spring Boot a contenedor puede requerir ajuste de memoria del VPS
+- **Los 3 servicios (Spring Boot + Postgres + Next) comparten los 8 GB del CX32.** Vigilar
+  RAM en el primer deploy; el CX22 de 4 GB del plan original directamente no alcanzaba
 
 ---
 

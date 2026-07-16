@@ -37,6 +37,13 @@ Next.js (frontend) + Spring Boot (backend) + PostgreSQL + VPS Hetzner.
 - **Infraestructura**: VPS Hetzner CX22 + Coolify + Docker
 - **Frontend CDN**: Cloudflare Pages
 
+> ⚠️ **Actualizado por el [ADR 016](./016-deploy-frontend-vps-coolify.md) (julio 2026)**:
+> el frontend **no** va en Cloudflare Pages (`next-on-pages` quedó deprecado y el adapter de
+> OpenNext tiene un conflicto sin confirmar con Next 16). El mismo VPS sirve backend y
+> frontend vía Coolify, y el VPS pasa a ser un **CX32 en Ashburn**, no un CX22 en Alemania.
+> Las versiones de frontend de este ADR también quedaron viejas: la tabla vigente está en
+> CLAUDE.md sección 2 (Next 16.2.6 / React 19.2.4 / Tailwind 4.3.0).
+
 ## Alternativas consideradas
 
 ### ❌ Stack A (Next.js + Supabase + Vercel)

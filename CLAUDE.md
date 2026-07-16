@@ -27,23 +27,83 @@ barberías, gimnasios, etc.). Pero **eso es visión futura, no MVP1**.
 - **Logback con JSON output** para structured logging desde el día uno
 
 ### Frontend
-- **Next.js 14** (App Router, no Pages Router)
-- **React 18** + **TypeScript** (strict mode)
-- **Tailwind CSS** + **shadcn/ui**
-- **Framer Motion** para animaciones
-- **TanStack Query** para data fetching
-- **React Hook Form** + **Zod** para validación de formularios
+
+> Versiones **verificadas contra `pnpm-lock.yaml`** (julio 2026), no aspiracionales.
+> Next y React están **pineados exactos** a propósito. Si actualizás, actualizá esta tabla.
+
+| Paquete | Versión | Nota |
+|---|---|---|
+| `next` | **16.2.6** | App Router, no Pages Router. Turbopack por defecto |
+| `react` / `react-dom` | **19.2.4** | |
+| `typescript` | 5.9.3 | strict mode. Next 16 exige TS ≥ 5.1 |
+| `tailwindcss` | **4.3.0** | CSS-first. Tokens en `globals.css` vía `@theme`. Ver ADR 014 |
+| `shadcn` (CLI) | 4.7.0 | + `radix-ui` unificado, `cva`, `clsx`, `tailwind-merge`, `tw-animate-css` |
+| `framer-motion` | 12.38.0 | |
+| `@tanstack/react-query` | ^5.100.10 | |
+| `react-hook-form` | 7.76.0 | + `@hookform/resolvers` ^5.2.2 |
+| `zod` | **4.4.3** | ⚠️ v4, API distinta a la v3. No copiar snippets de v3 |
+| `lucide-react` | ^1.16.0 | iconos |
+
+**Node.js 20.9+ obligatorio** (Next 16 dropeó Node 18).
+
+#### Next 16 — cambios que nos pegan directo
+
+Trampas concretas para las tareas del ROADMAP. **No escribir código estilo Next 14**:
+
+- **Async Request APIs (breaking).** `params`, `searchParams`, `cookies()`, `headers()` y
+  `draftMode()` son **Promises**. El acceso síncrono fue eliminado del todo en la 16.
+  ```tsx
+  // ❌ Next 14                          // ✅ Next 16
+  function Page({ params }) {            export default async function Page(
+    const { slug } = params                props: PageProps<'/produtos/[slug]'>
+  }                                      ) {
+                                           const { slug } = await props.params
+                                         }
+  ```
+  Pega en `/produtos/[slug]` (tarea 3.9) y en el auth guard del admin (4.11), que lee la
+  cookie JWT con `cookies()`. `npx next typegen` genera los helpers `PageProps` /
+  `LayoutProps` / `RouteContext` tipados por ruta.
+- **`middleware.ts` → `proxy.ts`.** El nombre `middleware` está deprecado. **`proxy` corre
+  solo en runtime Node, no soporta edge.** Ver la nota de Cloudflare en Infraestructura.
+- **`next lint` fue eliminado.** Ya está bien en `package.json` (`"lint": "eslint"`).
+  `next build` ya no linta.
+- **El caching cambió.** `revalidateTag` ahora pide un segundo argumento (perfil de
+  `cacheLife`). PPR salió de experimental y se activa con `cacheComponents`. **La tarea 3.11
+  del ROADMAP ("ISR / revalidate 60s") está escrita para Next 14 — revisar contra la doc de
+  16 antes de implementarla.**
+- **`next/image`**: `images.domains` está deprecado → usar `images.remotePatterns` (necesario
+  para el bucket R2 de la tarea 3.5). El default de `qualities` pasó a solo `[75]` y
+  `minimumCacheTTL` de 60s a 4h.
+- **Turbopack es el default** en `dev` y `build`. Los scripts ya están correctos.
+
+Doc oficial: https://nextjs.org/docs/app/guides/upgrading/version-16
 
 ### Infraestructura (a desplegar cuando haya algo funcional para hostear)
-- **VPS Hetzner CX22** (Ubuntu 24.04)
-- **Coolify** como PaaS auto-hosteado
+
+**Un solo VPS sirve backend y frontend.** Ver ADR 016.
+
+- **VPS Hetzner CX32** (4 vCPU / 8 GB, Ubuntu 24.04) — **región US East (Ashburn)**
+- **Coolify** como PaaS auto-hosteado: buildea y sirve **Spring Boot + Next 16 + Postgres**
 - **Docker** + **Docker Compose**
 - **Caddy** (reverse proxy + SSL automático)
-- **Cloudflare R2** para storage de imágenes
-- **Cloudflare Pages** para deploy del frontend
+- **Cloudflare**: DNS + CDN (proxy activado) + **R2** para storage de imágenes
 - **GitHub Actions** para CI
 - **Sentry** para error tracking
 - **Plausible** para analytics de visitas
+
+> **Por qué no Cloudflare Pages / Workers / Vercel / AWS**: ver ADR 016. Resumen:
+> `next-on-pages` está deprecado, el adapter de OpenNext tiene un conflicto sin confirmar
+> con el `proxy.ts` de Next 16 ([issue #13755](https://github.com/cloudflare/workers-sdk/issues/13755)),
+> Vercel Hobby es de uso no comercial (Pro = USD 240/año contra un proyecto de USD 500), y
+> AWS son USD 60-100/mes + IAM/VPC que no entran en las 10 hs del Sprint Despliegue.
+
+> ⚠️ **CX32, no CX22.** Coolify solo pide ~2 GB (Docker + su Postgres + Redis + Soketi).
+> Con la JVM de Spring Boot + Postgres + Next encima, 4 GB no alcanzan.
+
+> ⚠️ **Región Ashburn, no Alemania.** El cliente está en Rio Grande do Sul: Alemania son
+> ~200 ms, Ashburn ~130 ms. Solo afecta a las llamadas de API — landing, catálogo e imágenes
+> los sirve el PoP de Cloudflare en **Porto Alegre**, así que el camino de conversión no
+> depende del origin.
 
 > Durante Sprint 0, 1 y 2 todo corre en **localhost**. Las compras de VPS, dominio,
 > Cloudflare y Sentry se hacen recién en el **Sprint Despliegue** (entre Sprint 2 y 3),
@@ -97,16 +157,22 @@ frontpet/
 │   │   ├── public/             Componentes de la web pública
 │   │   └── admin/              Componentes del admin
 │   ├── lib/                    Utilidades, API client, hooks
-│   ├── tailwind.config.ts      ← design tokens (ya definidos)
-│   └── package.json
+│   └── package.json            (sin tailwind.config.ts — los tokens viven en
+│                                app/globals.css vía @theme. Ver ADR 014)
 ├── docs/
 │   ├── decisions/              Architectural Decision Records (ADRs)
 │   ├── design-system.md        Tokens, escalas, paleta documentadas
 │   ├── db-model.png            Modelo de DB visual (DBdiagram.io export)
-│   └── learnings.md            Bugs >2h con causa raíz
-├── prototypes/                 Referencias visuales (no se copian literal)
-│   ├── FrontPet.jsx
-│   └── frontpet-landing.html
+│   ├── learnings.md            Bugs >2h con causa raíz  [gitignored]
+│   └── ui/                     ← Pantallas generadas en Stitch  [gitignored]
+│       ├── frontpet_Publico/   10 pantallas: landing, catalogo, detalle_producto,
+│       │                       tu_carrito (+vacio), servicios, agendamiento
+│       │                       (pasos 1-3), confirmacion_de_agendamiento
+│       ├── frontpet_Admin/     9 pantallas: login, dashboard, gestion de pedidos,
+│       │                       productos, servicios, agendamientos (hoy / semanal /
+│       │                       detalle), design_system
+│       └── */*/                Cada pantalla: `code.html` (HTML + Tailwind CDN) +
+│                               `screen.png` (referencia visual)
 ├── CLAUDE.md
 ├── ROADMAP.md
 └── README.md
@@ -161,8 +227,25 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
 - Códigos HTTP estándar: 200, 201, 400, 401, 403, 404, 409, 422, 500
 
 ### Design system (frontend)
-- Tokens definidos en `tailwind.config.ts` y documentados en `docs/design-system.md` (v2.0)
-- **Fuente canônica final**: DESIGN.md gerado em Stitch (los 4 colores base + tipografia + radius son la verdad)
+- **Fuente canónica de los tokens: `frontend/app/globals.css`, bloque `@theme`.**
+  Es lo único que compila, así que es lo único que manda. Esta sección lo describe.
+- `docs/ui/frontpet_Admin/frontpet_design_system/DESIGN.md` (Stitch) es la **referencia
+  de intención de diseño** — de ahí salen la paleta, la tipografía y las guardrails.
+  Pero **no es autoridad sobre las clases**: se contradice a sí mismo en los radios
+  (ver ADR 014) y sus pantallas corren en Tailwind v3, no v4.
+- Documentado en `docs/design-system.md` (v2.0).
+- **Los tokens viven en `frontend/app/globals.css`, en el bloque `@theme`.**
+  Tailwind v4 lee la config desde el CSS. **No existe `tailwind.config.ts`** y no hay
+  que recrearlo (ver ADR 014). Para cambiar la paleta se tocan los `--color-*` de
+  `@theme` y se actualiza toda la app — nunca hex hardcodeados en componentes.
+- ⚠️ **Los valores actuales de `@theme` son placeholders** tomados de `DESIGN.md`,
+  pendientes de que el cliente confirme la paleta final.
+- ⚠️ **`app/(public)/layout.tsx` y `app/(public)/page.tsx` están escritos contra el
+  design system v1.0 muerto** (`bg-brand-500`, `container-main`, `btn-primary`,
+  `shadow-brand`, `font-display`) y además en español, con "Pehuajó" como ciudad
+  (el cliente es de Santana do Livramento y opera en PT-BR, ver ADR 007).
+  **Pendiente**: regenerarlas desde las pantallas de Stitch. No tomarlas como
+  referencia de estilo.
 - **Prohibido usar valores arbitrarios** fuera de la escala (ej. `mt-[13px]` no entra)
 - Escala de spacing: `4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80` (y nada más — múltiplos de 4)
 - **Paleta: 4 colores base**:
@@ -171,7 +254,28 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
   - Tertiary Green `#25D366` — WhatsApp CTAs exclusivamente
   - Neutral Slate `#64748B` — texto secundário, borders, structural elements
 - **Tipografia**: Fredoka (headlines) + Plus Jakarta Sans (body) — pesos solo 400/500/600 (nunca 700+)
-- Escala de radius: buttons/inputs `8px` (rounded-md) · cards `16px` (rounded-lg) · modais `24px` (rounded-xl)
+- **Escala de radius — canónica, 4 pasos. Definida en `@theme`, no en Stitch**:
+
+  | Clase | Valor | Uso |
+  |---|---|---|
+  | `rounded-sm` | 4px | chips chicos, badges |
+  | `rounded-md` | 8px | **botones, inputs, chips, icon buttons** |
+  | `rounded-lg` | 16px | **cards** |
+  | `rounded-xl` | 24px | modales, bottom sheets |
+  | `rounded-full` | pill | status pills, avatars |
+
+  No hay paso de 12px: `DESIGN.md` lo menciona solo para "icon buttons 10-12px" y no
+  justifica un token propio — usan `rounded-md`.
+
+  ⚠️ **Las clases `rounded-*` de Stitch NO coinciden con las del repo.** Las 18
+  pantallas usan los defaults del CDN de Tailwind **v3**, donde `rounded-lg` = 8px.
+  En el repo `rounded-lg` = 16px. **Ninguna clase de radius sobrevive un copy-paste.**
+  Tabla de traducción y resolución del conflicto: **ADR 014**.
+
+  🔍 **A revisar**: cards quedaron en 16px (lo dicen la prosa y el frontmatter de
+  `DESIGN.md`), pero las pantallas de Stitch los dibujan a **12px**. Es decisión
+  estética abierta — al portar la primera pantalla, comparar contra el `screen.png` y
+  confirmar si se ven mejor a 12 o 16. Cambiar `--radius-lg` en `globals.css`.
 - Sombras suaves: `0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)` default / hover más diffuse
 
 ### Idioma del producto
@@ -332,6 +436,24 @@ Esta sección lista hábitos que Sebastián quiere internalizar. Claude debe **s
 activamente** cuando el contexto lo amerite, no esperar a que se los pida. Funcionan como
 triggers: "si pasa X, recordame Y".
 
+### Al arrancar un sprint (obligatorio, no opcional)
+
+**Ningún sprint arranca sin acceptance criteria.** Antes de escribir la primera línea de
+código de un sprint, se escriben los AC de cada tarea de ese sprint. Claude los propone,
+Sebastián los corrige. Reglas:
+
+- **Un sprint por vez.** Se escriben los AC del sprint que arranca, **no** los de los
+  siguientes. Escribir los AC del Sprint 7 mientras arranca el 2 es documentación
+  anticipada — el anti-patrón de la sección 6.
+- **Un AC es verificable o no es un AC.** "El catálogo funciona bien" no sirve.
+  "Filtrar por `Rações` muestra solo productos de esa categoría y la URL refleja el filtro"
+  sí. Si no se puede responder sí/no mirando la pantalla o corriendo un test, reescribirlo.
+- **Los AC no reemplazan la Definition of Done** (sección 10): son el *qué* de cada tarea,
+  la DoD es el *cómo se cierra*. Ambos aplican.
+- **Viven en la issue de GitHub** de cada tarea, no en un doc aparte que se desactualiza.
+- Si durante el sprint una tarea no cumple sus AC y el scope crece → ver el trigger de
+  "feature que crece más allá del estimado" abajo. No se estiran los AC para que entre.
+
 ### Antes de codear
 
 - **Al arrancar una feature con lógica no trivial** (booking, checkout, queries agregados):
@@ -393,6 +515,9 @@ Antes de marcar una tarea como completa:
 - ✅ Si afecta UX visible: screenshot guardado en la issue de GitHub
 - ✅ Si introdujo decisión técnica: ADR creado o actualizado
 - ✅ Si tocó schema de DB: `docs/db-model.png` regenerado
+- ✅ **Si tocó dependencias o config del build: `pnpm build`, `pnpm test` y `pnpm lint`
+  en verde — corridos desde WSL** (ver ADR 015). El `dev` server no alcanza: la migración
+  a Tailwind v4 estuvo rota ~6 semanas sin que nadie lo notara porque nunca se buildeó.
 
 
 ## 12. Contactos y referencias
@@ -401,8 +526,9 @@ Antes de marcar una tarea como completa:
 - **Cliente piloto**: FrontPet (Santana do Livramento, Brasil)
 - **Repo**: https://github.com/sebakhazzaka2/Frontpet
 - **Producción**: [pendiente — se completa al final del Sprint Despliegue]
-- **Diseño de referencia**: ver `prototypes/FrontPet.jsx` y `prototypes/frontpet-landing.html`
-  (son **referencia visual**, no se copian)
+- **Diseño de referencia**: ver `docs/ui/` — 19 pantallas generadas en Stitch (`screen.png`
+  para la referencia visual, `code.html` para el markup). El HTML de Stitch usa Tailwind por
+  CDN y su propio config inline: **se porta a los tokens del repo, no se copia literal**.
 
 ---
 
