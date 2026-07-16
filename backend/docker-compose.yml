@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: frontpet-postgres
     environment:
-      POSTGRES_DB: frontpet
-      POSTGRES_USER: frontpet
-      POSTGRES_PASSWORD: frontpet_dev_pass
+      POSTGRES_DB: ${DB_NAME:-frontpet}
+      POSTGRES_USER: ${DB_USERNAME:-frontpet}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-frontpet_dev_pass}
     ports:
       - "5432:5432"
     volumes:

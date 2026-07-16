@@ -1,0 +1,42 @@
+#!/bin/sh
+# Pre-push: chequeo básico de secretos antes de enviar commits a un remoto.
+# No reemplaza el juicio humano — es una red de contención, no un escaneo exhaustivo.
+# Instalación (una vez por clone): git config core.hooksPath .githooks
+
+# Patrones típicos de secretos reales. No incluye la palabra "password" sola,
+# porque matchea nombres de columna legítimos (password_hash) y generaría ruido.
+pattern='(password|passwd|pwd)[[:space:]]*[:=][[:space:]]*.|api[_-]?key[[:space:]]*[:=]|secret[_-]?key[[:space:]]*[:=]|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xox[baprs]-[A-Za-z0-9-]{10,}'
+
+blocked=0
+
+# git push manda por stdin una línea por ref: "<local ref> <local sha> <remote ref> <remote sha>"
+while read local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue  # borrado de rama
+
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    range="$local_sha"  # rama nueva: revisa todos sus commits
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  # Solo líneas AGREGADAS (+, no +++ de cabecera), sin el prefijo '+', y
+  # excluyendo las que usan nuestra convención de env var (${VAR:-default}) —
+  # esas son defaults de dev documentados, no secretos reales.
+  hits=$(git log -p "$range" -- . 2>/dev/null \
+    | grep -E '^\+[^+]' \
+    | sed 's/^\+//' \
+    | grep -v '\${' \
+    | grep -inE "$pattern")
+
+  if [ -n "$hits" ]; then
+    echo ""
+    echo "🛑 pre-push: posibles secretos detectados en $range"
+    echo "$hits" | head -20
+    echo ""
+    echo "Si es un falso positivo, podés forzar con:  git push --no-verify"
+    echo ""
+    blocked=1
+  fi
+done
+
+exit $blocked

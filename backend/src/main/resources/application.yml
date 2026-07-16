@@ -3,9 +3,9 @@ spring:
     name: frontpet-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/frontpet
-    username: frontpet
-    password: frontpet_dev_pass
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/frontpet}
+    username: ${DB_USERNAME:frontpet}
+    password: ${DB_PASSWORD:frontpet_dev_pass}
     driver-class-name: org.postgresql.Driver
 
   jpa:
