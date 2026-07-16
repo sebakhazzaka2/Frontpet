@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans, DM_Serif_Display } from 'next/font/google'
+import { Fredoka, Plus_Jakarta_Sans } from 'next/font/google'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -8,20 +8,20 @@ import './globals.css'
 // al servidor de Google en runtime. Cero layout shift garantizado.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const dmSans = DM_Sans({
+// DESIGN.md restringe los pesos a 400/500/600: nada de 700+.
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  // Pesos que realmente usamos (ver design-system.md §2)
-  weight: ['400', '500', '600', '700'],
-  // La variable CSS se inyecta en <html> y Tailwind la usa via font-sans
-  variable: '--font-sans',
+  weight: ['400', '500', '600'],
+  // globals.css mapea esta variable a --font-sans dentro de @theme
+  variable: '--font-jakarta',
   display: 'swap',
 })
 
-const dmSerifDisplay = DM_Serif_Display({
+const fredoka = Fredoka({
   subsets: ['latin'],
-  weight: '400',
-  // DM Serif Display solo tiene regular — el "bold" es solo tamaño/tracking
-  variable: '--font-display',
+  weight: ['400', '500', '600'],
+  // globals.css mapea esta variable a --font-display dentro de @theme
+  variable: '--font-fredoka',
   display: 'swap',
 })
 
@@ -113,11 +113,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5, // Permitir zoom para accesibilidad (no bloquear con maximum-scale=1)
-  // Color de la barra de dirección en Chrome mobile
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FFF7ED' },
-    { media: '(prefers-color-scheme: dark)',  color: '#1C1917' },
-  ],
+  // Color de la barra de dirección en Chrome mobile.
+  // Un solo valor: DESIGN.md prohíbe dark mode, la interfaz es siempre clara.
+  themeColor: '#F8F9FF',
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +132,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       lang="es"
       // Las variables CSS de las fuentes se inyectan acá.
       // Tailwind las recoge automáticamente via font-sans y font-display.
-      className={`${dmSans.variable} ${dmSerifDisplay.variable}`}
+      className={`${jakarta.variable} ${fredoka.variable}`}
       // Previene el flash de estilos desincronizados en hidratación
       suppressHydrationWarning
     >
@@ -173,16 +171,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
 
       <body
-        className={[
-          // Fondo y texto base del design system
-          'bg-stone-50 text-stone-900',
-          // Fuente por defecto: DM Sans
-          'font-sans',
-          // Antialiasing para texto más limpio en Mac/iOS
-          'antialiased',
-          // Previene el scroll horizontal accidental
-          'overflow-x-hidden',
-        ].join(' ')}
+        // Fondo, color, fuente y antialiasing salen del @layer base de globals.css
+        className="overflow-x-hidden"
       >
         {/*
           Providers envuelve toda la app con los context providers de cliente.

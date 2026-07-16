@@ -1,318 +1,159 @@
-/* ─── app/globals.css ─── FrontPet ───────────────────────────────────── */
- 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
- 
-/* ─────────────────────────────────────────────────────────────────────────
-   FONTS — Next.js font optimization
-   Reemplazar por next/font/google en app/layout.tsx para mejor performance.
-   Docs: https://nextjs.org/docs/app/building-your-application/optimizing/fonts
- 
-   En layout.tsx:
-     import { DM_Sans, DM_Serif_Display } from 'next/font/google'
-     const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
-     const dmSerif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-display' })
-     <body className={`${dmSans.variable} ${dmSerif.variable}`}>
- 
-   Si preferís cargar directo desde CSS (dev rápido, menos óptimo):
-───────────────────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
- 
- 
-/* ─────────────────────────────────────────────────────────────────────────
-   CSS CUSTOM PROPERTIES — espejo de los tokens de Tailwind.
-   Usarlas cuando necesités inline styles o variables en JS.
-   En componentes, preferir clases de Tailwind.
-───────────────────────────────────────────────────────────────────────── */
-@layer base {
-  :root {
-    /* ── Brand ─────────────────── */
-    --color-brand:        #F97316;
-    --color-brand-hover:  #EA580C;
-    --color-brand-subtle: #FFF7ED;
-    --color-brand-muted:  #FFEDD5;
- 
-    /* ── WhatsApp ───────────────── */
-    --color-wa:       #25D366;
-    --color-wa-dark:  #128C7E;
-    --color-wa-light: #DCF8C6;
- 
-    /* ── Amber / Acento ─────────── */
-    --color-amber:        #FBBF24;
-    --color-amber-subtle: #FFFBEB;
- 
-    /* ── Stone / Neutrales ─────── */
-    --color-bg:         #FAFAF9;
-    --color-bg-warm:    #FFF7ED;
-    --color-surface:    #ffffff;
-    --color-border:     #E7E5E4;
-    --color-border-md:  #D6D3D1;
-    --color-text:       #1C1917;
-    --color-text-muted: #78716C;
- 
-    /* ── Semánticos ─────────────── */
-    --color-success:        #22C55E;
-    --color-success-subtle: #F0FFF4;
-    --color-success-dark:   #15803D;
-    --color-danger:         #EF4444;
-    --color-danger-subtle:  #FEF2F2;
-    --color-danger-dark:    #DC2626;
-    --color-warning:        #F59E0B;
-    --color-warning-subtle: #FFFBEB;
-    --color-warning-dark:   #D97706;
- 
-    /* ── Sombras ────────────────── */
-    --shadow-sm:       0 1px 4px rgba(28, 25, 23, 0.06);
-    --shadow-md:       0 4px 16px rgba(28, 25, 23, 0.08);
-    --shadow-lg:       0 8px 32px rgba(28, 25, 23, 0.13);
-    --shadow-xl:       0 20px 60px rgba(28, 25, 23, 0.18);
-    --shadow-brand:    0 4px 20px rgba(249, 115, 22, 0.25);
-    --shadow-brand-lg: 0 8px 32px rgba(249, 115, 22, 0.35);
-    --shadow-wa:       0 4px 18px rgba(37, 211, 102, 0.38);
-    --shadow-wa-lg:    0 6px 26px rgba(37, 211, 102, 0.48);
- 
-    /* ── Radios ─────────────────── */
-    --radius-sm:   4px;
-    --radius-md:   8px;
-    --radius-lg:   12px;
-    --radius-xl:   16px;
-    --radius-2xl:  24px;
-    --radius-full: 9999px;
- 
-    /* ── Transiciones ───────────── */
-    --transition-fast:    150ms ease;
-    --transition-default: 200ms ease;
-    --transition-slow:    350ms ease;
-  }
+/* ─── app/globals.css ─── FrontPet ─────────────────────────────────────────
+   Fuente de verdad del design system. Tailwind v4 lee `@theme` desde acá:
+   no existe tailwind.config.ts (ver docs/decisions/014-tailwind-v4-css-first.md).
+
+   Cada `--color-x` declarado abajo genera solas las utilidades bg-x, text-x,
+   border-x, ring-x, etc. No hace falta escribirlas.
+
+   Referencia canónica: docs/ui/frontpet_Admin/frontpet_design_system/DESIGN.md
+   ────────────────────────────────────────────────────────────────────────── */
+
+@import "tailwindcss";
+
+@theme {
+  /* ── Paleta base — 4 colores (CLAUDE.md §5) ────────────────────────────
+     PENDIENTE: valores a confirmar con el cliente. Al cambiarlos acá se
+     actualiza toda la app; no hay hex hardcodeados en componentes. */
+
+  /* Primary Navy — identidad, estructura (sidebar admin, footer), acción de sistema */
+  --color-navy: #011e5a;
+  --color-navy-dark: #000a2c;
+  --color-navy-light: #7388c9;
+
+  /* Secondary Orange — acciones comerciales (Adicionar à sacola, Agendar, preços) */
+  --color-orange: #f4640d;
+  --color-orange-dark: #a33e00;
+  --color-orange-light: #fe6b17;
+
+  /* Tertiary Green — CTAs de WhatsApp, exclusivamente */
+  --color-wa: #25d366;
+  --color-wa-dark: #128c7e;
+
+  /* Neutral Slate — texto secundario, borders, elementos estructurales */
+  --color-slate: #64748b;
+
+  /* ── Superficies ────────────────────────────────────────────────────────
+     DESIGN.md prohíbe dark mode y superficies oscuras: interfaz siempre clara. */
+  --color-surface: #f8f9ff;
+  --color-surface-card: #ffffff;
+  --color-ink: #0b1c30;
+  --color-ink-muted: #444650;
+  --color-outline: #c5c6d1;
+
+  /* ── Puente semántico para shadcn/ui ────────────────────────────────────
+     components/ui/* esperan estos nombres (bg-primary, border-border, …).
+     Acá se mapean sobre la paleta FrontPet. */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface-card);
+  --color-card-foreground: var(--color-ink);
+  --color-primary: var(--color-navy);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-orange);
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #eff4ff;
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent: #e5eeff;
+  --color-accent-foreground: var(--color-ink);
+  --color-border: var(--color-outline);
+  --color-input: var(--color-outline);
+  --color-ring: var(--color-navy);
+  --color-destructive: #ba1a1a;
+  --color-destructive-foreground: #ffffff;
+
+  /* ── Tipografía ─────────────────────────────────────────────────────────
+     Las variables --font-fredoka / --font-jakarta las inyecta next/font
+     desde app/layout.tsx. */
+  --font-display: var(--font-fredoka), system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
+
+  /* Escala tipográfica — DESIGN.md. Fuera de esta escala no se sale. */
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 1.4;
+  --text-eyebrow--letter-spacing: 0.08em;
+  --text-eyebrow--font-weight: 600;
+
+  --text-caption: 12px;
+  --text-caption--line-height: 1.4;
+  --text-caption--font-weight: 500;
+
+  --text-label: 13px;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 500;
+
+  --text-sm: 14px;
+  --text-sm--line-height: 1.6;
+
+  --text-base: 16px;
+  --text-base--line-height: 1.6;
+
+  --text-h3: 18px;
+  --text-h3--line-height: 1.4;
+
+  --text-h2-mobile: 24px;
+  --text-h2-mobile--line-height: 1.4;
+
+  --text-h2: 30px;
+  --text-h2--line-height: 1.4;
+  --text-h2--letter-spacing: -0.01em;
+
+  --text-display-mobile: 32px;
+  --text-display-mobile--line-height: 1.15;
+  --text-display-mobile--letter-spacing: -0.02em;
+
+  --text-display: 44px;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.02em;
+
+  /* ── Radius — escala canónica: 4 / 8 / 16 / 24. Ver ADR 014.
+     Ojo: las clases rounded-* de Stitch NO significan lo mismo acá (sus pantallas
+     corren en Tailwind v3, donde rounded-lg = 8px). Tabla de traducción en el ADR.
+     🔍 A revisar: --radius-lg (cards) salió de la doc, no del ojo. Las pantallas de
+     Stitch los dibujan a 12px. Comparar contra screen.png y confirmar 12 vs 16. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* ── Sombras — suaves y ambientales, nunca duras ───────────────────────── */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.03);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.05), 0 8px 24px rgb(0 0 0 / 0.06);
+  --shadow-system: 0 2px 8px rgb(1 30 90 / 0.15);
+
+  /* ── Contenedores ──────────────────────────────────────────────────────── */
+  --container-content: 1280px;
 }
- 
- 
+
 /* ─────────────────────────────────────────────────────────────────────────
-   BASE STYLES
-───────────────────────────────────────────────────────────────────────── */
+   BASE — solo defaults de elemento. Los variants de componente viven en
+   components/ui/* con CVA, no acá.
+   ───────────────────────────────────────────────────────────────────────── */
 @layer base {
-  *, *::before, *::after {
-    @apply box-border;
-  }
- 
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
   }
- 
+
   body {
-    @apply bg-stone-50 text-stone-900 font-sans text-base antialiased;
-    line-height: 1.625;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
- 
-  /* Titulares: siempre DM Serif Display */
-  h1 {
-    @apply font-display text-3xl font-normal;
-    /* letter-spacing ya viene de la escala tipográfica */
-  }
- 
-  h2 {
-    @apply font-display text-2xl font-normal;
-  }
- 
-  /* Sub-titulares y titles de sección: DM Sans semibold */
+
+  /* Headlines siempre en Fredoka. Peso máximo 600 — DESIGN.md prohíbe 700+. */
+  h1,
+  h2,
   h3 {
-    @apply font-sans text-xl font-semibold text-stone-900;
+    font-family: var(--font-display);
+    font-weight: 600;
   }
- 
-  h4, h5, h6 {
-    @apply font-sans font-semibold text-stone-900;
-  }
- 
-  p {
-    @apply text-stone-700;
-    line-height: 1.75;
-  }
- 
-  /* Links */
-  a {
-    @apply text-inherit no-underline;
-    transition: color var(--transition-fast);
-  }
- 
-  /* Focus ring accesible */
+
   :focus-visible {
-    outline: 2px solid var(--color-brand);
+    outline: 2px solid var(--color-ring);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
- 
-  /* Scrollbar sutil */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #D6D3D1 transparent;
-  }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 3px; }
- 
-  /* Inputs y selects — base limpia */
-  input, select, textarea {
-    @apply font-sans text-sm text-stone-900 bg-white border border-stone-200 rounded;
-    @apply outline-none transition-all;
-    padding: 10px 14px;
-  }
-  input:focus, select:focus, textarea:focus {
-    @apply border-brand-500;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-  }
-  input::placeholder, textarea::placeholder {
-    @apply text-stone-400;
-  }
-  textarea {
-    resize: vertical;
-    min-height: 72px;
-  }
-}
- 
- 
-/* ─────────────────────────────────────────────────────────────────────────
-   COMPONENT LAYER — clases reutilizables de alto nivel.
-   Documentar cada una. No agregar sin discutir.
-───────────────────────────────────────────────────────────────────────── */
-@layer components {
- 
-  /* ── Botón primario — naranja, pill ─────────────────────────────── */
-  .btn-primary {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full;
-    @apply bg-brand-500 text-white font-semibold text-sm;
-    @apply transition-all duration-200 cursor-pointer border-0;
-    box-shadow: var(--shadow-brand);
-  }
-  .btn-primary:hover:not(:disabled) {
-    @apply bg-brand-600;
-    box-shadow: var(--shadow-brand-lg);
-    transform: translateY(-1px);
-  }
-  .btn-primary:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-  .btn-primary:disabled {
-    @apply opacity-50 cursor-not-allowed;
-  }
- 
-  /* ── Botón WhatsApp ─────────────────────────────────────────────── */
-  .btn-wa {
-    @apply inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full;
-    @apply bg-wa text-white font-semibold text-sm;
-    @apply transition-all duration-200 cursor-pointer border-0;
-    box-shadow: var(--shadow-wa);
-  }
-  .btn-wa:hover:not(:disabled) {
-    background-color: var(--color-wa-dark);
-    transform: translateY(-1px);
-  }
-  .btn-wa:active:not(:disabled) {
-    transform: scale(0.98);
-  }
- 
-  /* ── Botón outline (borde naranja) ──────────────────────────────── */
-  .btn-outline {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full;
-    @apply bg-transparent text-brand-500 border-2 border-brand-500;
-    @apply font-semibold text-sm transition-all duration-200 cursor-pointer;
-  }
-  .btn-outline:hover:not(:disabled) {
-    @apply bg-brand-500 text-white;
-  }
- 
-  /* ── Card base ──────────────────────────────────────────────────── */
-  .card {
-    @apply bg-white rounded-xl border border-stone-200 overflow-hidden;
-    @apply transition-all duration-200;
-    box-shadow: var(--shadow-md);
-  }
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-  }
- 
-  /* ── Badge / chip ───────────────────────────────────────────────── */
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-sm;
-    @apply text-xs font-bold uppercase tracking-wide;
-    /* Ejemplo de uso: <span class="badge" style="background: var(--color-brand); color: white;"> */
-  }
- 
-  /* ── Section container ──────────────────────────────────────────── */
-  .container-main {
-    @apply max-w-content mx-auto px-4;
-    /* max-w-content = 1200px definido en tailwind.config */
-  }
- 
-  /* ── Eyebrow text (texto pequeño sobre títulos) ──────────────────── */
-  .eyebrow {
-    @apply text-xs font-bold uppercase tracking-widest text-brand-500;
-  }
- 
-  /* ── Sección separada visualmente ──────────────────────────────── */
-  .section {
-    @apply py-16 px-4;
-  }
- 
-  /* ── Animaciones de entrada (usar con animate-fade-in etc.) ─────── */
-  .animate-stagger > * {
-    opacity: 0;
-    animation: slideUpSm 0.4s ease forwards;
-  }
-  .animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
-  .animate-stagger > *:nth-child(2) { animation-delay: 80ms; }
-  .animate-stagger > *:nth-child(3) { animation-delay: 160ms; }
-  .animate-stagger > *:nth-child(4) { animation-delay: 240ms; }
- 
-  /* ── Floating WhatsApp button ───────────────────────────────────── */
-  .float-wa {
-    @apply fixed bottom-6 right-5 z-50 w-14 h-14 rounded-full;
-    @apply bg-wa flex items-center justify-content;
-    box-shadow: var(--shadow-wa-lg);
-    transition: transform var(--transition-fast);
-  }
-  .float-wa:hover {
-    transform: scale(1.08);
-  }
- 
-  /* ── Input de búsqueda con ícono ─────────────────────────────────── */
-  .input-search {
-    @apply pl-10 pr-4 py-3 rounded-full border border-stone-200 text-sm;
-    @apply w-full bg-white transition-all;
-  }
-  .input-search:focus {
-    @apply border-brand-500;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-  }
-}
- 
- 
-/* ─────────────────────────────────────────────────────────────────────────
-   KEYFRAMES (complementa lo de tailwind.config.ts)
-───────────────────────────────────────────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
- 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
- 
-@keyframes slideUpSm {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
- 
-@keyframes pulseBrand {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.04); }
-}
- 
-@keyframes waPulse {
-  0%   { transform: scale(1);   opacity: 0.7; }
-  100% { transform: scale(1.7); opacity: 0; }
 }
