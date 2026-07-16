@@ -1,7 +1,21 @@
+# pnpm >= 10 no ejecuta postinstall scripts salvo que se aprueben acá.
+# Cada entrada es una decisión explícita: true = se le permite compilar/descargar
+# binarios nativos en postinstall. Si queda sin decidir, pnpm escribe el placeholder
+# "set this to true or false" y falla el install. Ver ADR 015.
 allowBuilds:
-  msw: true
+  # Compila su binario nativo en postinstall. Vitest depende de él:
+  # sin esto, `pnpm test` no arranca.
+  esbuild: true
+
+  # Binario nativo de procesamiento de imágenes. Lo usa next/image para optimizar
+  # en build. Sin esto, la optimización de imágenes degrada.
   sharp: true
+
+  # Resolver nativo de módulos, transitivo de eslint-config-next. Sin esto,
+  # ESLint no resuelve los alias de TypeScript (@/...).
   unrs-resolver: true
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+
+  # Mock Service Worker. Su postinstall copia mockServiceWorker.js a public/.
+  # No lo usamos: los tests son Vitest + Testing Library, sin mocks de red.
+  # Si algún día entra MSW para mockear la API del backend, poner en true.
+  msw: false
