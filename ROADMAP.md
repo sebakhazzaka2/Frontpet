@@ -142,6 +142,12 @@ funcional y seguro.
 Estas no son tareas de un sprint puntual: son hábitos que se ejecutan **durante todo el
 proyecto**. El costo está distribuido y no se contabiliza como tareas separadas.
 
+> 🏗️ **Estilo de ejecución (ADR 017 — frontend-first híbrido)**: la superficie pública se
+> construye UI-primero con datos estáticos (design system → componentes → vistas → deploy).
+> **Excepciones**: booking backend se adelanta (no se difiere), y el admin se hace vertical.
+> Swap por superficie, no big-bang. Datos siempre en `frontend/lib/data/` **tipados contra
+> los DTOs reales** (ADR 013), nunca hardcodeados.
+
 ### Por cada feature no trivial
 1. **Plan antes de código**: escribir en prosa qué se va a hacer (query, edge cases, tests)
    antes de generar implementación. Especialmente con asistencia de IA.
@@ -193,10 +199,14 @@ proyecto**. El costo está distribuido y no se contabiliza como tareas separadas
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 0.1 | Setup de GitHub Projects (Kanban con sprints como milestones, issues iniciales) | 1.5 |
+| 0.1 | Setup de issues en GitHub (milestones por sprint) para trackear las tareas de este ROADMAP | 1.5 |
 | 0.2 | **Modelo de DB inicial en DBdiagram.io**: `tenants`, `users`, `categories`, `products`, `services`, `appointments`, `orders`. Exportar PNG a `docs/db-model.png` | 1.5 |
 
-**Entregable**: Kanban operativo + modelo de DB visualizable antes de la primera migración.
+**Entregable**: issues del sprint creadas en GitHub + modelo de DB visualizable antes de la primera migración.
+
+> El **plan y la secuencia viven acá, en `ROADMAP.md`** — no hay tablero Kanban aparte que
+> mantener sincronizado. Los milestones de GitHub Issues son solo para trackear el estado
+> (abierta/cerrada) de cada tarea; el AC de cada una vive en su issue (ver `CLAUDE.md` §9).
 
 > 💡 Por qué la 0.2: dibujar la DB antes de migrar te ahorra 2-3 refactors de schema
 > en sprints 3-5. Cuesta 1.5 hs ahora, te ahorra 10 hs después.

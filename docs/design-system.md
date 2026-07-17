@@ -6,7 +6,7 @@
 
 **Versión**: 2.0
 **Última actualización**: 2026-05-25
-**Archivos fuente**: `tailwind.config.ts` · `app/globals.css` · DESIGN.md (Stitch canónico)
+**Archivos fuente**: `frontend/app/globals.css` (bloque `@theme` — **fuente canónica de tokens**) · DESIGN.md (Stitch, intención de diseño). **No existe `tailwind.config.ts`** (ver ADR 014).
 
 > ⚠️ **v2.0 (mayo 2026)**: paleta y tipografía actualizadas al sistema canónico
 > definido en Stitch. La sección **Colores** y **Tipografía** ya reflejan los 4
@@ -166,6 +166,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 > **Actualizado mayo 2026**: paleta alineada con el DESIGN.md canónico generado en
 > Stitch. Son **4 colores base** + sus escalas tonales + semánticos. Cualquier color
 > fuera de esta paleta está prohibido.
+>
+> ⚠️ **Ampliación 2.0b (jul 2026)**: se sumaron tokens semánticos en `globals.css` que aún
+> no están detallados abajo: `--color-star #E0A82E` (rating), `--color-hover #F3F4F6` y
+> `--color-navy-mid #01256E`. No son acentos comerciales nuevos. Ver `docs/port-landing-stitch.md`.
 
 ### primary — Deep Navy (identidad)
 

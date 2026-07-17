@@ -59,3 +59,4 @@ Crear un ADR cuando:
 | [014](./014-tailwind-v4-css-first.md) | Config de Tailwind CSS-first (`@theme` en `globals.css`) | Aceptada | 2026-07-16 |
 | [015](./015-toolchain-wsl-node-pnpm.md) | Toolchain de desarrollo: WSL, Node y pnpm | Aceptada | 2026-07-16 |
 | [016](./016-deploy-frontend-vps-coolify.md) | Deploy: VPS único con Coolify, Cloudflare como CDN | Aceptada | 2026-07-16 |
+| [017](./017-metodologia-frontend-first-hibrido.md) | Metodología: frontend-first híbrido con datos estáticos tipados | Aceptada | 2026-07-17 |

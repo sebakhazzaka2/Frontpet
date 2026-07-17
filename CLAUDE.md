@@ -120,7 +120,7 @@ Doc oficial: https://nextjs.org/docs/app/guides/upgrading/version-16
 Las decisiones detalladas están en `docs/decisions/`. Resumen:
 
 - **Monolito modular**, no microservicios
-- **Monorepo** (un solo repo con `backend/` y `web/`), no dos repos separados
+- **Monorepo** (un solo repo con `backend/` y `frontend/`), no dos repos separados
 - **Multi-tenant ready**: toda tabla del dominio lleva `tenant_id` desde el día uno
 - **API REST** (no GraphQL)
 - **Auth con JWT en cookie HttpOnly**, no en localStorage
@@ -217,6 +217,22 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
 - Tailwind directo, evitar CSS modules
 - Server Components por defecto, `"use client"` solo cuando hace falta (interactividad, hooks)
 - Imágenes siempre con `<Image>` de Next.js, nunca `<img>`
+
+### Metodología de implementación (frontend-first híbrido — ver ADR 017)
+- **Orden de la superficie pública**: design system → librería de componentes → vistas
+  públicas con datos estáticos → deploy. La UI se construye antes que su backend.
+- **Excepciones que NO se difieren al final**: el **booking backend** se codea temprano
+  (es el riesgo concentrado —slots, concurrencia— y no se des-arriesga con frontend
+  estático); el **admin** se hace **vertical**, pegado a su backend (es CRUD, el frontend
+  estático de admin es bajo valor y alto rework). No existe "todo el frontend primero,
+  todo el backend al final".
+- **Swap por superficie, no big-bang**: cada vista pasa de datos estáticos a la API real
+  cuando aterriza su backend, no todo junto contra el deadline.
+- **Componente que no existe → crearlo antes de usarlo. Nunca duplicar** un componente
+  existente (revisar `components/` primero).
+- **Los datos van siempre en `frontend/lib/data/`, nunca hardcodeados en componentes**, y
+  **tipados contra los DTOs reales** (derivados del schema — ADR 013). Con la forma
+  correcta desde el día uno, el swap es cambiar la fuente, no reescribir el componente.
 
 ### API REST
 - URLs en **kebab-case**: `/api/products`, `/api/order-items`
@@ -446,6 +462,23 @@ Cuando Claude reciba pedidos debería:
 Esta sección lista hábitos que Sebastián quiere internalizar. Claude debe **sugerirlos
 activamente** cuando el contexto lo amerite, no esperar a que se los pida. Funcionan como
 triggers: "si pasa X, recordame Y".
+
+### Las dos capas de planificación (el orden importa, no se saltean)
+
+Antes de código hay **dos artefactos distintos, en este orden**:
+
+1. **Acceptance Criteria — al arrancar el sprint.** El *qué* de cada tarea, verificable
+   sí/no, viviendo en la issue de GitHub. Se escriben para **todo el sprint que arranca**
+   (uno por vez), antes de la primera línea de código. Claude los propone, Sebastián los
+   corrige. Detalle en "Al arrancar un sprint", abajo.
+2. **Plan en prosa — antes de cada feature no trivial.** El *cómo*: qué componentes, qué
+   query, qué es Server/Client, edge cases, qué tests. Va **justo antes de codear esa
+   feature**, no antes. Detalle en "Antes de codear", abajo.
+
+**AC ≠ plan en prosa**: el AC es el contrato de la tarea (qué tiene que cumplir); el plan
+en prosa es el approach de la implementación (cómo se construye). Ambos aplican, y la
+**Definition of Done (§10) cierra** cada tarea arriba de los dos. Secuencia completa:
+**AC del sprint → plan en prosa de la feature → código → DoD.**
 
 ### Al arrancar un sprint (obligatorio, no opcional)
 
