@@ -164,14 +164,12 @@ frontpet/
 │   ├── design-system.md        Tokens, escalas, paleta documentadas
 │   ├── db-model.png            Modelo de DB visual (DBdiagram.io export)
 │   ├── learnings.md            Bugs >2h con causa raíz  [gitignored]
-│   └── ui/                     ← Pantallas generadas en Stitch  [gitignored]
-│       ├── frontpet_Publico/   10 pantallas: landing, catalogo, detalle_producto,
-│       │                       tu_carrito (+vacio), servicios, agendamiento
-│       │                       (pasos 1-3), confirmacion_de_agendamiento
-│       ├── frontpet_Admin/     9 pantallas: login, dashboard, gestion de pedidos,
-│       │                       productos, servicios, agendamientos (hoy / semanal /
-│       │                       detalle), design_system
-│       └── */*/                Cada pantalla: `code.html` (HTML + Tailwind CDN) +
+│   └── ui/                     ← Export VIEJO de Stitch  [gitignored]
+│       │                       ⚠️ NO es fuente de verdad — ver sección 5.
+│       │                       Sirve para mirar `screen.png` sin conexión.
+│       ├── frontpet_Publico/   10 pantallas (nombres en español, versiones stale)
+│       ├── frontpet_Admin/     9 pantallas + design_system
+│       └── */*/                Cada pantalla: `code.html` (HTML + Tailwind CDN v3) +
 │                               `screen.png` (referencia visual)
 ├── CLAUDE.md
 ├── ROADMAP.md
@@ -229,10 +227,20 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
 ### Design system (frontend)
 - **Fuente canónica de los tokens: `frontend/app/globals.css`, bloque `@theme`.**
   Es lo único que compila, así que es lo único que manda. Esta sección lo describe.
-- `docs/ui/frontpet_Admin/frontpet_design_system/DESIGN.md` (Stitch) es la **referencia
-  de intención de diseño** — de ahí salen la paleta, la tipografía y las guardrails.
-  Pero **no es autoridad sobre las clases**: se contradice a sí mismo en los radios
-  (ver ADR 014) y sus pantallas corren en Tailwind v3, no v4.
+- **Fuente canónica del diseño: el proyecto de Stitch, leído por MCP.**
+  `projects/3403942466915386698` — "FrontPet Design System" (19 pantallas + logo +
+  banner + `DESIGN.md`). **Las pantallas se portan leyendo del MCP, no de `docs/ui/`.**
+- ⚠️ **`docs/ui/` es un export viejo y stale.** Sus carpetas están en español contra
+  títulos PT-BR en Stitch, y su markup es de versiones anteriores ("Landing Page" local
+  vs "Landing Page com Rodapé Sincronizado" en Stitch). **Se usa para mirar `screen.png`
+  sin conexión. No se porta desde ahí.**
+- `DESIGN.md` (Stitch) es la **referencia de intención de diseño** — de ahí salen la
+  paleta, la tipografía y las guardrails. Pero **no es autoridad sobre las clases**: se
+  contradice a sí mismo en los radios (ver ADR 014) y sus pantallas corren en Tailwind
+  v3, no v4.
+- **El login es la única pantalla DESKTOP** (2560px); las otras 18 son MOBILE (780px).
+- **No existen pantallas de reset de contraseña ni de banner LGPD.** Hay que generarlas
+  en Stitch antes de codearlas (tareas 7.12 y 7.13 del ROADMAP).
 - Documentado en `docs/design-system.md` (v2.0).
 - **Los tokens viven en `frontend/app/globals.css`, en el bloque `@theme`.**
   Tailwind v4 lee la config desde el CSS. **No existe `tailwind.config.ts`** y no hay
@@ -240,12 +248,12 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
   `@theme` y se actualiza toda la app — nunca hex hardcodeados en componentes.
 - ⚠️ **Los valores actuales de `@theme` son placeholders** tomados de `DESIGN.md`,
   pendientes de que el cliente confirme la paleta final.
-- ⚠️ **`app/(public)/layout.tsx` y `app/(public)/page.tsx` están escritos contra el
-  design system v1.0 muerto** (`bg-brand-500`, `container-main`, `btn-primary`,
-  `shadow-brand`, `font-display`) y además en español, con "Pehuajó" como ciudad
-  (el cliente es de Santana do Livramento y opera en PT-BR, ver ADR 007).
-  **Pendiente**: regenerarlas desde las pantallas de Stitch. No tomarlas como
-  referencia de estilo.
+- ✅ **El prototipo de landing v1.0 fue borrado** (commit `010f8f87`) y **queda
+  descartado**: estaba contra el design system v1.0 muerto, en español, con "Pehuajó"
+  como ciudad, y los tipos de su `lib/data.ts` contradecían el ADR 013 (mezclaban
+  especie y categoría en un campo plano). **No se reutiliza nada de ahí** — sigue
+  recuperable en `git show 010f8f87^:...` si hace falta consultarlo, pero la landing
+  se regenera desde Stitch.
 - **Prohibido usar valores arbitrarios** fuera de la escala (ej. `mt-[13px]` no entra)
 - Escala de spacing: `4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80` (y nada más — múltiplos de 4)
 - **Paleta: 4 colores base**:
@@ -526,11 +534,14 @@ Antes de marcar una tarea como completa:
 - **Cliente piloto**: FrontPet (Santana do Livramento, Brasil)
 - **Repo**: https://github.com/sebakhazzaka2/Frontpet
 - **Producción**: [pendiente — se completa al final del Sprint Despliegue]
-- **Diseño de referencia**: ver `docs/ui/` — 19 pantallas generadas en Stitch (`screen.png`
-  para la referencia visual, `code.html` para el markup). El HTML de Stitch usa Tailwind por
-  CDN y su propio config inline: **se porta a los tokens del repo, no se copia literal**.
+- **Diseño (fuente de verdad)**: proyecto de Stitch `projects/3403942466915386698`
+  ("FrontPet Design System"), leído **por MCP**. 19 pantallas + logo + banner + `DESIGN.md`.
+  El HTML de Stitch usa Tailwind v3 por CDN y su propio config inline: **se porta a los
+  tokens del repo, no se copia literal**. `docs/ui/` es un export viejo — ver sección 5.
+- **Entrega final**: **30/09/2026**. Hito de cobro intermedio: **05/09/2026** (tienda
+  vendiendo). Ritmo comprometido: 22 hs/semana. Ver ROADMAP v2.0.
 
 ---
 
-**Última actualización**: 2026-07-09
-**Versión del documento**: 1.7
+**Última actualización**: 2026-07-17
+**Versión del documento**: 1.8
