@@ -160,21 +160,33 @@ estimado en ninguna tarea del Sprint 2.
 
 ---
 
-## 5. Decisiones que necesitan cierre antes de codear
+## 5. Decisiones — RESUELTAS (2026-07-17)
 
-1. **`honey` `#E0A82E` (estrellas de reviews)**: ¿se suma como 5º token o las estrellas van
-   en `orange`? Recomiendo **sumar el token**: naranja sobre naranja de precio confunde, y
-   las estrellas van a reaparecer en el detalle de producto.
-2. **`blue` `#2563EB`**: 1 sola instancia. Recomiendo **eliminarlo** y mapear a `navy`.
-3. **Token de hover** (`#F3F4F6`, 8 usos): el repo no tiene ninguno. Hay que agregarlo.
-4. **Navys intermedios** `#01256E` / `#012B7E`: agregar tokens o mapear a `navy` +
-   `navy-light`.
-5. **Fondo del body**: ¿el repo se alinea a Stitch (body blanco, alterno `#F8F9FF`) o la
-   landing se adapta al repo? Recomiendo **alinear el repo a Stitch** — la alternancia es
-   una decisión de diseño de la pantalla, no un accidente.
-6. **Cards a 16 o 20px**: solo se resuelve renderizando el `code.html`. Ver §1.
-7. **20px de tipografía**: 16 usos. O se suma a la escala o se reparten entre 18 y 24.
-8. **Bottom Navigation**: no está en el ROADMAP. Si entra, es una tarea nueva en el Sprint 2.
+Las 8 se cerraron con Sebastián. Los cambios de token ya están en `globals.css`.
+
+1. **`honey` `#E0A82E` (estrellas de reviews)** → ✅ **token nuevo `--color-star`**. 5º color,
+   rol semántico (rating), no un acento nuevo. Reaparece en el detalle de producto.
+2. **`blue` `#2563EB`** → ✅ **eliminado**. Esa instancia se mapea a `navy`. No entra a `@theme`.
+3. **Token de hover** (`#F3F4F6`, 8 usos) → ✅ **token nuevo `--color-hover`**.
+4. **Navys intermedios** `#01256E` / `#012B7E` → ✅ **un solo token `--color-navy-mid` `#01256e`**.
+   Es el card de review apoyado sobre la sección navy: necesita despegarse del fondo, y ni
+   `navy-light` (muy claro) ni `navy-dark` (hunde) servían. El segundo hex era el *hover* de
+   esos cards; **se descarta**: los reviews no son clickeables, no necesitan hover.
+5. **Fondo del body** → ✅ **se mantiene el repo (`#F8F9FF`)**. Al portar, la alternancia de
+   secciones de la landing se **invierte** para arrancar desde el ground del repo. No es
+   cambio de token, es regla de port.
+6. **Cards** → ✅ **16px** (`--radius-lg`). Cierra el pendiente del ADR 014. La landing los
+   traía a 20px; se estandariza. `rounded-2xl` de Stitch → `rounded-lg` del repo.
+7. **20px de tipografía** → ✅ **NO se agrega a la escala**. El salto 18→24 diferencia bien
+   los títulos. Los 16 usos de `text-[20px]` se reparten entre `text-h3` (18) y `text-h2-mobile`
+   (24) según jerarquía, al portar.
+8. **Bottom Navigation** → ✅ **entra** (tarea 2.0d). El carrito y el WhatsApp flotantes se
+   **integran dentro de la barra** en la vista mobile, en vez de flotar encima — resuelve la
+   colisión a 320px. Verificar en dispositivo real igual.
+
+> **Nota de paleta**: con `--color-star` la app pasa a **5 colores**, no 4. `CLAUDE.md` §5
+> dice "4 colores base" — el star es semántico (rating), no un acento comercial, pero conviene
+> anotarlo ahí para que no se lea como violación de la regla.
 
 ---
 

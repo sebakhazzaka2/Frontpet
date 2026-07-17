@@ -19,6 +19,9 @@
   --color-navy: #011e5a;
   --color-navy-dark: #000a2c;
   --color-navy-light: #7388c9;
+  /* Card apoyado sobre la sección navy (reviews de la landing): se despega del
+     fondo sin ser otro color. Ni light (muy claro) ni dark (hunde) servían. */
+  --color-navy-mid: #01256e;
 
   /* Secondary Orange — acciones comerciales (Adicionar à sacola, Agendar, preços) */
   --color-orange: #f4640d;
@@ -39,6 +42,13 @@
   --color-ink: #0b1c30;
   --color-ink-muted: #444650;
   --color-outline: #c5c6d1;
+  /* Fondo de hover de botones/links neutrales. Stitch lo usa 8× en la landing;
+     el repo no tenía token de hover. */
+  --color-hover: #f3f4f6;
+
+  /* ── Rating — 5º color, fuera de la paleta base de 4 (rol semántico, como
+     good/warning, no un acento nuevo). Estrellas de reviews y detalle de producto. */
+  --color-star: #e0a82e;
 
   /* ── Puente semántico para shadcn/ui ────────────────────────────────────
      components/ui/* esperan estos nombres (bg-primary, border-border, …).
@@ -108,8 +118,8 @@
   /* ── Radius — escala canónica: 4 / 8 / 16 / 24. Ver ADR 014.
      Ojo: las clases rounded-* de Stitch NO significan lo mismo acá (sus pantallas
      corren en Tailwind v3, donde rounded-lg = 8px). Tabla de traducción en el ADR.
-     🔍 A revisar: --radius-lg (cards) salió de la doc, no del ojo. Las pantallas de
-     Stitch los dibujan a 12px. Comparar contra screen.png y confirmar 12 vs 16. */
+     ✅ Cards confirmados a 16px (decisión 2026-07-17, tarea 2.0b). Cierra el pendiente
+     del ADR 014: la landing los dibujaba a 20px, se estandariza a --radius-lg. */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 16px;

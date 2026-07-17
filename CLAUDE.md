@@ -261,6 +261,9 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
   - Secondary Orange `#F4640D` — ações comerciais (Adicionar à sacola, Agendar, pills, prices)
   - Tertiary Green `#25D366` — WhatsApp CTAs exclusivamente
   - Neutral Slate `#64748B` — texto secundário, borders, structural elements
+- **Color semántico (no cuenta como acento)**: `--color-star #E0A82E` — estrellas de rating
+  (reviews, detalle de producto), exclusivamente. Se sumó en la tarea 2.0b; es el equivalente
+  a un good/warning: rol semántico, no un 5º color comercial. Ver `docs/port-landing-stitch.md`.
 - **Tipografia**: Fredoka (headlines) + Plus Jakarta Sans (body) — pesos solo 400/500/600 (nunca 700+)
 - **Escala de radius — canónica, 4 pasos. Definida en `@theme`, no en Stitch**:
 

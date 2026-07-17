@@ -254,7 +254,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 2.0b | **Sync desde Stitch**: leer la pantalla vía MCP, traducir radios, mapear la paleta, listar divergencias. **Reemplaza al moodboard** — la referencia visual ya existe | 1 | ✅ **hecha** → `docs/port-landing-stitch.md`. **Leerla antes de arrancar la 2.1**: hay 8 decisiones abiertas |
+| 2.0b | **Sync desde Stitch**: leer la pantalla vía MCP, traducir radios, mapear la paleta, listar divergencias. **Reemplaza al moodboard** — la referencia visual ya existe | 1 | ✅ **hecha** → `docs/port-landing-stitch.md`. Las 8 decisiones **resueltas** (§5); tokens ya en `globals.css` |
 | 2.0c | **Mapear los 53 iconos de Material Symbols a `lucide-react`** — no estaba estimado; salió de la 2.0b | 1.5 |
 | 2.0d | **`<BottomNav>` mobile** (`md:hidden fixed bottom-0`) — existe en Stitch, no estaba en el ROADMAP. Ojo con la colisión a 320px contra el FAB del carrito y el FloatingWA | 2 |
 | 2.1 | Estructura general de la landing en componentes React | 3 |
