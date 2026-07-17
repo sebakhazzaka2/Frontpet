@@ -209,6 +209,10 @@ proyecto**. El costo está distribuido y no se contabiliza como tareas separadas
 testing y observabilidad locales listos. **No hay despliegue todavía** — todo en localhost
 contra Postgres en Docker.
 
+> ♻️ **Auth (1.3/1.6) se porta del repo consultorio**, no se escribe de cero: JWT, security
+> config, exception handler y validador de env vars. Qué copiar y qué cambiar (Bearer→cookie,
+> login que setea cookie, sacar register) está en **[docs/reuse-consultorio.md](docs/reuse-consultorio.md)** §1-2-4.
+
 | # | Tarea | Hs | Estado |
 |---|-------|---:|---|
 | 1.1 | Setup Spring Boot 3 con estructura modular: `tenant`, `identity`, `catalog`, `booking`, `orders`, `notifications` | 4 | 🔄 packages creados pero vacíos (`.gitkeep`); faltan entidades JPA |
@@ -400,6 +404,10 @@ segundo pago. Avisale al cliente y validá el modelo con tráfico real.
 ## Sprint 5 — Booking backend (~19 hs) ⏩ adelantar al bloque A si hay slack
 
 **Objetivo**: modelar la agenda y resolver el query difícil de slots disponibles.
+
+> ♻️ **El algoritmo de slots (5.3) se traduce del repo consultorio** (agnóstico a la duración,
+> encaja con base+adicionais×porte). Cambios obligatorios —capacidad=N, `tenant_id`, `end_at`,
+> **lock de concurrencia** que el original no tiene— en **[docs/reuse-consultorio.md](docs/reuse-consultorio.md)** §3.
 
 > ⏩ **Este es el sprint a adelantar con el slack del bloque A** (~24 hs libres antes del
 > 05/09). Es la parte más riesgosa del MVP y no depende de nada del bloque B. Adelantarlo

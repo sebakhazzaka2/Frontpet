@@ -120,6 +120,9 @@ tablas diminutas (`admin_users`, catálogo de servicios) donde el seq-scan es in
 
 ## Mapa de reutilización desde `consultorio-odontologico`
 
+> El detalle accionable archivo-por-archivo (qué copiar, qué adaptar, qué cambia exactamente)
+> vive en **[docs/reuse-consultorio.md](../reuse-consultorio.md)**. Acá va el resumen.
+
 | Del origen | En FrontPet | Estado |
 |---|---|---|
 | `disponibilidad_semanal` | `business_hours` (+ `tenant_id`, ISO día) | Adaptado |
