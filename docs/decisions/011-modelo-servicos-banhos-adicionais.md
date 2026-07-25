@@ -93,6 +93,28 @@ permite que el admin active/desactive adicionais. Descartado.
 
 ---
 
+## Actualización 2026-07-25 — `tempo_extra`: +20% de duração (admin)
+
+Se agrega `appointments.tempo_extra BOOLEAN DEFAULT FALSE`. Lo marca **el admin**, al
+crear/confirmar el turno — nunca el cliente en el booking público — para casos de **primeira
+vez do cão sendo banhado** o **cão difícil de banhar**.
+
+Cuando `tempo_extra = TRUE`, `total_duration_minutes` (que ya existía) se calcula:
+
+```
+base  = duration(banho_base, porte) + Σ duration(adicionais, porte)
+total = tempo_extra ? round(base * 1.2) : base
+```
+
+No se agrega una columna separada para "duración sin el extra": el desglose pre-multiplicador
+ya es reconstruible desde `base_price_snapshot` + `appointment_addons.duration_snapshot` por
+línea, así que guardar un tercer número sería redundante.
+
+**Caso borde aceptado, no validado en MVP1**: si el admin marca `tempo_extra` en un turno que
+ya estaba creado (en vez de al momento de confirmarlo), la duración nueva podría superponerse
+con el siguiente turno agendado. Se resuelve igual que la mitigación del ADR 012 (bloqueo/ajuste
+manual por el admin) — no amerita una validación automática de conflicto para este caso.
+
 ## Extensibilidad (tipo de pelo, futuro)
 
 Cuando se valide que el tipo de pelo pesa en preço/duração, se agrega a `service_pricing`:

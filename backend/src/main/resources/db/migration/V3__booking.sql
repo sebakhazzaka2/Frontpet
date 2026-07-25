@@ -102,7 +102,8 @@ CREATE TABLE appointments (
     pet_raca              VARCHAR(80),                       -- opcional
     base_price_snapshot   NUMERIC(10,2)  NOT NULL,           -- precio del baño base congelado
     total_price_snapshot  NUMERIC(10,2)  NOT NULL,           -- base + adicionais, denormalizado para la lista de turnos
-    total_duration_minutes INT           NOT NULL CHECK (total_duration_minutes > 0),
+    tempo_extra           BOOLEAN        NOT NULL DEFAULT FALSE,  -- admin marca 1ª vez / cão difícil → +20% sobre la duración calculada (ver ADR 011)
+    total_duration_minutes INT           NOT NULL CHECK (total_duration_minutes > 0),  -- YA incluye el +20% de tempo_extra si aplica; se calcula una sola vez al crear/confirmar
     observacoes           TEXT,
     created_at            TIMESTAMPTZ    NOT NULL DEFAULT now(),
     confirmed_at          TIMESTAMPTZ,
