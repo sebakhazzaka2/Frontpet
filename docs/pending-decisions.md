@@ -10,7 +10,7 @@ Cuando una de estas se resuelve → sale de acá y entra como ADR o como tarea d
 
 ## 1. Alta de marcas (`brands`)
 
-**Estado**: dirección tomada, sin implementar.
+**Estado**: backend resuelto (2026-07-25). Falta la UI del admin (Sprint 4).
 
 Las marcas no son lista cerrada como las categorías: llega una ração de una marca nueva y
 el admin tiene que poder cargarla. Pero un CRUD de marcas con pantalla propia es demasiado
@@ -19,9 +19,24 @@ para lo que es.
 **Dirección elegida**: alta *inline* en el formulario de producto — el admin escribe la
 marca; si no existe, se crea sola. Sin pantalla dedicada.
 
-**Falta definir**: qué pasa con las marcas que quedan sin ningún producto (¿se borran solas?
-¿quedan colgando?), y si el campo es un autocompletar sobre las existentes o texto libre
-(texto libre garantiza duplicados tipo "Golden" / "golden" / "Golden Foods").
+**Ya implementado**:
+- `BrandService.findOrCreate(tenantId, nome)` — busca sin distinguir mayúsculas y crea si
+  no existe. Recorta espacios; nombre vacío es inválido.
+- `V9__brands_case_insensitive_unique.sql` — el `UNIQUE(tenant_id, nome)` de V2 era
+  case-sensitive (dejaba crear "Golden" y "golden" como marcas distintas). Se reemplazó por
+  un índice único funcional sobre `LOWER(nome)`: la garantía vive en Postgres, no en la
+  disciplina de la UI.
+- `BrandRaceSafeCreator` — el `INSERT` corre en su propia transacción (`REQUIRES_NEW`). Dos
+  altas de producto concurrentes con el mismo nombre de marca nueva chocan en el índice
+  único; sin esto, esa colisión tumbaba la transacción completa del alta de producto por
+  una carrera en un dato secundario.
+- 4 tests de integración (`BrandServiceIntegrationTest`): crea si falta, reutiliza
+  ignorando mayúsculas, recorta espacios, rechaza nombre en blanco.
+
+**Falta definir**: si el campo del form es autocompletar sobre las existentes o texto
+libre (el `findOrCreate` funciona con cualquiera de los dos; es una decisión de UI, no de
+backend), y qué pasa con marcas que quedan sin ningún producto (¿se borran solas? ¿quedan
+colgando?). Ninguna bloquea: son decisiones baratas de tomar cuando se construya el form.
 
 **Dónde impacta**: Sprint 4, formulario de producto del admin.
 
