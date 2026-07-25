@@ -24,7 +24,9 @@ VALUES (
     'Santana do Livramento, RS, Brasil',
     '+555596724124',    -- FrontPet WhatsApp (E.164)
     jsonb_build_object(
-        'capacidade_atendimento', 2   -- 2 animais em simultâneo (§2.2)
+        'capacidade_atendimento',   2,   -- 2 animais em simultâneo (§2.2)
+        'anticipacao_min_horas',    1,   -- mínimo 1 h antes para reservar
+        'anticipacao_max_dias',     60   -- máximo 60 días hacia adelante
     )
 );
 
