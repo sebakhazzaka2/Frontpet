@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -91,5 +92,23 @@ public class Product extends Auditable {
 
     public boolean isOnSale() {
         return priceOriginal != null;
+    }
+
+    // Clave de negocio: publicId, que el service asigna ANTES de persistir.
+    // Por eso funciona incluso con la entidad todavía sin guardar, cosa que el
+    // id autoincremental no permite (es null hasta el INSERT).
+    //
+    // Brand no lleva equals/hashCode a propósito: no vive dentro de ningún
+    // Set ni List, es un @ManyToOne. Se agrega si algún día hace falta.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Product other)) return false;
+        return publicId != null && publicId.equals(other.getPublicId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(publicId);
     }
 }

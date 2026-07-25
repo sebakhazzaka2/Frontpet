@@ -1,43 +1,97 @@
 package com.frontpet.catalog.domain;
 
+import com.frontpet.catalog.dto.ProductSummary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // Catálogo público: todos los productos activos del tenant
-    List<Product> findByTenantIdAndActiveTrue(UUID tenantId);
-
-    // Catálogo filtrado por categoría
-    @Query("""
-        SELECT DISTINCT p FROM Product p
-        JOIN p.categories c
-        WHERE p.tenantId = :tenantId
-          AND p.active = true
-          AND c.slug = :categorySlug
-        """)
-    List<Product> findByTenantIdAndCategorySlug(
-        @Param("tenantId") UUID tenantId,
-        @Param("categorySlug") String categorySlug
+    /**
+     * Listado del catálogo público, paginado.
+     *
+     * <p>Devuelve {@link ProductSummary} directo desde SQL en vez de entidades.
+     * Dos motivos: no quedan colecciones lazy que puedan explotar cuando el
+     * controller serializa (tenemos {@code open-in-view: false}), y la
+     * paginación la hace Postgres de verdad. Si acá cargáramos entidades con
+     * sus variantes, Hibernate no podría paginar en SQL y se traería la tabla
+     * entera a memoria para recortarla ahí.
+     *
+     * <p>Los tres filtros son opcionales y van en una sola query a propósito:
+     * el bloque {@code new ProductSummary(...)} es largo, y tenerlo repetido en
+     * tres queries significa que agregar un campo obliga a tocar las tres.
+     * Cuando un parámetro llega null, su condición se anula sola.
+     *
+     * @param categorySlug filtra por categoría; null = todas
+     * @param search       busca dentro del nombre; null = sin búsqueda
+     */
+    @Query(value = """
+            SELECT new com.frontpet.catalog.dto.ProductSummary(
+                p.slug,
+                p.nome,
+                p.mainImageUrl,
+                COALESCE(p.price, (
+                    SELECT MIN(v.price) FROM ProductVariant v
+                    WHERE v.product = p AND v.active = true
+                )),
+                p.priceOriginal,
+                b.nome,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM ProductVariant v2
+                    WHERE v2.product = p AND v2.active = true
+                ) THEN TRUE ELSE FALSE END
+            )
+            FROM Product p
+            LEFT JOIN p.brand b
+            WHERE p.tenantId = :tenantId
+              AND p.active = true
+              AND (:categorySlug IS NULL OR EXISTS (
+                    SELECT 1 FROM Product px JOIN px.categories c
+                    WHERE px = p AND c.slug = :categorySlug
+              ))
+              AND (:search IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (:onlyOnSale = false OR p.priceOriginal IS NOT NULL)
+            """,
+            countQuery = """
+            SELECT COUNT(p) FROM Product p
+            WHERE p.tenantId = :tenantId
+              AND p.active = true
+              AND (:categorySlug IS NULL OR EXISTS (
+                    SELECT 1 FROM Product px JOIN px.categories c
+                    WHERE px = p AND c.slug = :categorySlug
+              ))
+              AND (:search IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (:onlyOnSale = false OR p.priceOriginal IS NOT NULL)
+            """)
+    Page<ProductSummary> findSummaries(
+            @Param("tenantId") UUID tenantId,
+            @Param("categorySlug") String categorySlug,
+            @Param("search") String search,
+            @Param("onlyOnSale") boolean onlyOnSale,
+            Pageable pageable
     );
 
-    // Sección "Descuentos": productos con price_original seteado
-    List<Product> findByTenantIdAndActiveTrueAndPriceOriginalIsNotNull(UUID tenantId);
-
-    // Detalle de producto: /produtos/{slug}. Es la query del detalle público.
+    /**
+     * Detalle del producto para {@code /produtos/{slug}}.
+     *
+     * <p>Acá sí traemos la entidad con {@code @EntityGraph}, que carga marca,
+     * variantes, categorías y especies junto con el producto. Es seguro porque
+     * es <b>una sola fila</b>: sin paginación de por medio, el problema de
+     * memoria del listado no existe.
+     */
+    @EntityGraph(attributePaths = {"brand", "variants", "categories", "species"})
     Optional<Product> findByTenantIdAndSlug(UUID tenantId, String slug);
 
-    // Chequeo de colisión al generar el slug (racao-golden, racao-golden-2, ...)
+    /** Chequeo de colisión al generar el slug (racao-golden, racao-golden-2, ...). */
     boolean existsByTenantIdAndSlug(UUID tenantId, String slug);
 
-    // Detalle por public_id — identificador interno estable, no va en URLs
+    /** Identificador interno estable — no va en URLs, lo usan carrito y pedidos. */
+    @EntityGraph(attributePaths = {"brand", "variants", "categories", "species"})
     Optional<Product> findByTenantIdAndPublicId(UUID tenantId, UUID publicId);
-
-    // Admin: buscar por nombre (búsqueda parcial)
-    List<Product> findByTenantIdAndNomeContainingIgnoreCase(UUID tenantId, String nome);
 }
