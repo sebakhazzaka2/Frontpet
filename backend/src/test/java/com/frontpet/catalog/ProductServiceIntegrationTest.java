@@ -162,6 +162,62 @@ class ProductServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("getByPublicId trae el mismo detalle que getBySlug")
+    void getsByPublicId() {
+        Product p = persistProduct("Ração por PublicId", "racao-public-id", new BigDecimal("77.00"));
+
+        ProductDetail detail = productService.getByPublicId(TENANT, p.getPublicId());
+
+        assertThat(detail.publicId()).isEqualTo(p.getPublicId());
+        assertThat(detail.slug()).isEqualTo("racao-public-id");
+    }
+
+    @Test
+    @DisplayName("getByPublicId de un id inexistente da ProductNotFound")
+    void failsOnMissingPublicId() {
+        assertThatThrownBy(() -> productService.getByPublicId(TENANT, UuidV7.generate()))
+                .isInstanceOf(ProductNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("el detalle de un producto oculto también da 404, no solo el listado")
+    void hiddenProductDetailIsNotFound() {
+        Product p = persistProduct("Oculto no Detalhe", "oculto-no-detalhe", new BigDecimal("15.00"));
+        productService.setActive(TENANT, p.getPublicId(), false);
+
+        assertThatThrownBy(() -> productService.getBySlug(TENANT, "oculto-no-detalhe"))
+                .isInstanceOf(ProductNotFoundException.class);
+        assertThatThrownBy(() -> productService.getByPublicId(TENANT, p.getPublicId()))
+                .isInstanceOf(ProductNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("la página siguiente trae los productos que no entraron en la primera")
+    void paginatesBeyondFirstPage() {
+        for (int i = 1; i <= 3; i++) {
+            persistProduct("Produto Paginado " + i, "produto-paginado-" + i, new BigDecimal("10.00"));
+        }
+
+        Page<ProductSummary> firstPage = productService.list(
+                TENANT, null, "Produto Paginado", false, PageRequest.of(0, 2));
+        Page<ProductSummary> secondPage = productService.list(
+                TENANT, null, "Produto Paginado", false, PageRequest.of(1, 2));
+
+        assertThat(firstPage.getContent()).hasSize(2);
+        assertThat(firstPage.getTotalElements()).isEqualTo(3);
+        assertThat(firstPage.hasNext()).isTrue();
+
+        assertThat(secondPage.getContent()).hasSize(1);
+        assertThat(secondPage.hasNext()).isFalse();
+
+        // Ningún slug se repite entre páginas: si el countQuery estuviera
+        // desalineado de la query principal, esto es lo que lo detectaría.
+        List<String> allSlugs = new java.util.ArrayList<>(firstPage.map(ProductSummary::slug).getContent());
+        allSlugs.addAll(secondPage.map(ProductSummary::slug).getContent());
+        assertThat(allSlugs).doesNotHaveDuplicates();
+    }
+
+    @Test
     @DisplayName("el slug repetido recibe sufijo numérico")
     void generatesUniqueSlug() {
         assertThat(productService.generateUniqueSlug(TENANT, "Ração Golden")).isEqualTo("racao-golden");
