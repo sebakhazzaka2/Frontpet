@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Maven + Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: frontpet
+          POSTGRES_USER: frontpet
+          POSTGRES_PASSWORD: frontpet_dev_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U frontpet"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # BackendApplicationTests levanta el contexto completo (Flyway + JPA
+      # ddl-auto: validate), así que necesita el Postgres real de arriba,
+      # no un mock. Mismos defaults que backend/docker-compose.yml.
+      - name: mvn verify
+        working-directory: backend
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/frontpet
+          DB_USERNAME: frontpet
+          DB_PASSWORD: frontpet_dev_pass
+        run: mvn -B verify
+
+  frontend:
+    name: Frontend (pnpm build + test + lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Node version from .nvmrc
+        id: node_version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node_version.outputs.version }}
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # --frozen-lockfile: falla si el lockfile no matchea package.json,
+      # en vez de reescribirlo en silencio (mismo espíritu que ADR 015).
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm build
+        run: pnpm build
+
+      - name: pnpm test
+        run: pnpm test
+
+      - name: pnpm lint
+        run: pnpm lint
