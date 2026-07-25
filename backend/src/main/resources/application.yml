@@ -30,6 +30,10 @@ spring:
         max-page-size: 100
 
 frontpet:
+  cors:
+    # Orígenes del frontend. En prod se sobreescribe por env var con el dominio real.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
   tenant:
     # MVP1 es single-tenant: el tenant sembrado en V5__seed_dev.sql.
     # Los endpoints públicos no tienen JWT del cual sacarlo. Ver CurrentTenant.

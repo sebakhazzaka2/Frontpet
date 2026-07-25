@@ -36,6 +36,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                // Engancha el CorsConfigurationSource de CorsConfig. Sin esta
+                // línea la config de CORS existe pero Spring Security nunca la
+                // aplica, y el preflight OPTIONS muere en 401 antes de llegar.
+                .cors(cors -> {})
                 // API stateless: no hay sesión de servidor que proteger con CSRF.
                 // ⚠️ Cuando entre el JWT en cookie (1.3) esto hay que revisarlo:
                 // con cookies, SameSite=Lax cubre el caso común, pero las
