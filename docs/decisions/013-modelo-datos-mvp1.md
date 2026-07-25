@@ -4,6 +4,7 @@
 **Fecha**: 2026-07-13
 **Sprint**: 2
 **Migrations**: `V1__identity`, `V2__catalog`, `V3__booking`, `V4__orders`
+(+ `V7__product_slug`, `V9__brands_case_insensitive_unique` — ver actualización 2026-07-25)
 
 ---
 
@@ -153,3 +154,36 @@ tablas diminutas (`admin_users`, catálogo de servicios) donde el seq-scan es in
   business_hours de grooming, usuario admin). Va en una migration/inicializador posterior,
   cuando el cliente entregue precios y duraciones (pendiente conocido).
 - El `docs/db-model.png` debe regenerarse a partir de este esquema (Definition of Done).
+
+## Actualización 2026-07-25 — `slug` de producto y unicidad de marca
+
+Al codear el Sprint 3 (tarea 3.2/3.3) aparecieron dos huecos que este ADR no había
+cubierto: cómo se resuelve la URL pública del producto, y cómo se evita que "Golden" y
+"golden" convivan como marcas distintas.
+
+### URL pública por `slug`, no por `public_id`
+
+El objetivo declarado del Sprint 3 (ROADMAP) es un catálogo indexable por Google. Una
+URL tipo `/produtos/01924ccf-0000-...` (el `public_id` UUID v7 de la decisión 1) no aporta
+nada a SEO; `/produtos/racao-golden-15kg` sí. **V7** agrega `products.slug VARCHAR(180)` +
+`UNIQUE(tenant_id, slug)`.
+
+El `slug` se genera desde `nome` (normalización NFD, ver `common/Slugify`) y el admin puede
+corregirlo — por eso vive en una columna editable y no se deriva en la DB. El `public_id`
+sigue existiendo: es lo que referencian carrito y pedidos, más estable que un slug que el
+admin puede cambiar.
+
+### Unicidad de marca: case-insensitive, no case-sensitive
+
+La decisión 1 no distinguía mayúsculas al definir `UNIQUE(tenant_id, nome)` en `brands`
+(V2). Con el alta inline de marcas (`BrandService.findOrCreate`, docs/pending-decisions.md
+§1), eso deja crear "Golden" y "golden" como dos marcas. **V9** reemplaza esa constraint
+por un índice único funcional sobre `LOWER(nome)`: la garantía de unicidad vive en
+Postgres, no en la disciplina del formulario del admin.
+
+Consecuencia de diseño: el `INSERT` de una marca nueva corre en su propia transacción
+(`REQUIRES_NEW`, en un bean aparte de `BrandServiceImpl` — `@Transactional` no intercepta
+auto-invocaciones dentro de la misma clase). Sin aislarlo, dos altas de producto
+concurrentes con el mismo nombre de marca nueva chocan contra el índice único y la
+violación tumba la transacción *completa* del alta de producto por una carrera en un dato
+secundario.

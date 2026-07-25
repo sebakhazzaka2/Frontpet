@@ -137,12 +137,19 @@ Las decisiones detalladas están en `docs/decisions/`. Resumen:
 frontpet/
 ├── backend/                    (Spring Boot)
 │   ├── src/main/java/com/frontpet/
-│   │   ├── tenant/             Configuración del negocio
-│   │   ├── identity/           Usuarios admin, auth
-│   │   ├── catalog/            Productos, categorías
-│   │   ├── booking/            Servicios, recursos, reservas
-│   │   ├── orders/             Pedidos, items
-│   │   └── notifications/      Generación de mensajes WhatsApp
+│   │   ├── common/              Auditable, UuidV7, Slugify, PageResponse,
+│   │   │                        ApiError, RestExceptionHandler — cross-módulo
+│   │   ├── config/               SecurityConfig, CorsConfig
+│   │   ├── tenant/                Tenant, CurrentTenant (resuelve el tenant
+│   │   │                         de la request; hoy fijo, MVP1 single-tenant)
+│   │   ├── identity/              Usuarios admin, auth [aún .gitkeep]
+│   │   ├── catalog/               Product, Category, Brand, Species, Service +
+│   │   │                         api/ (controllers REST) + domain/ + dto/
+│   │   ├── booking/               Servicios, recursos, reservas [aún .gitkeep]
+│   │   ├── orders/                Pedidos, items [aún .gitkeep]
+│   │   ├── notifications/         Generación de mensajes WhatsApp [aún .gitkeep]
+│   │   └── BackendApplication.java  en la raíz de com.frontpet a propósito:
+│   │                              Spring Boot escanea desde acá hacia abajo
 │   ├── src/main/resources/
 │   │   └── db/migration/       Migraciones Flyway
 │   ├── docker-compose.yml      Postgres local
@@ -163,10 +170,18 @@ frontpet/
 │   ├── decisions/              Architectural Decision Records (ADRs)
 │   ├── design-system.md        Tokens, escalas, paleta documentadas
 │   ├── db-model.png            Modelo de DB visual (DBdiagram.io export)
+│   ├── port-landing-stitch.md  Worksheet de port de la landing (tarea 2.0b)
+│   ├── pending-decisions.md    Decisiones abiertas que no bloquean (marcas,
+│   │                           borrado masivo, promos — no son ADRs todavía)
+│   ├── preguntas-cliente.md    Respuestas del cliente (jul/2026)
+│   ├── reuse-consultorio.md    Qué se reusa del repo consultorio-odontológico
 │   ├── learnings.md            Bugs >2h con causa raíz  [gitignored]
 │   └── ui/                     ← Export VIEJO de Stitch  [gitignored]
 │       │                       ⚠️ NO es fuente de verdad — ver sección 5.
-│       │                       Sirve para mirar `screen.png` sin conexión.
+│       │                       **No está presente en todos los checkouts**
+│       │                       (falta en este, 2026-07-25) — el MCP de Stitch
+│       │                       conectado es el camino normal ahora; esto era
+│       │                       solo el fallback para mirar `screen.png` offline.
 │       ├── frontpet_Publico/   10 pantallas (nombres en español, versiones stale)
 │       ├── frontpet_Admin/     9 pantallas + design_system
 │       └── */*/                Cada pantalla: `code.html` (HTML + Tailwind CDN v3) +
