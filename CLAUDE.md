@@ -263,7 +263,14 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
   que recrearlo (ver ADR 014). Para cambiar la paleta se tocan los `--color-*` de
   `@theme` y se actualiza toda la app — nunca hex hardcodeados en componentes.
 - ⚠️ **Los valores actuales de `@theme` son placeholders** tomados de `DESIGN.md`,
-  pendientes de que el cliente confirme la paleta final.
+  pendientes de que el cliente confirme la paleta final. **Actualización 2026-07-25**:
+  el cliente mandó el logo oficial (`FRONTPET-FONDO-AZUL.pdf` — navy de fondo, "FRONT" +
+  "PETSHOP" en blanco, "PET" en naranja). A ojo confirma navy y naranja como los colores
+  de marca reales (coincide con `--color-navy` / `--color-orange` ya en uso) — **pero el
+  hex exacto sigue sin confirmar**, no se sacó por pixel-sampling del PDF. No cambiar
+  tokens todavía; seguir codeando con los actuales (son 1 archivo si hay que ajustar).
+  Falta además pedirle variantes del logo (fondo transparente/blanco, ícono solo para
+  favicon) — el PDF recibido es solo la versión sobre fondo navy.
 - ✅ **El prototipo de landing v1.0 fue borrado** (commit `010f8f87`) y **queda
   descartado**: estaba contra el design system v1.0 muerto, en español, con "Pehuajó"
   como ciudad, y los tipos de su `lib/data.ts` contradecían el ADR 013 (mezclaban
@@ -371,8 +378,12 @@ Reglas surgidas del diseño de las pantallas admin, alineadas con MVP1:
   versionados em código, com variantes por status (Pendente / Confirmado / Cancelado).
   Ver ADR 010.
 - ✅ **Categorias canônicas (confirmadas con el cliente)**: `Rações, Acessórios, Higiene,
-  Petiscos, Conforto, Brinquedos` (Conforto = casas, camas, colchonetes). **Espécies**:
-  `Cães, Gatos, Aves, Peixes, Roedores`. Un producto puede estar en varias (N:M).
+  Petiscos, Conforto, Brinquedos, Outros` (Conforto = casas, camas, colchonetes; `Outros`
+  es el recolector: todo producto que no entra en ninguna necesita dónde caer).
+  **Espécies**: `Cães, Gatos` **y nada más** — el cliente trabaja solo con esos dos
+  (confirmado jul/2026; Aves, Peixes y Roedores quedaron descartados). Un producto puede
+  estar en varias (N:M). **Son lista cerrada: no tienen CRUD de admin**, se siembran en
+  `V8__catalog_reference_data.sql`.
 
 ---
 
