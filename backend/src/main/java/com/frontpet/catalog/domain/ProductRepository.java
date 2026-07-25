@@ -28,6 +28,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * tres queries significa que agregar un campo obliga a tocar las tres.
      * Cuando un parámetro llega null, su condición se anula sola.
      *
+     * <p>⚠️ El {@code CAST(:param AS String)} no es decorativo. Sin él, un
+     * parámetro null viaja sin tipo y Postgres lo asume {@code bytea}, con lo
+     * que {@code lower(bytea) does not exist} revienta la query. El síntoma es
+     * traicionero: una vez que el statement se preparó con un valor real, el
+     * caché lo tapa y los nulls posteriores funcionan.
+     *
      * @param categorySlug filtra por categoría; null = todas
      * @param search       busca dentro del nombre; null = sin búsqueda
      */
@@ -51,22 +57,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             LEFT JOIN p.brand b
             WHERE p.tenantId = :tenantId
               AND p.active = true
-              AND (:categorySlug IS NULL OR EXISTS (
+              AND (CAST(:categorySlug AS String) IS NULL OR EXISTS (
                     SELECT 1 FROM Product px JOIN px.categories c
                     WHERE px = p AND c.slug = :categorySlug
               ))
-              AND (:search IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (CAST(:search AS String) IS NULL
+                   OR LOWER(p.nome) LIKE LOWER(CONCAT('%', CAST(:search AS String), '%')))
               AND (:onlyOnSale = false OR p.priceOriginal IS NOT NULL)
             """,
             countQuery = """
             SELECT COUNT(p) FROM Product p
             WHERE p.tenantId = :tenantId
               AND p.active = true
-              AND (:categorySlug IS NULL OR EXISTS (
+              AND (CAST(:categorySlug AS String) IS NULL OR EXISTS (
                     SELECT 1 FROM Product px JOIN px.categories c
                     WHERE px = p AND c.slug = :categorySlug
               ))
-              AND (:search IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (CAST(:search AS String) IS NULL
+                   OR LOWER(p.nome) LIKE LOWER(CONCAT('%', CAST(:search AS String), '%')))
               AND (:onlyOnSale = false OR p.priceOriginal IS NOT NULL)
             """)
     Page<ProductSummary> findSummaries(

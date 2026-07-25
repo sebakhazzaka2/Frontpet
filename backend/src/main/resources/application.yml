@@ -22,6 +22,19 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  data:
+    web:
+      pageable:
+        default-page-size: 24
+        # Tope duro: sin esto, ?size=100000 es una forma gratis de tirar el server.
+        max-page-size: 100
+
+frontpet:
+  tenant:
+    # MVP1 es single-tenant: el tenant sembrado en V5__seed_dev.sql.
+    # Los endpoints públicos no tienen JWT del cual sacarlo. Ver CurrentTenant.
+    id: ${TENANT_ID:01924ccf-0000-7000-8000-000000000001}
+
 server:
   port: 8080
 
