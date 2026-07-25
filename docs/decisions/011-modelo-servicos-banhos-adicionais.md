@@ -110,10 +110,18 @@ No se agrega una columna separada para "duración sin el extra": el desglose pre
 ya es reconstruible desde `base_price_snapshot` + `appointment_addons.duration_snapshot` por
 línea, así que guardar un tercer número sería redundante.
 
-**Caso borde aceptado, no validado en MVP1**: si el admin marca `tempo_extra` en un turno que
-ya estaba creado (en vez de al momento de confirmarlo), la duración nueva podría superponerse
-con el siguiente turno agendado. Se resuelve igual que la mitigación del ADR 012 (bloqueo/ajuste
-manual por el admin) — no amerita una validación automática de conflicto para este caso.
+**Caso borde: superposición al extender un turno ya creado.** Si el admin marca `tempo_extra`
+después de que el turno ya existía, la duración nueva puede pisar el siguiente turno agendado.
+Decisión: **avisar, no bloquear**. Al togglear `tempo_extra`, la app corre la misma query de
+conteo de solapados que ya usa el cálculo de slots (ADR 005) contra el nuevo `end_at`; si supera
+`capacidade_atendimento`, muestra un aviso (ej. "esto superpone N turnos a las HH:mm, capacidad
+es M") pero deja que el admin decida — no es una abstracción nueva, es la misma query en un
+segundo punto de disparo. No hay bloqueo duro: es una decisión operativa del admin (reagendar,
+llamar al cliente, atender igual), no algo que el software deba impedir.
+
+⚠️ **`docs/db-model.png` quedó desactualizado** por esta columna (`appointments.tempo_extra`).
+Regenerar en dbdiagram.io la próxima vez que se toque el diagrama — no amerita un ciclo aparte
+solo por este campo.
 
 ## Extensibilidad (tipo de pelo, futuro)
 
