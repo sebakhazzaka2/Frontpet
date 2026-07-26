@@ -41,29 +41,29 @@ export const metadata: Metadata = {
   title: {
     // La página home hereda solo el template: "FrontPet"
     // Las páginas hijas se muestran como: "Productos | FrontPet"
-    default: 'FrontPet — Cuidado profesional para tu mascota',
+    default: 'FrontPet — Cuidado profissional para o seu pet',
     template: '%s | FrontPet',
   },
   description:
-    'Productos premium, baños y peluquería profesional para mascotas en Pehuajó. ' +
-    'Pedidos por WhatsApp, turnos online en segundos.',
+    'Produtos premium, banho e tosa profissional para o seu pet em Santana do Livramento. ' +
+    'Peça pelo WhatsApp, agende horário online em segundos.',
 
   // ── OpenGraph — para compartir en redes y WhatsApp ───────────────────────
   openGraph: {
     type: 'website',
-    locale: 'es_AR',
+    locale: 'pt_BR',
     url: BASE_URL,
     siteName: 'FrontPet',
-    title: 'FrontPet — Cuidado profesional para tu mascota',
+    title: 'FrontPet — Cuidado profissional para o seu pet',
     description:
-      'Productos premium, baños y peluquería profesional para mascotas en Pehuajó.',
+      'Produtos premium, banho e tosa profissional para o seu pet em Santana do Livramento.',
     images: [
       {
         // TODO: agregar imagen real en /public/og-image.jpg (1200x630px)
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'FrontPet — Petshop en Pehuajó',
+        alt: 'FrontPet — Petshop em Santana do Livramento',
       },
     ],
   },
@@ -71,8 +71,8 @@ export const metadata: Metadata = {
   // ── Twitter / X card ─────────────────────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
-    title: 'FrontPet — Cuidado profesional para tu mascota',
-    description: 'Productos premium, baños y peluquería para mascotas en Pehuajó.',
+    title: 'FrontPet — Cuidado profissional para o seu pet',
+    description: 'Produtos premium, banho e tosa profissional para o seu pet.',
     images: ['/og-image.jpg'],
   },
 
@@ -129,7 +129,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
-      lang="es"
+      lang="pt-BR"
       // Las variables CSS de las fuentes se inyectan acá.
       // Tailwind las recoge automáticamente via font-sans y font-display.
       className={`${jakarta.variable} ${fredoka.variable}`}
