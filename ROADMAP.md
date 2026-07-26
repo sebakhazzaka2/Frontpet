@@ -269,7 +269,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 2.0d | **`<BottomNav>` mobile** (`md:hidden fixed bottom-0`) — existe en Stitch, no estaba en el ROADMAP. Ojo con la colisión a 320px contra el FAB del carrito y el FloatingWA | 2 |
 | 2.1 | Estructura general de la landing en componentes React | 3 |
 | 2.2 | `<Hero>` con animaciones Framer Motion (fade-in, slide-up) | 3 |
-| 2.3 | `<TrustBar>`. ⚠️ **El `<AnnouncementBar>` no existe en la pantalla de Stitch** — o se descarta, o se diseña primero | 1 |
+| 2.3 | `<TrustBar>`. **`<AnnouncementBar>` descartado** (decisión 2026-07-25) — no existe en la pantalla de Stitch, no se inventa UI sin referencia visual | 1 |
 | 2.4 | `<ServiceCard>` (preview, sin booking todavía, link a `/turnos`) | 2 |
 | 2.5 | `<ProductCard>` con CTA WhatsApp directo (variante para landing) | 2 |
 | 2.6 | `<Reviews>` con 3-4 testimonios estáticos | 1 |
@@ -354,7 +354,7 @@ en vivo y empezar a recibir feedback con tráfico real.
 | 3.4 | Endpoints admin protegidos: `POST/PUT/DELETE /api/v1/admin/products` | 2 |
 | 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado | 3 |
 | 3.5b | **Restricción del presigned URL**: mime type permitido, tamaño máximo y expiración corta, firmados en la política. Sin esto el bucket es de subida libre a costa nuestra | 1.5 |
-| 3.6 | Frontend: página `/productos` con grid responsive | 2 |
+| 3.6 | Frontend: página `/produtos` con grid responsive | 2 |
 | 3.7 | Filtro por categoría (chips horizontales scrolleables) | 2 |
 | 3.8 | Búsqueda por nombre con debounce (300ms) | 2 |
 | 3.9 | Página `/produtos/[slug]` con **una** imagen y descripción (galería es Fase 2, ver `CLAUDE.md` §7). **`params` es una Promise en Next 16** — usar `PageProps<'/produtos/[slug]'>` de `next typegen` | 2 |

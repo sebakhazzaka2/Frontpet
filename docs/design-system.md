@@ -365,31 +365,45 @@ No usar `p-5, p-7, p-9, p-10, p-11, p-14` ni valores arbitrarios.
 
 ## 7. Componentes base
 
-Definidos en `globals.css` bajo `@layer components`. Usarlos en lugar de repetir clases.
+⚠️ **Esta sección se reescribió el 2026-07-25.** La versión anterior documentaba clases
+`@layer components` (`.btn-primary`, `.btn-wa`, `.card`, `.badge`, `.eyebrow`,
+`.container-main`, `.input-search`, `.float-wa`) que **el ADR 014 descartó explícitamente**
+el 2026-07-17 — nunca llegaron al browser y contradecían el propio design system (usaban
+`rounded-full`/peso 700 donde la escala pide 8px/máx 600). Esta sección quedó sin
+actualizar hasta ahora, a pesar de que el ADR ya estaba aceptado. Si ves `container-main`
+o `btn-wa` en un componente, es código viejo — no existen en `globals.css`.
+
+**El patrón vigente**: variants como componentes React con `shadcn/ui` + `class-variance-
+authority` (ya en el repo, ver `components/ui/button.tsx`), o composición directa de
+utilidades Tailwind para todo lo que no sea un componente con variantes reales.
 
 ### Botones
 
+`components/ui/button.tsx` ya tiene variants (`default`, `outline`, `secondary`, `ghost`,
+`destructive`, `link`). WhatsApp no es una variante genérica de `Button` — es una acción de
+marca ajena (verde `--color-wa`, no forma parte de los 4 colores de FrontPet) y suele ir con
+el ícono de WhatsApp, así que se compone en el propio componente que lo usa:
+
 ```tsx
-// Primario — naranja
-<button className="btn-primary">
-  🛍️ Ver Productos
-</button>
+<Button>Ver Produtos</Button>
+<Button variant="outline">Agendar Horário</Button>
 
-// WhatsApp — ancho completo
-<a href={waLink} className="btn-wa">
-  💬 Pedir por WhatsApp
+// WhatsApp: no es un variant de Button, es una acción de marca ajena
+<a
+  href={waLink}
+  className="inline-flex items-center gap-2 rounded-md bg-wa px-4 py-2 text-white hover:opacity-90"
+>
+  <WhatsAppIcon className="size-4" />
+  Pedir pelo WhatsApp
 </a>
-
-// Outline — borde naranja
-<button className="btn-outline">
-  📅 Reservar Turno
-</button>
 ```
 
 ### Card
 
+Sin clase `.card`: composición directa contra los tokens.
+
 ```tsx
-<div className="card">
+<div className="rounded-lg bg-card p-4 shadow-[var(--shadow-card)]">
   {/* contenido */}
 </div>
 ```
@@ -397,46 +411,36 @@ Definidos en `globals.css` bajo `@layer components`. Usarlos en lugar de repetir
 ### Badge
 
 ```tsx
-// El badge solo define tipografía y padding. El color va inline o con utilidades.
-<span className="badge bg-brand-500 text-white">Más vendido</span>
-<span className="badge bg-danger text-white">Oferta -20%</span>
-<span className="badge bg-success text-white">Nuevo</span>
+<span className="rounded-sm bg-orange px-2 py-1 text-caption text-white">Mais vendido</span>
 ```
 
 ### Eyebrow (texto sobre titular)
 
 ```tsx
-<span className="eyebrow">Servicios</span>
-<h2 className="font-display text-2xl text-stone-900">
-  Todo lo que tu mascota necesita
-</h2>
+<span className="text-eyebrow uppercase tracking-[0.08em] text-orange">Serviços</span>
+<h2 className="text-h2-mobile md:text-h2">Tudo que seu pet precisa</h2>
 ```
 
 ### Container principal
 
+1280px = `max-w-7xl` de Tailwind (80rem) **exacto** — no hace falta un token propio.
+
 ```tsx
-<section className="section">
-  <div className="container-main">
-    {/* máx 1200px, centrado, px-4 */}
+<section>
+  <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+    {/* contenido */}
   </div>
 </section>
-```
-
-### Input de búsqueda
-
-```tsx
-<div className="relative">
-  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
-  <input className="input-search pl-10" placeholder="Buscar productos..." />
-</div>
 ```
 
 ### Botón WhatsApp flotante
 
 ```tsx
-<a href={waLink} className="float-wa" aria-label="Contactar por WhatsApp">
-  <div className="absolute inset-0 rounded-full bg-wa animate-wa-pulse" />
-  {/* ícono WA */}
+<a href={waLink} className="fixed bottom-6 right-4 z-50" aria-label="Contatar pelo WhatsApp">
+  <span className="absolute inset-0 rounded-full bg-wa animate-ping opacity-75" />
+  <span className="relative flex size-14 items-center justify-center rounded-full bg-wa text-white shadow-[var(--shadow-system)]">
+    <WhatsAppIcon className="size-6" />
+  </span>
 </a>
 ```
 
@@ -528,8 +532,8 @@ Escribir los estilos base para móvil, luego expandir:
 <div className="hidden md:block">...</div>
 <div className="md:hidden">...</div>
 
-// Container con padding responsive
-<div className="container-main px-4 md:px-6 lg:px-8">
+// Container con padding responsive (1280px = max-w-7xl exacto, ver sección 7)
+<div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
 ```
 
 ---
@@ -585,23 +589,28 @@ Estas reglas no son sugerencias. Son las condiciones para que el sistema de dise
 - [ ] ¿Las sombras tienen nombre (shadow-md, shadow-brand, etc.)?
 - [ ] ¿El diseño funciona en 375px sin scroll horizontal?
 - [ ] ¿Usé `font-display` solo en h1 y h2?
-- [ ] ¿Los botones principales son `rounded-full`?
-- [ ] ¿Los botones de WhatsApp tienen `shadow-wa`?
+- [ ] ¿Los botones principales son `rounded-md` (8px)? — **no** `rounded-full` (ver sección 5)
+- [ ] ¿Los botones de WhatsApp usan `bg-wa`?
 
 ---
 
 ## Referencia rápida de clases más usadas
 
+⚠️ **El bloque de abajo tiene el mismo drift de v1.0 que la sección 7** (colores
+`stone`/`brand` que no existen en `@theme`, `rounded-full` en botones). Pendiente una
+pasada completa de este documento — no bloquea hoy, pero no copiar de acá sin verificar
+contra `globals.css` primero.
+
 ```
-Texto:        text-stone-900 · text-stone-500 · text-brand-500 · text-wa-dark
-Fondo:        bg-stone-50 · bg-white · bg-brand-50 · bg-brand-500 · bg-wa
-Borde:        border-stone-200 · border-brand-500 · border-brand-200
-Radius:       rounded-sm · rounded · rounded-lg · rounded-xl · rounded-full
-Sombra:       shadow-md · shadow-lg · shadow-brand · shadow-wa
-Tipografía:   font-display · font-sans · text-xs → text-3xl
-Espaciado:    p-1 p-2 p-3 p-4 p-6 p-8 p-12 p-16
+Texto:        text-ink · text-ink-muted · text-navy · text-orange
+Fondo:        bg-surface · bg-surface-card · bg-navy · bg-orange · bg-wa
+Borde:        border-outline
+Radius:       rounded-sm (4px) · rounded-md (8px) · rounded-lg (16px) · rounded-xl (24px) · rounded-full (pills)
+Sombra:       shadow-[var(--shadow-card)] · shadow-[var(--shadow-system)]
+Tipografía:   font-display (solo h1-h3) · font-sans (default) · text-eyebrow → text-display
+Espaciado:    p-1 p-2 p-3 p-4 p-6 p-8 p-12 p-16 (múltiplos de 4, ver sección 5 del CLAUDE.md)
 Animación:    animate-fade-in · animate-slide-up · animate-pulse
-Componentes:  btn-primary · btn-wa · btn-outline · card · badge · eyebrow · container-main
+Componentes:  Button (shadcn/ui + CVA) · composición directa para card/badge/eyebrow (sección 7)
 ```
 
 ---
