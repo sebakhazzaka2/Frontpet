@@ -112,6 +112,9 @@ postgres-data/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Claude Code: overrides personales, no se commitean
+.claude/settings.local.json
+
 # NetBeans
 /nbproject/private/
 /nbbuild/
