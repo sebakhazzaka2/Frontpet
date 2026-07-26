@@ -229,7 +229,7 @@ contra Postgres en Docker.
 | 1.2 | Postgres en Docker Compose + Flyway + primera migración | 2 | ✅ **adelantado**: V1–V4 cubren identity, catalog, booking y orders (tareas 3.1 / 4.1 / 5.1 ya hechas) |
 | 1.3 | Spring Security + JWT en cookie HttpOnly + endpoint `POST /api/v1/auth/login` funcional | 3 | |
 | 1.4 | Setup Next 16 + Framer Motion + TanStack Query + React Hook Form. Verificar que los tokens de `@theme` en `globals.css` funcionan end-to-end (**no hay `tailwind.config.ts` — ver ADR 014**) | 1.5 | ✅ |
-| 1.5 | CORS configurado, primer endpoint del frontend consumiendo backend local | 1 | |
+| 1.5 | CORS configurado, primer endpoint del frontend consumiendo backend local | 1 | 🔄 mitad hecha: CORS configurado y testeado. Falta que el frontend efectivamente consuma un endpoint — hoy no llama a nada |
 | 1.6 | **Testcontainers + primer test de integración** del endpoint de login. Sirve como template para todos los siguientes | 2 | ⚠️ Testcontainers **no está en el `pom.xml`** todavía |
 | 1.7 | **Logback con JSON structured output** + endpoint `/actuator/health` configurado y testeado | 0.5 | |
 | 1.8 | **Rate limit + lockout en el login**: máx. N intentos por IP/usuario en ventana, backoff. Un solo usuario admin y sin protección de fuerza bruta es un login de juguete | 2 | |
@@ -349,8 +349,8 @@ en vivo y empezar a recibir feedback con tráfico real.
 | # | Tarea | Hs |
 |---|-------|----|
 | 3.1 | ~~Migración SQL: `categories`, `products`, `product_images`~~ — **ya hecha en `V2__catalog.sql`** | ~~2~~ 0 |
-| 3.2 | Modelos JPA + repositorios + servicios | 2 |
-| 3.3 | Endpoints públicos: `GET /api/v1/products`, `GET /api/v1/products/{slug}`, `GET /api/v1/categories` | 3 |
+| 3.2 | Modelos JPA + repositorios + servicios | 2 | ✅ **hecha**. `Product/Category/Brand/Species/ProductVariant` + repos + `ProductService`/`CategoryService`/`BrandService`. Suma `slug` (V7, no estaba en el V2 original) y alta inline de marcas (`findOrCreate`, V9) — no estimados en el ROADMAP original |
+| 3.3 | Endpoints públicos: `GET /api/v1/products`, `GET /api/v1/products/{slug}`, `GET /api/v1/categories` | 3 | ✅ **hecha**, + `GET /api/v1/species`. Requirió adelantar la base de `SecurityConfig` (sin ella, `starter-security` bloqueaba todo con 401 — no estaba en el scope de esta tarea, es la 1.3) |
 | 3.4 | Endpoints admin protegidos: `POST/PUT/DELETE /api/v1/admin/products` | 2 |
 | 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado | 3 |
 | 3.5b | **Restricción del presigned URL**: mime type permitido, tamaño máximo y expiración corta, firmados en la política. Sin esto el bucket es de subida libre a costa nuestra | 1.5 |

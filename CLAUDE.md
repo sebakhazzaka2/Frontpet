@@ -137,12 +137,19 @@ Las decisiones detalladas están en `docs/decisions/`. Resumen:
 frontpet/
 ├── backend/                    (Spring Boot)
 │   ├── src/main/java/com/frontpet/
-│   │   ├── tenant/             Configuración del negocio
-│   │   ├── identity/           Usuarios admin, auth
-│   │   ├── catalog/            Productos, categorías
-│   │   ├── booking/            Servicios, recursos, reservas
-│   │   ├── orders/             Pedidos, items
-│   │   └── notifications/      Generación de mensajes WhatsApp
+│   │   ├── common/              Auditable, UuidV7, Slugify, PageResponse,
+│   │   │                        ApiError, RestExceptionHandler — cross-módulo
+│   │   ├── config/               SecurityConfig, CorsConfig
+│   │   ├── tenant/                Tenant, CurrentTenant (resuelve el tenant
+│   │   │                         de la request; hoy fijo, MVP1 single-tenant)
+│   │   ├── identity/              Usuarios admin, auth [aún .gitkeep]
+│   │   ├── catalog/               Product, Category, Brand, Species, Service +
+│   │   │                         api/ (controllers REST) + domain/ + dto/
+│   │   ├── booking/               Servicios, recursos, reservas [aún .gitkeep]
+│   │   ├── orders/                Pedidos, items [aún .gitkeep]
+│   │   ├── notifications/         Generación de mensajes WhatsApp [aún .gitkeep]
+│   │   └── BackendApplication.java  en la raíz de com.frontpet a propósito:
+│   │                              Spring Boot escanea desde acá hacia abajo
 │   ├── src/main/resources/
 │   │   └── db/migration/       Migraciones Flyway
 │   ├── docker-compose.yml      Postgres local
@@ -163,10 +170,18 @@ frontpet/
 │   ├── decisions/              Architectural Decision Records (ADRs)
 │   ├── design-system.md        Tokens, escalas, paleta documentadas
 │   ├── db-model.png            Modelo de DB visual (DBdiagram.io export)
+│   ├── port-landing-stitch.md  Worksheet de port de la landing (tarea 2.0b)
+│   ├── pending-decisions.md    Decisiones abiertas que no bloquean (marcas,
+│   │                           borrado masivo, promos — no son ADRs todavía)
+│   ├── preguntas-cliente.md    Respuestas del cliente (jul/2026)
+│   ├── reuse-consultorio.md    Qué se reusa del repo consultorio-odontológico
 │   ├── learnings.md            Bugs >2h con causa raíz  [gitignored]
 │   └── ui/                     ← Export VIEJO de Stitch  [gitignored]
 │       │                       ⚠️ NO es fuente de verdad — ver sección 5.
-│       │                       Sirve para mirar `screen.png` sin conexión.
+│       │                       **No está presente en todos los checkouts**
+│       │                       (falta en este, 2026-07-25) — el MCP de Stitch
+│       │                       conectado es el camino normal ahora; esto era
+│       │                       solo el fallback para mirar `screen.png` offline.
 │       ├── frontpet_Publico/   10 pantallas (nombres en español, versiones stale)
 │       ├── frontpet_Admin/     9 pantallas + design_system
 │       └── */*/                Cada pantalla: `code.html` (HTML + Tailwind CDN v3) +
@@ -263,7 +278,14 @@ El usuario es quien se encarga de los commits, solamente sugiere nombre y archiv
   que recrearlo (ver ADR 014). Para cambiar la paleta se tocan los `--color-*` de
   `@theme` y se actualiza toda la app — nunca hex hardcodeados en componentes.
 - ⚠️ **Los valores actuales de `@theme` son placeholders** tomados de `DESIGN.md`,
-  pendientes de que el cliente confirme la paleta final.
+  pendientes de que el cliente confirme la paleta final. **Actualización 2026-07-25**:
+  el cliente mandó el logo oficial (`FRONTPET-FONDO-AZUL.pdf` — navy de fondo, "FRONT" +
+  "PETSHOP" en blanco, "PET" en naranja). A ojo confirma navy y naranja como los colores
+  de marca reales (coincide con `--color-navy` / `--color-orange` ya en uso) — **pero el
+  hex exacto sigue sin confirmar**, no se sacó por pixel-sampling del PDF. No cambiar
+  tokens todavía; seguir codeando con los actuales (son 1 archivo si hay que ajustar).
+  Falta además pedirle variantes del logo (fondo transparente/blanco, ícono solo para
+  favicon) — el PDF recibido es solo la versión sobre fondo navy.
 - ✅ **El prototipo de landing v1.0 fue borrado** (commit `010f8f87`) y **queda
   descartado**: estaba contra el design system v1.0 muerto, en español, con "Pehuajó"
   como ciudad, y los tipos de su `lib/data.ts` contradecían el ADR 013 (mezclaban
@@ -371,8 +393,12 @@ Reglas surgidas del diseño de las pantallas admin, alineadas con MVP1:
   versionados em código, com variantes por status (Pendente / Confirmado / Cancelado).
   Ver ADR 010.
 - ✅ **Categorias canônicas (confirmadas con el cliente)**: `Rações, Acessórios, Higiene,
-  Petiscos, Conforto, Brinquedos` (Conforto = casas, camas, colchonetes). **Espécies**:
-  `Cães, Gatos, Aves, Peixes, Roedores`. Un producto puede estar en varias (N:M).
+  Petiscos, Conforto, Brinquedos, Outros` (Conforto = casas, camas, colchonetes; `Outros`
+  es el recolector: todo producto que no entra en ninguna necesita dónde caer).
+  **Espécies**: `Cães, Gatos` **y nada más** — el cliente trabaja solo con esos dos
+  (confirmado jul/2026; Aves, Peixes y Roedores quedaron descartados). Un producto puede
+  estar en varias (N:M). **Son lista cerrada: no tienen CRUD de admin**, se siembran en
+  `V8__catalog_reference_data.sql`.
 
 ---
 
