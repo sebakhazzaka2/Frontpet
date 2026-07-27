@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, Calendar } from 'lucide-react'
-import { HeroFloatingCards } from '@/components/public/hero-floating-cards'
+import { HeroFloatingCardsLoader } from '@/components/public/hero-floating-cards-loader'
 
 // TODO: reemplazar por la foto real del cliente cuando la provea. Stitch usa una
 // URL temporal de Google (aida-public) que no es nuestra y puede dejar de existir
@@ -55,8 +55,10 @@ export function Hero() {
 
       {/* Social proof flotante: solo desktop (lg:+). A AC de la tarea 2.2:
           oculto en mobile. Datos estáticos — Sprint 2 no tiene backend de
-          reviews todavía (ver ADR 017). */}
-      <HeroFloatingCards />
+          reviews todavía (ver ADR 017). Cargado con next/dynamic (ssr:false,
+          ver el loader) para que su JS no compita con el LCP en el primer
+          paint — no aporta SEO y en mobile ni siquiera se muestra. */}
+      <HeroFloatingCardsLoader />
     </section>
   )
 }
