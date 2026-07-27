@@ -6,189 +6,73 @@
 [![Status](https://img.shields.io/badge/status-en%20desarrollo-orange)]()
 [![License](https://img.shields.io/badge/license-Proprietario-blue)]()
 
----
+**Para el cliente final**: navegar el catálogo, armar carrito, enviar el pedido por
+WhatsApp, reservar turnos online (Banho & Tosa).
+**Para el negocio**: gestionar productos e imágenes, servicios y horarios, ver pedidos
+y turnos, mini-dashboard operativo.
 
-## Sobre el proyecto
-
-FrontPet es una plataforma web comercial pensada para digitalizar la venta de productos
-y la reserva de servicios para mascotas. El objetivo del MVP1 es validar el modelo
-comercial digital con la menor fricción técnica posible y máxima velocidad de
-implementación.
-
-A largo plazo, el sistema está diseñado para evolucionar hacia un SaaS multi-tenant
-configurable para múltiples negocios locales (petshops, peluquerías, barberías,
-gimnasios, etc.).
-
-### ¿Qué hace?
-
-**Para el cliente final** (público):
-- Navegar un catálogo de productos con búsqueda y filtros
-- Armar un carrito multi-producto
-- Enviar el pedido por WhatsApp con un mensaje pre-formateado
-- Reservar turnos online para servicios (baños, peluquería)
-
-**Para el negocio** (admin):
-- Gestionar productos, categorías e imágenes
-- Configurar servicios y horarios de atención
-- Ver pedidos y turnos recibidos
-- Mini-dashboard con métricas operativas
+A largo plazo el sistema está diseñado para evolucionar hacia un SaaS multi-tenant para
+negocios locales. MVP1 es single-tenant.
 
 ---
 
-## Stack tecnológico
+## Stack
 
 ```
 Backend         Spring Boot 3 + Java 21 + PostgreSQL 16 + Flyway
-Frontend        Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
+Frontend        Next.js 16 + TypeScript + Tailwind CSS v4 + shadcn/ui
 Auth            JWT en cookie HttpOnly + Spring Security
-Storage         Cloudflare R2 (imágenes)
-Infraestructura VPS Hetzner + Docker + Coolify + Caddy
-CDN             Cloudflare Pages (frontend público)
+Infraestructura VPS Hetzner + Coolify + Caddy · Cloudflare DNS/CDN + R2 (imágenes)
 Tracking        Meta Pixel + Plausible
 ```
 
-Ver `docs/decisions/001-stack-tecnologico.md` para el razonamiento completo.
+Razonamiento: [docs/decisions/](./docs/decisions/) (ADR 001 stack, ADR 016 deploy).
 
 ---
 
-## Estructura del repositorio
-
-> Este proyecto está dividido en dos repos:
-> - **frontpet-backend** — Spring Boot (este repo si estás en backend)
-> - **frontpet-web** — Next.js (este repo si estás en frontend)
+## Estructura (monorepo)
 
 ```
 .
-├── README.md                  ← Este archivo
-├── CLAUDE.md                  ← Contexto del proyecto para asistentes IA
-├── ROADMAP.md                 ← Plan de ejecución por sprints
-├── docs/
-│   └── decisions/             ← Architectural Decision Records (ADRs)
-│       ├── README.md
-│       ├── 001-stack-tecnologico.md
-│       ├── 002-multi-tenant.md
-│       ├── 003-pedidos-whatsapp.md
-│       ├── 004-auth-jwt-cookie.md
-│       └── 005-slots-dinamicos.md
-└── src/ o app/                ← Código fuente del proyecto
+├── backend/     Spring Boot (módulos: tenant, identity, catalog, booking, orders, notifications)
+├── frontend/    Next.js 16 (App Router)
+├── docs/        ADRs, design system, notas
+├── CLAUDE.md    Contexto del proyecto: convenciones, scope, reglas
+└── ROADMAP.md   Plan de ejecución por sprints (fuente de verdad del plan)
 ```
 
 ---
 
-## Primeros pasos (desarrollo local)
+## Desarrollo local
 
-### Requisitos previos
-
-- Java 21 (JDK)
-- Node.js 20+ y pnpm
-- Docker y Docker Compose
-- Git
-- Editor recomendado: IntelliJ IDEA Community (backend) + VS Code o Cursor (frontend)
-
-### Levantar el backend localmente
+Requisitos: Java 21 · Node 20.9+ y pnpm (en WSL, ver ADR 015) · Docker.
 
 ```bash
-# Clonar
-git clone https://github.com/[usuario]/frontpet-backend.git
-cd frontpet-backend
+# Backend (localhost:8080)
+cd backend
+docker compose up -d            # Postgres
+./mvnw spring-boot:run          # aplica migraciones Flyway al arrancar
 
-# Levantar Postgres en Docker
-docker compose up -d
-
-# Aplicar migraciones de DB
-./mvnw flyway:migrate
-
-# Correr el backend
-./mvnw spring-boot:run
-```
-
-El backend queda en `http://localhost:8080`.
-
-### Levantar el frontend localmente
-
-```bash
-# Clonar
-git clone https://github.com/[usuario]/frontpet-web.git
-cd frontpet-web
-
-# Instalar dependencias
+# Frontend (localhost:3000)
+cd frontend
 pnpm install
-
-# Variables de entorno (copiar el ejemplo)
 cp .env.example .env.local
-
-# Levantar el servidor de desarrollo
 pnpm dev
 ```
 
-El frontend queda en `http://localhost:3000`.
+Otros comandos: `./mvnw test` · `pnpm build` / `pnpm lint` / `pnpm typecheck`.
 
 ---
 
-## Comandos útiles
+## Estado
 
-### Backend
-```bash
-./mvnw spring-boot:run          # Levantar backend
-./mvnw test                     # Correr tests
-./mvnw flyway:migrate           # Aplicar migraciones
-./mvnw flyway:info              # Ver estado de migraciones
-docker compose up -d            # Levantar Postgres
-docker compose down             # Detener Postgres
-```
+**MVP1 en desarrollo** — re-baseado jul/2026. Hito de cobro (tienda vendiendo):
+**05/09/2026** · Entrega final: **30/09/2026**. Detalle de sprints e hitos: [ROADMAP.md](./ROADMAP.md).
 
-### Frontend
-```bash
-pnpm dev                        # Servidor de desarrollo
-pnpm build                      # Build de producción
-pnpm start                      # Servir build local
-pnpm lint                       # ESLint
-pnpm typecheck                  # Verificación TypeScript
-```
+## Equipo y licencia
 
----
+**Desarrollador**: Sebastián Khazzaka · **Cliente piloto**: FrontPet (Santana do
+Livramento, RS, Brasil).
 
-## Documentación
-
-| Documento | Para qué sirve |
-|-----------|----------------|
-| [CLAUDE.md](./CLAUDE.md) | Contexto completo del proyecto, convenciones, scope MVP1 |
-| [ROADMAP.md](./ROADMAP.md) | Plan de ejecución por sprints con tareas y estimaciones |
-| [docs/decisions/](./docs/decisions/) | Decisiones arquitectónicas (ADRs) |
-
----
-
-## Estado del proyecto
-
-**Versión actual**: MVP1 en desarrollo
-**Inicio**: mayo 2026
-**Entrega estimada**: fin de septiembre 2026
-**Duración**: 19 semanas (16 activas + 3 colchón)
-
-### Hitos principales
-
-- [ ] Sprint 1 (sem 1-2) — Setup infraestructura
-- [ ] Sprint 2 (sem 3-4) — Landing pública
-- [ ] Sprint 3 (sem 5-7) — Catálogo
-- [ ] **Sprint 4 (sem 8-9) — 🎯 Primera venta posible**
-- [ ] Sprint 5 (sem 10-11) — Booking backend
-- [ ] **Sprint 6 (sem 12-13) — 🎯 Primera reserva posible**
-- [ ] Sprint 7 (sem 14-15) — Polish + Marketing
-- [ ] Sprint 8 (sem 16) — Capacitación + Entrega
-
----
-
-## Equipo
-
-- **Desarrollador**: Sebastian Khazzaka
-- **Cliente piloto**: FrontPet
-
----
-
-## Licencia
-
-Proprietario. La arquitectura base del sistema pertenece al desarrollador. FrontPet
-obtiene licencia de uso del MVP desarrollado para su operación comercial dentro del
-alcance acordado.
-
-Ver propuesta comercial firmada para detalles.
+Proprietario. La arquitectura base pertenece al desarrollador; FrontPet obtiene licencia
+de uso del MVP para su operación comercial. Ver propuesta comercial firmada.
