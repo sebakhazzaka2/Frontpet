@@ -14,8 +14,13 @@
     ],
     "deny": [
       "Bash(rm -rf *)",
-      "Bash(git push --force*)",
-      "Bash(git reset --hard*)"
+      "Bash(git push*)",
+      "Bash(git reset --hard*)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore *)",
+      "Bash(git clean -f*)",
+      "Bash(git branch -D*)",
+      "Bash(git commit*)"
     ]
   }
 }

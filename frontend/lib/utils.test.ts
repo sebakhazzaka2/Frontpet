@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { cn } from "@/lib/utils"
+import { cn, formatPrice } from "@/lib/utils"
 
 // Test de ejemplo / smoke test: prueba el helper `cn` (merge de clases Tailwind).
 // Sirve como plantilla del patrón de unit test. Cuando aparezca lógica de
@@ -16,5 +16,15 @@ describe("cn", () => {
 
   it("ignora valores falsy (útil para clases condicionales)", () => {
     expect(cn("px-2", false, null, undefined, "py-1")).toBe("px-2 py-1")
+  })
+})
+
+describe("formatPrice", () => {
+  it("formatea en BRL con vírgula decimal", () => {
+    expect(formatPrice(185)).toBe("R$ 185,00")
+  })
+
+  it("redondea a 2 decimais", () => {
+    expect(formatPrice(42.9)).toBe("R$ 42,90")
   })
 })

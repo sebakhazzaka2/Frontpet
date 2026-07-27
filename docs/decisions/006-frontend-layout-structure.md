@@ -34,15 +34,19 @@ no hay estado local).
 Sprint 4 se agregue el botón de like (`useState`), se extrae a
 `components/public/product-card.tsx` con `"use client"` — el cambio es mínimo.
 
-### 3. Botón WA flotante en `page.tsx` con TODO en Sprint 2
+### 3. Botón WA flotante — resuelto en `layout.tsx` directo (actualizado 2026-07-25)
 
-El botón flotante de WhatsApp está en `app/(public)/page.tsx` con un TODO para
-moverlo a `(public)/layout.tsx` en Sprint 3.
+Decisión original: vivía en `page.tsx` con un TODO para moverlo a
+`(public)/layout.tsx` cuando se extrajera `MobileNav` como client component en
+Sprint 3. Ese momento llegó antes: `BottomNav` (tarea 2.0d, Sprint 2) es
+exactamente ese client component, así que `FloatingWA` fue directo a
+`layout.tsx` — nunca vivió en `page.tsx`, el TODO se saltó por completo.
 
-**Por qué:** Es funcional desde hoy. Al navegar a `/productos` va a desaparecer
-(está solo en home). El TODO recuerda moverlo a layout cuando se extraiga
-`MobileNav` como client component en Sprint 3, momento en que el refactor tiene
-costo casi nulo.
+**Por qué ya no hace falta un TODO**: `FloatingWA` ahora es `hidden md:block`
+(en mobile, WhatsApp vive integrado en `BottomNav`, no como botón flotante
+separado — ver `docs/port-landing-stitch.md` §5.8). Al navegar a `/produtos`
+sigue apareciendo en desktop, sin el bug original de "solo en home" que
+motivaba el TODO.
 
 ---
 

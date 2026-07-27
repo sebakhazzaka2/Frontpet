@@ -115,6 +115,23 @@
   --text-display--line-height: 1.15;
   --text-display--letter-spacing: -0.02em;
 
+  /* ── Hero headline — 3 pasos (mobile/tablet/desktop), no 2 como el resto de
+     la escala. Decisión 2026-07-25: el Hero es el momento de mayor impacto
+     visual de la landing, vale el paso extra. Valores exactos de Stitch
+     (36/52/64px) — el AC de la tarea 2.2 pide validar a 320/768/1024/1440,
+     y con solo 2 tiers el salto a 64px ya en 768px corta o solapa. */
+  --text-hero-mobile: 36px;
+  --text-hero-mobile--line-height: 1.05;
+  --text-hero-mobile--letter-spacing: -0.02em;
+
+  --text-hero-tablet: 52px;
+  --text-hero-tablet--line-height: 1.05;
+  --text-hero-tablet--letter-spacing: -0.02em;
+
+  --text-hero: 64px;
+  --text-hero--line-height: 1.05;
+  --text-hero--letter-spacing: -0.02em;
+
   /* ── Radius — escala canónica: 4 / 8 / 16 / 24. Ver ADR 014.
      Ojo: las clases rounded-* de Stitch NO significan lo mismo acá (sus pantallas
      corren en Tailwind v3, donde rounded-lg = 8px). Tabla de traducción en el ADR.
