@@ -1,7 +1,7 @@
-// Testemunhos da landing. Não modelam uma entidade real do backend — ADR 013
-// não define tabela de reviews e CLAUDE.md §7 deixa "reviews dinâmicas
-// (usuários carregam)" fora do MVP1. Ficam estáticos aqui indefinidamente,
-// não são um placeholder à espera de API (diferente de `products.ts`).
+// Testimonios de la landing. No modelan una entidad real del backend — ADR 013
+// no define tabla de reviews y CLAUDE.md §7 deja "reviews dinámicas
+// (usuarios cargan)" fuera del MVP1. Quedan estáticos acá indefinidamente,
+// no son un placeholder a la espera de API (a diferencia de `products.ts`).
 export interface Review {
   id: string
   nome: string

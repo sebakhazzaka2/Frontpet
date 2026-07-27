@@ -1,14 +1,14 @@
-// Produtos em destaque da landing. Estáticos em Sprint 2 — a tarefa 3.x troca
-// esta fonte pela API real (`GET /api/v1/products`), sem reescrever <ProductCard>
-// (ver CLAUDE.md §5, metodologia de implementação).
+// Productos destacados de la landing. Estáticos en Sprint 2 — la tarea 3.x
+// cambia esta fuente por la API real (`GET /api/v1/products`), sin reescribir
+// <ProductCard> (ver CLAUDE.md §5, metodología de implementación).
 //
-// `id`/`slug` são placeholders legíveis, não os `public_id` UUID v7 reais do
-// backend (ADR 013) — esses só existem quando o catálogo tiver seed real.
+// `id`/`slug` son placeholders legibles, no los `public_id` UUID v7 reales del
+// backend (ADR 013) — esos solo existen cuando el catálogo tenga seed real.
 //
-// Sem `avaliacao`/rating de propósito: o DTO real (`ProductSummary`, backend
-// Sprint 3) não tem esse campo — não existe tabela de reviews em MVP1 (ADR
-// 013, CLAUDE.md §7). Mostrar um número sem dado real por trás seria mentir
-// na tela (decidido 2026-07-27).
+// Sin `avaliacao`/rating a propósito: el DTO real (`ProductSummary`, backend
+// Sprint 3) no tiene ese campo — no existe tabla de reviews en MVP1 (ADR
+// 013, CLAUDE.md §7). Mostrar un número sin dato real detrás sería mentir
+// en la pantalla (decidido 2026-07-27).
 export const PRODUCT_CATEGORIES = [
   'Rações',
   'Acessórios',
@@ -25,7 +25,7 @@ export interface Product {
   id: string
   slug: string
   nome: string
-  /** Sin foto real do produto ainda — `undefined` renderiza um placeholder. */
+  /** Sin foto real del producto todavía — `undefined` renderiza un placeholder. */
   imagemUrl?: string
   categoria: ProductCategory
   preco: number

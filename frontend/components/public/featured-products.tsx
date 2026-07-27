@@ -1,9 +1,9 @@
 import { FEATURED_PRODUCTS } from '@/lib/data/products'
 import { ProductCard } from '@/components/public/product-card'
 
-// Envoltório de seção pra dar contexto ao <ProductCard> (tarefa 2.5) — não é
-// uma tarefa própria do ROADMAP, mas o card precisa de algo em volta pra
-// validar visualmente (DoD: screenshot + mobile real).
+// Envoltorio de sección para darle contexto a <ProductCard> (tarea 2.5) — no
+// es una tarea propia del ROADMAP, pero la card necesita algo alrededor para
+// validarla visualmente (DoD: screenshot + mobile real).
 export function FeaturedProducts() {
   return (
     <section className="mx-auto max-w-content px-6 py-16 lg:px-8">

@@ -11,10 +11,10 @@ const LINKS_UTEIS = [
   { href: '/agendamento', label: 'Agendar horário' },
 ] as const
 
-// "Rodapé Sincronizado" de Stitch (issue #10). A coluna "Serviços" do mock
-// listava links inventados ("Spa Pet", que não existe no catálogo real —
-// ver ADR 011) sobre um endereço placeholder ("Rua Exemplo, 123"). Não se
-// porta: só entram dados confirmados (cidade do cliente, @frontpet.br).
+// "Rodapé Sincronizado" de Stitch (issue #10). La columna "Serviços" del mock
+// listaba links inventados ("Spa Pet", que no existe en el catálogo real —
+// ver ADR 011) sobre una dirección placeholder ("Rua Exemplo, 123"). No se
+// porta: solo entran datos confirmados (ciudad del cliente, @frontpet.br).
 export function Footer() {
   const whatsappHref = buildWhatsAppLink('Olá! Gostaria de mais informações.')
   const year = new Date().getFullYear()

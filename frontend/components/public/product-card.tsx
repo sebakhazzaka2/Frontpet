@@ -10,9 +10,9 @@ interface ProductCardProps {
   product: Product
 }
 
-// Variante de landing (tarefa 2.5): CTA vai direto pro WhatsApp, não pro
-// carrinho — "Adicionar à sacola" (Stitch) fica pro Sprint 4, quando existir
-// carrinho de verdade (decidido 2026-07-25, ver issue #7).
+// Variante de landing (tarea 2.5): el CTA va directo a WhatsApp, no al
+// carrito — "Adicionar à sacola" (Stitch) queda para el Sprint 4, cuando
+// exista carrito de verdad (decidido 2026-07-25, ver issue #7).
 export function ProductCard({ product }: ProductCardProps) {
   const whatsappHref = buildWhatsAppLink(
     `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.preco)}).`
@@ -34,8 +34,8 @@ export function ProductCard({ product }: ProductCardProps) {
             sizes="(min-width: 1024px) 25vw, 50vw"
           />
         ) : (
-          // TODO: reemplazar por foto real do produto quando exista. Sin
-          // stock inventado — mesmo critério do <ServiceCard> (tarefa 2.4).
+          // TODO: reemplazar por foto real del producto cuando exista. Sin
+          // stock inventado — mismo criterio que <ServiceCard> (tarea 2.4).
           <div className="flex h-full w-full items-center justify-center">
             <PawPrint className="size-10 text-outline" aria-hidden />
           </div>
