@@ -3,28 +3,34 @@ import Link from 'next/link'
 import { CheckCircle2, ChevronRight, PawPrint, Truck } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
 import { buildWhatsAppLink } from '@/lib/data/site'
-import { isOnSale, type ProductDetail } from '@/lib/data/product-detail'
+import type { ProductDetail } from '@/lib/data/product-detail'
 import { formatPrice } from '@/lib/utils'
 
 interface ProductDetailViewProps {
   product: ProductDetail
 }
 
-// Tarefa 3.9 (issue a criar) — versão adaptada da pantalla de Stitch
-// "Detalhe do Produto (Versão Final com Navegação)". Decisões 2026-07-27,
-// ver docs/stitch-implementation-workflow.md §4:
-// - Uma imagem só, sem galeria de thumbnails (CLAUDE.md §7: galeria é Fase 2).
-// - Sem tabs de tabela nutricional/instruções: o DTO real só tem `descricao`.
-// - Sem rating/avaliações: sem tabela de reviews em MVP1 (mesmo critério do
+// Tarea 3.9 (issue #19) — versión adaptada de la pantalla de Stitch "Detalhe do
+// Produto (Versão Final com Navegação)". Decisiones 2026-07-27, ver
+// docs/stitch-implementation-workflow.md §4:
+// - Una sola imagen, sin galería de thumbnails (CLAUDE.md §7: galería es Fase 2).
+// - Sin tabs de tabla nutricional/instrucciones: el DTO real solo tiene `descricao`.
+// - Sin rating/avaliações: sin tabla de reviews en MVP1 (mismo criterio del
 //   <ProductCard>, ADR 013).
-// - Sem seletor de quantidade: fica para o Sprint 4, quando existir carrinho.
-// - CTA direto pro WhatsApp, "Adicionar ao carrinho" fica pro Sprint 4.
+// - Sin selector de cantidad: queda para el Sprint 4, cuando exista carrinho.
+// - CTA directo a WhatsApp, "Adicionar ao carrinho" queda para el Sprint 4.
+//
+// NO implementado todavía (issue #19, comentario 2026-07-27): selector de
+// variante. Cuando `product.variants.length > 0`, `price` viene null del
+// backend — el CTA queda deshabilitado en vez de inventar un precio.
 export function ProductDetailView({ product }: ProductDetailViewProps) {
   const categoria = product.categories[0]
-  const onSale = isOnSale(product)
-  const whatsappHref = buildWhatsAppLink(
-    `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.price)}).`
-  )
+  const whatsappHref =
+    product.price != null
+      ? buildWhatsAppLink(
+          `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.price)}).`
+        )
+      : undefined
 
   return (
     <div className="mx-auto max-w-content px-6 py-8 lg:px-8 lg:py-12">
@@ -59,13 +65,13 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
               sizes="(min-width: 1024px) 50vw, 100vw"
             />
           ) : (
-            // TODO: substituir por foto real do produto quando existir. Sem
-            // estoque de imagem inventado — mesmo critério do <ProductCard>.
+            // TODO: reemplazar por foto real del producto cuando exista. Sin
+            // stock de imagen inventado — mismo criterio que <ProductCard>.
             <div className="flex h-full w-full items-center justify-center">
               <PawPrint className="size-16 text-outline" aria-hidden />
             </div>
           )}
-          {onSale && (
+          {product.onSale && (
             <span className="absolute left-3 top-3 rounded-full bg-orange px-3 py-1 text-caption text-white">
               Oferta
             </span>
@@ -83,12 +89,24 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            {onSale && (
-              <span className="text-sm text-ink-muted line-through">
-                {formatPrice(product.priceOriginal!)}
+            {product.price != null ? (
+              <>
+                {product.onSale && (
+                  <span className="text-sm text-ink-muted line-through">
+                    {formatPrice(product.priceOriginal!)}
+                  </span>
+                )}
+                <span className="text-h2 font-semibold text-orange">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              // TODO: selector de variante (issue #19) — por ahora, sin precio
+              // fijo para no inventar un valor que no es el de ninguna opción.
+              <span className="text-sm text-ink-muted">
+                Selecione uma variante para ver o preço
               </span>
             )}
-            <span className="text-h2 font-semibold text-orange">{formatPrice(product.price)}</span>
           </div>
 
           <div className="flex flex-col gap-2 rounded-lg border border-outline/30 bg-surface p-4">
@@ -108,15 +126,25 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
           <p className="text-sm leading-relaxed text-ink-muted">{product.descricao}</p>
 
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 flex h-12 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
-          >
-            <WhatsAppIcon className="size-5" />
-            Pedir pelo WhatsApp
-          </a>
+          {whatsappHref ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex h-12 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
+            >
+              <WhatsAppIcon className="size-5" />
+              Pedir pelo WhatsApp
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="mt-2 flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-outline/40 text-sm font-medium text-ink-muted"
+            >
+              Selecione uma variante
+            </button>
+          )}
         </div>
       </div>
     </div>

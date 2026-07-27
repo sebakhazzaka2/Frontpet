@@ -30,8 +30,8 @@ explícito del cliente por escrito antes de mediados de agosto** — no el 1/09.
 | | Hs |
 |---|---:|
 | Disponibles 17/07 → 05/09 (7 sem × 22, menos 6 días de panza) | ~119 |
-| Necesarias para el hito de cobro (Sprint 1 resto 8,5 + Sprint 2 24,5 + Sprint 3 22,5 + Despliegue 10 + Sprint 4 30) | 95.5 |
-| **Slack del bloque A** | **~23,5** |
+| Necesarias para el hito de cobro (Sprint 1 resto 8,5 + Sprint 2 24,5 + Sprint 3 24 + Despliegue 10 + Sprint 4 30) | 97 |
+| **Slack del bloque A** | **~22** |
 | Disponibles 06/09 → 30/09 (3,5 sem × 22) | ~77 |
 | Necesarias para la entrega (Sprint 5 19 + Sprint 6 16 + Sprint 7 24,5 + Sprint 8 14) | 73.5 |
 | **Slack del bloque B** | **~3,5** ⚠️ |
@@ -56,7 +56,7 @@ apostando la entrega a que septiembre salga perfecto.
 | | 0 | Pre-kickoff (GitHub Projects + modelo DB) | 3 | ✅ hecho |
 | **A** | 1 | Setup local: backend + frontend + auth + testing | 16 | 🔄 ~50% |
 | **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 2.1/2.3/2.4/2.6-2.8 hechas, 2.2/2.5 con detalles abiertos, falta 2.9/2.10 |
-| **A** | 3 | Catálogo + backend de productos | 22.5 | 🔄 3.1-3.3 adelantadas |
+| **A** | 3 | Catálogo + backend de productos | 24 | 🔄 3.1-3.3/3.12 adelantadas, 3.9 parcial |
 | **A** | Despliegue | **Compra infra + despliegue inicial + landing+catálogo en vivo** | 10 | ⏸️ movida post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
 | **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | ⚠️ el más pesado |
 | | | 🎯 **05/09 — hito de cobro: la tienda vende** | | |
@@ -66,7 +66,7 @@ apostando la entrega a que septiembre salga perfecto.
 | **B** | 8 | Capacitación + entrega formal | 14 | |
 | | | 🎯 **30/09 — entrega final** | | |
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
-| **Total** | | **169 hs restantes** (Sprints 1-8, con Sprint 1 al 50%) **+ 6,5 opcionales** | **~175,5** | |
+| **Total** | | **170,5 hs restantes** (Sprints 1-8, con Sprint 1 al 50%) **+ 6,5 opcionales** | **~177** | |
 
 > 🔁 **Despliegue movido después del Sprint 3** (decisión 2026-07-27): comprar VPS y
 > dominio depende de que el cliente pague/apruebe el gasto, y esa conversación todavía no
@@ -305,7 +305,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 
 ---
 
-## Sprint 3 — Catálogo + Backend de productos (~22,5 hs)
+## Sprint 3 — Catálogo + Backend de productos (~24 hs)
 
 **Objetivo**: catálogo dinámico desde DB con detalle por producto y CRUD vía API.
 
@@ -315,15 +315,16 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 3.2 | Modelos JPA + repositorios + servicios | 2 | ✅ **hecha**. `Product/Category/Brand/Species/ProductVariant` + repos + `ProductService`/`CategoryService`/`BrandService`. Suma `slug` (V7, no estaba en el V2 original) y alta inline de marcas (`findOrCreate`, V9) — no estimados en el ROADMAP original |
 | 3.3 | Endpoints públicos: `GET /api/v1/products`, `GET /api/v1/products/{slug}`, `GET /api/v1/categories` | 3 | ✅ **hecha**, + `GET /api/v1/species`. Requirió adelantar la base de `SecurityConfig` (sin ella, `starter-security` bloqueaba todo con 401 — no estaba en el scope de esta tarea, es la 1.3) |
 | 3.4 | Endpoints admin protegidos: `POST/PUT/DELETE /api/v1/admin/products` | 2 |
-| 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado. ⚠️ Necesita una cuenta Cloudflare + bucket R2 propios — **no esperar al Sprint Despliegue para esto**: R2 tiene free tier, se crea sola, sin plata ni aprobación del cliente (D.3 se adelanta acá) | 3 |
+| 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado. ✅ **Prerequisito resuelto (2026-07-27)**: cuenta Cloudflare + bucket R2 (`frontpet-products`) creados, credenciales del API Token (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`) guardadas fuera del repo, listas para cargarlas como env vars cuando se implemente esta tarea | 3 |
 | 3.5b | **Restricción del presigned URL**: mime type permitido, tamaño máximo y expiración corta, firmados en la política. Sin esto el bucket es de subida libre a costa nuestra | 1.5 |
+| 3.6a | **Cliente de API en el frontend**: wrapper de `fetch` (`frontend/lib/api/`), base URL desde `NEXT_PUBLIC_API_URL`, manejo de 404/error. Sin librería nueva (TanStack Query ya está instalado, entra cuando 3.7/3.8 necesiten cache/refetch en cliente). No estaba estimada — bloquea 3.6, 3.7, 3.8, 3.9 y 3.11 por igual, encontrada al hacer 3.9 (decisión 2026-07-27) | 1.5 |
 | 3.6 | Frontend: página `/produtos` con grid responsive | 2 |
 | 3.7 | Filtro por categoría (chips horizontales scrolleables) | 2 |
 | 3.8 | Búsqueda por nombre con debounce (300ms) | 2 |
-| 3.9 | Página `/produtos/[slug]` con **una** imagen y descripción (galería es Fase 2, ver `CLAUDE.md` §7). **`params` es una Promise en Next 16** — usar `PageProps<'/produtos/[slug]'>` de `next typegen` | 2 |
+| 3.9 | Página `/produtos/[slug]` con **una** imagen y descripción (galería es Fase 2, ver `CLAUDE.md` §7). **`params` es una Promise en Next 16** — usar `PageProps<'/produtos/[slug]'>` de `next typegen` | 2 | 🔄 **parcial**: shell de UI + `params`/imagen única hechos con datos estáticos (issue #19); falta el fetch real (esperaba a 3.6a) y el gating de CTA cuando `hasVariants` |
 | 3.10 | Skeletons de carga, estados vacíos, error boundaries | 1 |
 | 3.11 | Caching del catálogo en Next 16. ⚠️ **Esta tarea está escrita para Next 14**: `revalidateTag` ahora exige un segundo argumento (perfil de `cacheLife`) y PPR se activa con `cacheComponents`. Revisar contra la doc de 16 antes de implementar | 1 |
-| 3.12 | Seed con 10 productos de prueba | 1 |
+| 3.12 | Seed con 10 productos de prueba | 1 | ✅ **hecha** — `backend/.../db/seed-dev/products.sql`, fuera de Flyway a propósito (no es apto para producción, ver comentario del archivo) |
 
 **Entregable**: catálogo navegable real en producción, indexable por Google, optimizado.
 

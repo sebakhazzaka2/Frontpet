@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation'
 import { ProductCard } from '@/components/public/product-card'
 import { ProductDetailView } from '@/components/public/product-detail'
-import { getProductBySlug, getRelatedProducts } from '@/lib/data/product-detail'
+import { getRelatedProducts } from '@/lib/data/product-detail'
+import { getProductBySlug } from '@/lib/api/products'
 
-// Next 16: params é uma Promise (ver ROADMAP.md tarefa 3.9).
+// Next 16: params es una Promise (ver ROADMAP.md tarea 3.9).
 export default async function ProductDetailPage(props: PageProps<'/produtos/[slug]'>) {
   const { slug } = await props.params
-  const product = getProductBySlug(slug)
+  const product = await getProductBySlug(slug)
 
   if (!product) {
     notFound()
