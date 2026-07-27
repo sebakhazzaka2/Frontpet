@@ -190,6 +190,57 @@ Las 8 se cerraron con Sebastián. Los cambios de token ya están en `globals.css
 
 ---
 
+## 6. Decisiones tomadas al codear el Nav + Hero (2026-07-25)
+
+Para que cualquier tab/sesión que siga con las tareas 2.3+ no tenga que re-derivar esto.
+
+### Mapeo de 53 íconos Material Symbols → lucide-react
+
+Verificado contra el paquete instalado (`lucide-react` 1.16), no adivinado. En la landing
+aparecen 17 únicos (55 usos) de esos 53 — el resto está en otras pantallas de Stitch:
+
+| Material Symbols | Lucide | Material Symbols | Lucide |
+|---|---|---|---|
+| `star` | `Star` | `menu` | `Menu` |
+| `pets` | `PawPrint` | `calendar_today` | `Calendar` |
+| `shopping_bag` | `ShoppingBag` | `local_shipping` | `Truck` |
+| `check_circle` | `CheckCircle2` | `public` | `Globe` |
+| `timer` | `Timer` | `share` | `Share2` |
+| `shopping_cart` | `ShoppingCart` | `location_on` | `MapPin` |
+| `arrow_forward` | `ArrowRight` | `call` | `Phone` |
+| `home` | `Home` | `help` | `HelpCircle` |
+| `content_cut` | `Scissors` | | |
+
+Ninguno necesitó reemplazo aproximado — los 17 tienen 1:1. WhatsApp es aparte
+(`components/shared/whatsapp-icon.tsx`): ícono de marca, no está en ninguna librería de
+pictogramas genéricos.
+
+### `--text-hero` — nuevo paso en la escala tipográfica
+
+El headline del Hero necesita 36/52/64px (mobile/tablet/desktop); el tope anterior de la
+escala era `--text-display` (44px). Se agregaron `--text-hero-mobile` (36px),
+`--text-hero-tablet` (52px) y `--text-hero` (64px) a `globals.css` — 3 pasos, no 2 como el
+resto de la escala, porque el AC de la tarea 2.2 pide validar a 320/768/1024/1440 y con
+2 tiers el salto a 64px ya en 768px corta o solapa.
+
+### Logo real del cliente
+
+`frontend/public/brand/`: `frontpet-logo.pdf` (fuente) y `frontpet-logo.png` (export del
+cliente, cuadrado 3375×3375, mucho padding navy) → `frontpet-logo-horizontal.png`
+(recortado con `sharp().trim()`, 2665×541, para uso en Nav/Hero/Footer). El navy de fondo
+del PNG es `#011e5a` — coincide exacto con `--color-navy`, por eso el recorte funde sin
+bordes visibles contra cualquier superficie navy del repo. **Decisión 2026-07-25**: el
+logo va completo con "PETSHOP" incluido, aunque a 64px de header quede chico — no se separa
+en una variante solo-wordmark.
+
+### Sin foto real del Hero todavía
+
+Stitch hotlinkea una URL temporal de `googleusercontent.com` para la imagen de fondo del
+Hero — no es nuestra, puede expirar, no se hotlinkea en el repo. Placeholder actual:
+gradiente navy (`from-navy to-navy-dark`). Falta pedirle al cliente una foto real.
+
+---
+
 ## 6. Conclusión operativa
 
 **El copy-paste no sirve para nada acá**, y no solo por los radios: entre 65 valores

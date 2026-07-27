@@ -47,7 +47,7 @@ Flujo concreto:
    - Valida que el slot esté disponible (cálculo dinámico, ver ADR 005).
    - Persiste el booking con estado `PENDING`.
    - Retorna `bookingId` (UUID v7) y resumen.
-4. Frontend redirige a `/agendamento/confirmacao` que muestra:
+4. Frontend redirige a `/turnos/confirmacao` que muestra:
    - Mensaje de éxito
    - Código de reserva (`bookingId` truncado a algo legible, ej. `#FP-1024`)
    - Resumen del agendamento (servicio, fecha, hora, tutor, pet)

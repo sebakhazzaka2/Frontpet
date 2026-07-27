@@ -273,7 +273,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 2.4 | `<ServiceCard>` (preview, sin booking todavía, link a `/turnos`) | 2 |
 | 2.5 | `<ProductCard>` con CTA WhatsApp directo (variante para landing) | 2 |
 | 2.6 | `<Reviews>` con 3-4 testimonios estáticos | 1 |
-| 2.7 | `<FinalCTA>` y `<FloatingWA>` con pulse animation | 2 |
+| 2.7 | `<FloatingWA>` con pulse animation. **`<FinalCTA>` descartado** (decisión 2026-07-25) — mismo caso que `<AnnouncementBar>`: no existe ninguna sección así entre Reviews y Footer en el HTML real de Stitch, va directo de una a la otra | 2 |
 | 2.8 | Footer con links, contacto, redes | 1 |
 | 2.9 | Optimización Lighthouse: imágenes, fuentes, Core Web Vitals > 90 | 3 |
 | 2.10 | Responsive completo: 320px / 768px / 1024px / 1440px | 2 |
