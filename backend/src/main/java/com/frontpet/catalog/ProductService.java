@@ -1,7 +1,9 @@
 package com.frontpet.catalog;
 
+import com.frontpet.catalog.dto.CreateProductRequest;
 import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
+import com.frontpet.catalog.dto.UpdateProductRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -56,4 +58,26 @@ public interface ProductService {
      * de construir la entidad.
      */
     String generateUniqueSlug(UUID tenantId, String nome);
+
+    /**
+     * Alta de producto, con o sin variantes (tarea 3.4).
+     *
+     * @throws IllegalArgumentException si la invariante precio/variantes no se
+     *                                  cumple (ADR 013 §2), o si algún slug de
+     *                                  categoría/espécie no existe
+     */
+    ProductDetail create(UUID tenantId, CreateProductRequest request);
+
+    /**
+     * Edición de producto: reemplazo completo de los campos editables, salvo
+     * variantes (docs/pending-decisions.md §5 — no se tocan acá) y salvo
+     * {@code slug} en blanco (significa "no tocar", nunca "vaciar").
+     *
+     * @throws ProductNotFoundException si no existe
+     * @throws IllegalArgumentException si la invariante precio/variantes no se
+     *                                  cumple, si el slug nuevo colisiona con
+     *                                  otro producto, o si algún slug de
+     *                                  categoría/espécie no existe
+     */
+    ProductDetail update(UUID tenantId, UUID publicId, UpdateProductRequest request);
 }
