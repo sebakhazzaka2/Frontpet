@@ -103,3 +103,30 @@ de WhatsApp, que ya está marcado como pendiente de reemplazo.
 `db/migration/dev`) o si se acepta que V5 es data real y se le saca el cartel.
 
 **Dónde impacta**: Sprint Despliegue.
+
+---
+
+## 5. Gestión de variantes vía admin — sin tarea asignada
+
+**Estado**: hueco de planificación detectado (2026-07-27), no una decisión pospuesta a
+propósito.
+
+Grep al ROADMAP entero por "variant": aparece en la 3.2 (modelado) y en la 2.5 (nombre de
+una card del frontend) — **ningún endpoint de admin para crear/editar/borrar variantes**,
+ni en 3.4 ni en Sprint 4 ("Admin productos"). El alta (`POST /admin/products`) sí acepta
+variantes al crear el producto; no hay forma de tocarlas después.
+
+**Por qué no se resolvió dentro de 3.4** (que sí edita el resto de los campos del
+producto): `order_items` tiene FK real a `product_variants(id)` (ADR 013). Un endpoint que
+haga "reemplazar el array completo" de variantes borraría filas viejas vía
+`orphanRemoval` — si algún pedido real ya referencia una de esas variantes, el `DELETE`
+choca contra la FK y la transacción falla. Funciona perfecto en dev (sin pedidos históricos)
+y explota en producción justo cuando hay más que perder.
+
+**Lo que haría falta**: upsert por id (actualizar existentes, agregar nuevas) + soft-delete
+de las que se sacan de la lista (`ProductVariant.active`, que ya existe, mismo patrón que
+`Product`) — nunca un hard-delete. Es una feature separable, no un `if` que se cuela en el
+PUT de campos escalares.
+
+**Dónde impacta**: falta asignarle un número de tarea. Candidatos: Sprint 4 (admin
+productos) o un endpoint propio (`PUT /admin/products/{id}/variants`).
