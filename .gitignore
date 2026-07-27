@@ -95,7 +95,10 @@ docker-compose.override.yml
 .docker/
 
 # Datos locales de Postgres
-data/
+# Con slash inicial: solo la raíz del repo. Sin él, "data/" matcheaba
+# también frontend/lib/data/ (CLAUDE.md §5: ahí van los datos estáticos
+# del frontend) y los ignoraba por completo, sin avisar.
+/data/
 postgres-data/
 **/postgres-data/
 *.db
