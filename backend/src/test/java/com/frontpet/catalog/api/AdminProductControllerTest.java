@@ -60,6 +60,59 @@ class AdminProductControllerTest {
     }
 
     @Test
+    @DisplayName("POST presign sin cookie JWT devuelve 401")
+    void presignRequiresAuthentication() throws Exception {
+        mockMvc.perform(post("/api/v1/admin/products/images/presign")
+                        .contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST presign con mime não permitido devuelve 400")
+    void presignRejectsDisallowedMimeType() throws Exception {
+        String body = """
+                {"fileName": "foto.pdf", "contentType": "application/pdf", "contentLength": 1024}
+                """;
+
+        mockMvc.perform(post("/api/v1/admin/products/images/presign")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "Tipo de imagem não permitido: application/pdf. Use JPEG, PNG ou WebP."));
+    }
+
+    @Test
+    @DisplayName("POST presign com tamanho acima de 5MB devuelve 400")
+    void presignRejectsOversizedFile() throws Exception {
+        String body = """
+                {"fileName": "foto.jpg", "contentType": "image/jpeg", "contentLength": 6291456}
+                """;
+
+        mockMvc.perform(post("/api/v1/admin/products/images/presign")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST presign com payload válido devuelve URL firmada e publicUrl")
+    void presignReturnsSignedUrl() throws Exception {
+        String body = """
+                {"fileName": "foto.png", "contentType": "image/png", "contentLength": 500000}
+                """;
+
+        mockMvc.perform(post("/api/v1/admin/products/images/presign")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uploadUrl").isNotEmpty())
+                .andExpect(jsonPath("$.publicUrl").isNotEmpty())
+                .andExpect(jsonPath("$.objectKey", org.hamcrest.Matchers.endsWith(".png")))
+                .andExpect(jsonPath("$.expiresAt").isNotEmpty());
+    }
+
+    @Test
     @DisplayName("DELETE sin cookie JWT devuelve 401")
     void deactivateRequiresAuthentication() throws Exception {
         mockMvc.perform(delete("/api/v1/admin/products/" + UUID.randomUUID()))
@@ -263,6 +316,116 @@ class AdminProductControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.user(admin))
                         .contentType("application/json").content(updateBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /variants em produto sem variantes devuelve 400")
+    void replaceVariantsRejectsSimpleProduct() throws Exception {
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"nome\": \"Produto Simples Para Variantes\", \"price\": 10.00}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+
+        mockMvc.perform(put("/api/v1/admin/products/" + publicId + "/variants")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("[{\"nomeVariante\": \"Único\", \"price\": 10.00}]"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /variants: actualiza existente, agrega nueva y soft-deletea la que falta")
+    void replaceVariantsUpsertAndSoftDelete() throws Exception {
+        String createBody = """
+                {
+                  "nome": "Produto Com Variantes Para Editar",
+                  "variants": [
+                    {"nomeVariante": "3kg", "price": 59.90, "stock": 5},
+                    {"nomeVariante": "15kg", "price": 189.90, "stock": 3}
+                  ]
+                }
+                """;
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(createBody))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+        long keptVariantId = objectMapper.readTree(createResponse).get("variants").get(0).get("id").asLong();
+        // A "15kg" (variants[1]) no la mandamos en el próximo PUT: debe desaparecer (soft-delete).
+
+        String replaceBody = """
+                [
+                  {"id": %d, "nomeVariante": "3kg Reformulado", "price": 65.00, "stock": 8},
+                  {"nomeVariante": "30kg", "price": 349.90, "stock": 2}
+                ]
+                """.formatted(keptVariantId);
+
+        mockMvc.perform(put("/api/v1/admin/products/" + publicId + "/variants")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(replaceBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.variants.length()").value(2))
+                .andExpect(jsonPath("$.variants[*].nomeVariante",
+                        org.hamcrest.Matchers.containsInAnyOrder("3kg Reformulado", "30kg")))
+                .andExpect(jsonPath("$.variants[*].nomeVariante",
+                        org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("15kg"))));
+    }
+
+    @Test
+    @DisplayName("PUT /variants con id de otro produto devuelve 400")
+    void replaceVariantsRejectsForeignVariantId() throws Exception {
+        String firstBody = """
+                {"nome": "Produto Variantes A", "variants": [{"nomeVariante": "Único", "price": 10.00}]}
+                """;
+        String firstResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(firstBody))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long foreignVariantId = objectMapper.readTree(firstResponse).get("variants").get(0).get("id").asLong();
+
+        String secondBody = """
+                {"nome": "Produto Variantes B", "variants": [{"nomeVariante": "Único", "price": 20.00}]}
+                """;
+        String secondResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(secondBody))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID secondPublicId = UUID.fromString(objectMapper.readTree(secondResponse).get("publicId").asText());
+
+        String replaceBody = """
+                [{"id": %d, "nomeVariante": "Roubado", "price": 99.00}]
+                """.formatted(foreignVariantId);
+
+        mockMvc.perform(put("/api/v1/admin/products/" + secondPublicId + "/variants")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(replaceBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /variants que deja el producto sin variantes ativas devuelve 400")
+    void replaceVariantsRejectsZeroActiveResult() throws Exception {
+        String createBody = """
+                {"nome": "Produto Ficaria Sem Variantes", "variants": [{"nomeVariante": "Único", "price": 10.00}]}
+                """;
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(createBody))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+
+        mockMvc.perform(put("/api/v1/admin/products/" + publicId + "/variants")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content("[]"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Produto precisa de ao menos uma variante ativa."));
     }
 
     private static AdminUser adminFor(UUID tenantId) {

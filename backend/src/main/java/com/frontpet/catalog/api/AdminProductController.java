@@ -1,8 +1,12 @@
 package com.frontpet.catalog.api;
 
 import com.frontpet.catalog.ProductService;
+import com.frontpet.catalog.R2StorageService;
 import com.frontpet.catalog.dto.CreateProductRequest;
+import com.frontpet.catalog.dto.PresignedUploadRequest;
+import com.frontpet.catalog.dto.PresignedUploadResponse;
 import com.frontpet.catalog.dto.ProductDetail;
+import com.frontpet.catalog.dto.ProductVariantUpsertRequest;
 import com.frontpet.catalog.dto.UpdateProductRequest;
 import com.frontpet.identity.domain.AdminUser;
 import jakarta.validation.Valid;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -37,6 +42,19 @@ import java.util.UUID;
 public class AdminProductController {
 
     private final ProductService productService;
+    private final R2StorageService r2StorageService;
+
+    /**
+     * Firma una URL de subida directa a R2 (tarea 3.5). El admin sube la
+     * foto con un PUT a {@code uploadUrl} y recién después manda
+     * {@code publicUrl} como {@code mainImageUrl} en el alta/edición del
+     * producto — este endpoint no toca ningún producto.
+     */
+    @PostMapping("/images/presign")
+    public PresignedUploadResponse presignImageUpload(@AuthenticationPrincipal AdminUser admin,
+                                                       @Valid @RequestBody PresignedUploadRequest request) {
+        return r2StorageService.presignProductImageUpload(admin.getTenantId(), request);
+    }
 
     @PostMapping
     public ResponseEntity<ProductDetail> create(@AuthenticationPrincipal AdminUser admin,
@@ -50,6 +68,18 @@ public class AdminProductController {
                                 @PathVariable UUID publicId,
                                 @Valid @RequestBody UpdateProductRequest request) {
         return productService.update(admin.getTenantId(), publicId, request);
+    }
+
+    /**
+     * Upsert + soft-delete de variantes (tarea 3.4b —
+     * docs/pending-decisions.md §5). Solo funciona sobre un producto que ya
+     * tiene variantes; ver la nota en {@link com.frontpet.catalog.ProductService#replaceVariants}.
+     */
+    @PutMapping("/{publicId}/variants")
+    public ProductDetail replaceVariants(@AuthenticationPrincipal AdminUser admin,
+                                         @PathVariable UUID publicId,
+                                         @Valid @RequestBody List<ProductVariantUpsertRequest> variants) {
+        return productService.replaceVariants(admin.getTenantId(), publicId, variants);
     }
 
     /**
