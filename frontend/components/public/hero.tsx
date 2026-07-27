@@ -62,7 +62,7 @@ export function Hero() {
           className="mt-9 flex flex-wrap gap-3"
         >
           <Link
-            href="/turnos"
+            href="/agendamento"
             className="flex h-[52px] items-center gap-2 rounded-md bg-orange px-6 text-[15px] font-medium text-white shadow-[0_8px_20px_rgba(244,100,13,0.3)] transition-all hover:brightness-90 active:scale-95"
           >
             <Calendar className="size-5" />

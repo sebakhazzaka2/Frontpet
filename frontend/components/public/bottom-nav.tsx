@@ -6,14 +6,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Calendar, Home, ShoppingBag, ShoppingCart } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { buildWhatsAppLink } from '@/lib/data/site'
 
-// TODO: mismo número placeholder que en Nav — reemplazar por el real del tenant.
-const WHATSAPP_LINK = 'https://wa.me/555596724124'
+const WHATSAPP_LINK = buildWhatsAppLink('Olá! Gostaria de mais informações.')
 
 const NAV_ITEMS = [
   { href: '/', label: 'Início', icon: Home },
   { href: '/produtos', label: 'Catálogo', icon: ShoppingBag },
-  { href: '/turnos', label: 'Turnos', icon: Calendar },
+  { href: '/agendamento', label: 'Agendar', icon: Calendar },
 ] as const
 
 /**

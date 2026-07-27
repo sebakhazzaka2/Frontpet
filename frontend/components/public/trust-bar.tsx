@@ -12,7 +12,7 @@ const TRUST_ITEMS = [
 export function TrustBar() {
   return (
     <div className="w-full bg-navy py-8">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-12 gap-y-6 px-4 md:justify-around md:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-12 gap-y-6 px-4 md:justify-around md:px-6 lg:px-8">
         {TRUST_ITEMS.map(({ icon: Icon, label, filled }) => (
           <div key={label} className="flex items-center gap-3">
             <Icon className={`size-7 shrink-0 text-orange ${filled ? 'fill-orange' : ''}`} />

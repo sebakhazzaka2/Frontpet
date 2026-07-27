@@ -81,9 +81,9 @@ export function ServiceCard({ data }: { data: ServiceCardData }) {
             <span />
           )}
           {/* Preview sin booking: el AC de la tarea 2.4 dice que el wizard real
-              es Sprint 6. El destino /turnos ya existe como constante en Nav/Hero. */}
+              es Sprint 6. El destino /agendamento ya existe como constante en Nav/Hero. */}
           <Link
-            href="/turnos"
+            href="/agendamento"
             className="rounded-md bg-orange px-6 py-2 text-label font-semibold text-white transition-transform active:scale-95"
           >
             Agendar

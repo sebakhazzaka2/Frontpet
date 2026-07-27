@@ -1,7 +1,7 @@
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { buildWhatsAppLink } from '@/lib/data/site'
 
-// TODO: mismo placeholder que Nav/BottomNav — reemplazar por el real del tenant.
-const WHATSAPP_LINK = 'https://wa.me/555596724124'
+const WHATSAPP_LINK = buildWhatsAppLink('Olá! Gostaria de mais informações.')
 
 /**
  * Solo desktop (md:+): en mobile, WhatsApp vive integrado en BottomNav

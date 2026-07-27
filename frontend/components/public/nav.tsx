@@ -9,15 +9,13 @@ import { useState } from 'react'
 import { Menu, ShoppingCart, X } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
 import logoHorizontal from '@/public/brand/frontpet-logo-horizontal.png'
+import { buildWhatsAppLink } from '@/lib/data/site'
 
-// TODO: reemplazar por el WhatsApp real del tenant cuando exista fuente de datos
-// (V5__seed_dev.sql tiene whatsapp_destino, pero el frontend no consume el
-// backend todavía — Sprint 2 usa datos estáticos por diseño, ver ADR 017).
-const WHATSAPP_LINK = 'https://wa.me/555596724124'
+const WHATSAPP_LINK = buildWhatsAppLink('Olá! Gostaria de mais informações.')
 
 const NAV_LINKS = [
   { href: '/produtos', label: 'Catálogo' },
-  { href: '/turnos', label: 'Agendar horário' },
+  { href: '/agendamento', label: 'Agendar horário' },
   { href: '/admin/login', label: 'Login' },
 ] as const
 
@@ -26,7 +24,7 @@ export function Nav() {
 
   return (
     <header className="fixed top-0 z-50 h-16 w-full border-b border-white/10 bg-navy">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
+      <div className="mx-auto flex h-full max-w-content items-center justify-between px-4 md:px-6 lg:px-8">
         {/* Logo real del cliente (jul/2026), recortado con sharp desde el PNG
             original: fondo navy #011e5a — coincide exacto con --color-navy, por
             eso el recorte funde sin bordes visibles contra el header. */}
