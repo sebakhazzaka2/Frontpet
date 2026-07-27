@@ -3,16 +3,8 @@
 > Plan de ejecución del MVP1 **re-baseado el 17/07/2026**, contra el plazo real de entrega:
 > **30 de septiembre de 2026**. Ritmo comprometido: **22 hs/semana**.
 
-### Por qué se re-baseó
-
-El calendario original (19 semanas desde mayo, 8-10 hs/semana) no sobrevivió: a la semana 8
-el estado real era *mitad de Sprint 1*, no Sprint 3. **El desvío no vino de tareas
-subestimadas** — vino de ~55 hs de trabajo que este ROADMAP nunca presupuestó: 16 ADRs,
-reunión y cuestionario con el cliente, design system v2.0, migración a Tailwind v4,
-toolchain WSL, 19 pantallas de Stitch, y la landing v1.0 que se descartó.
-
-Ese impuesto no se repite: las decisiones grandes (modelo de datos, deploy, design system,
-idioma, catálogo de servicios) ya están tomadas. Queda ~15% de meta-trabajo, no 45%.
+> El porqué del re-baseo y las demás decisiones de plan fechadas viven en el
+> **[Registro de decisiones de plan](#registro-de-decisiones-de-plan)**, al final.
 
 ### El plazo y el cobro son dos cosas distintas
 
@@ -68,16 +60,7 @@ apostando la entrega a que septiembre salga perfecto.
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
 | **Total** | | **170,5 hs restantes** (Sprints 1-8, con Sprint 1 al 50%) **+ 6,5 opcionales** | **~177** | |
 
-> 🔁 **Despliegue movido después del Sprint 3** (decisión 2026-07-27): comprar VPS y
-> dominio depende de que el cliente pague/apruebe el gasto, y esa conversación todavía no
-> se dio — no tiene sentido frenar el avance esperándola. Se sigue de largo con el Sprint 3
-> (catálogo) mientras tanto. Sigue en el Bloque A y sigue teniendo que cerrar antes del
-> 05/09 (el hito de cobro exige "desplegada"), pero ya no está atado a "justo después de la
-> landing". La única dependencia real que esto generaba —la tarea 3.5 necesita un bucket de
-> R2 para probar el upload firmado— se resuelve aparte: **Cloudflare R2 tiene free tier y no
-> requiere plata ni aprobación del cliente**, se crea esa cuenta sola cuando toque 3.5,
-> desacoplada del resto de la compra de infra (VPS + dominio + Coolify, eso sí espera a la
-> conversación de pago). Detalle en la sección del Sprint Despliegue, más abajo.
+> 🔁 Despliegue movido después del Sprint 3 — ver Registro de decisiones de plan (2026-07-27).
 
 > ⚠️ **Sprint 4 (30 hs) es el más pesado del plan** y cae justo contra el hito de cobro.
 > Conviene partirlo en dos mitades entregables — venta pública (4.1-4.10) y admin
@@ -124,21 +107,13 @@ funcional y seguro.
 
 ## Stitch es la fuente de verdad del diseño
 
-**Todas las pantallas se portan leyendo de Stitch vía MCP, no del export local.**
+**Todas las pantallas se portan leyendo de Stitch vía MCP** (`projects/3403942466915386698`),
+no del export local. Reglas de porteo (docs/ui stale, traducción de radios v3→v4, pantallas
+faltantes): **`CLAUDE.md` §5** y **`docs/stitch-implementation-workflow.md`**.
 
-- Proyecto: **FrontPet Design System** — `projects/3403942466915386698` (19 pantallas +
-  logo + banner + `DESIGN.md`).
-- `docs/ui/` es un **export viejo y stale**: nombres de carpeta en español contra títulos
-  PT-BR en Stitch, y versiones anteriores del markup ("Landing Page" local vs "Landing Page
-  com Rodapé Sincronizado" en Stitch). **Sirve para mirar `screen.png` offline. No es fuente.**
 - El prototipo de landing v1.0 (commit `010f8f87^`) **queda descartado**: está contra el
   design system v1.0 muerto, en español, y sus tipos de `data.ts` contradicen el ADR 013
   (mezclan especie y categoría en un campo plano). No se reutiliza nada.
-- **Ninguna clase `rounded-*` de Stitch se copia**: corre en Tailwind v3 vía CDN, donde
-  `rounded-lg` = 8px; en el repo = 16px. Tabla de traducción en el ADR 014.
-- **El login es la única pantalla DESKTOP** (2560px). Las otras 18 son MOBILE (780px).
-- **No hay pantalla de reset de contraseña ni de banner LGPD.** Hay que generarlas en
-  Stitch antes de codearlas (contemplado en las 7.12 y 7.13).
 
 **Hitos clave**:
 - 🎯 Sprint Despliegue (fecha flexible, después del Sprint 3 — ver nota en "Resumen de
@@ -160,19 +135,9 @@ proyecto**. El costo está distribuido y no se contabiliza como tareas separadas
 > Swap por superficie, no big-bang. Datos siempre en `frontend/lib/data/` **tipados contra
 > los DTOs reales** (ADR 013), nunca hardcodeados.
 
-### Por cada feature no trivial
-1. **Plan antes de código**: escribir en prosa qué se va a hacer (query, edge cases, tests)
-   antes de generar implementación. Especialmente con asistencia de IA.
-2. **Referencias visuales antes de UI**: si la tarea toca diseño, abrir Mobbin / Awwwards /
-   capturas de productos similares antes de tirar Tailwind.
-3. **Tests del happy path**: nada se mergea a `main` sin al menos 1 test de integración
-   del camino feliz (cuando aplique).
-4. **Validación mobile real**: probar en celular físico vía red local, no solo DevTools.
-
-### Por cada decisión técnica
-- Si se elige una tecnología, patrón o approach que **no estaba en `docs/decisions/`**,
-  se crea un ADR corto antes de implementar. Plantilla: contexto → opciones → decisión →
-  consecuencias.
+Las prácticas por feature/decisión/bug/dependencia (plan en prosa, referencias visuales,
+tests del happy path, mobile real, ADRs, `learnings.md`, test "¿vanilla?") viven en
+**`CLAUDE.md` §9** — acá solo lo que es de calendario:
 
 ### Por cada semana
 - **Demo en Loom** (3-5 min) los viernes mostrando lo nuevo. Aunque nadie la mire al
@@ -180,14 +145,6 @@ proyecto**. El costo está distribuido y no se contabiliza como tareas separadas
 - **Una sesión de "no escribir código"**: leer docs, blog posts, repos open source en
   el stack. La diferencia entre junior y mid es saber qué *no* hay que hacer, y eso solo
   se aprende leyendo.
-
-### Por cada bug que tome más de 2 horas
-- Documentarlo en `docs/learnings.md` (causa raíz + cómo se detectó + cómo se resolvió).
-  No es opcional, es la práctica más subestimada de toda la carrera.
-
-### Por cada nueva dependencia
-- Aplicar el test del CLAUDE.md sección 6: "¿esto se resuelve con vanilla?". Si la respuesta
-  es sí, no se instala.
 
 ### Cada 2 sprints (demo formal al cliente)
 - Video Loom + mensaje con pedido explícito de feedback:
@@ -281,11 +238,11 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 2.0d | **`<BottomNav>` mobile** (`md:hidden fixed bottom-0`) — existe en Stitch, no estaba en el ROADMAP. Ojo con la colisión a 320px contra el FAB del carrito y el FloatingWA | 2 |
 | 2.1 | Estructura general de la landing en componentes React | 3 |
 | 2.2 | `<Hero>` con animaciones Framer Motion (fade-in, slide-up) | 3 |
-| 2.3 | `<TrustBar>`. **`<AnnouncementBar>` descartado** (decisión 2026-07-25) — no existe en la pantalla de Stitch, no se inventa UI sin referencia visual | 1 |
+| 2.3 | `<TrustBar>`. `<AnnouncementBar>` descartado (ver Registro, 2026-07-25) | 1 |
 | 2.4 | `<ServiceCard>` (preview, sin booking todavía, link a `/agendamento`) | 2 |
 | 2.5 | `<ProductCard>` con CTA WhatsApp directo (variante para landing) | 2 |
 | 2.6 | `<Reviews>` con 3-4 testimonios estáticos | 1 |
-| 2.7 | `<FloatingWA>` con pulse animation. **`<FinalCTA>` descartado** (decisión 2026-07-25) — mismo caso que `<AnnouncementBar>`: no existe ninguna sección así entre Reviews y Footer en el HTML real de Stitch, va directo de una a la otra | 2 |
+| 2.7 | `<FloatingWA>` con pulse animation. `<FinalCTA>` descartado (ver Registro, 2026-07-25) | 2 |
 | 2.8 | Footer con links, contacto, redes | 1 |
 | 2.9 | Optimización Lighthouse: imágenes, fuentes, Core Web Vitals > 90 | 3 |
 | 2.10 | Responsive completo: 320px / 768px / 1024px / 1440px | 2 |
@@ -317,7 +274,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 3.4 | Endpoints admin protegidos: `POST/PUT/DELETE /api/v1/admin/products` | 2 |
 | 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado. ✅ **Prerequisito resuelto (2026-07-27)**: cuenta Cloudflare + bucket R2 (`frontpet-products`) creados, credenciales del API Token (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`) guardadas fuera del repo, listas para cargarlas como env vars cuando se implemente esta tarea | 3 |
 | 3.5b | **Restricción del presigned URL**: mime type permitido, tamaño máximo y expiración corta, firmados en la política. Sin esto el bucket es de subida libre a costa nuestra | 1.5 |
-| 3.6a | **Cliente de API en el frontend**: wrapper de `fetch` (`frontend/lib/api/`), base URL desde `NEXT_PUBLIC_API_URL`, manejo de 404/error. Sin librería nueva (TanStack Query ya está instalado, entra cuando 3.7/3.8 necesiten cache/refetch en cliente). No estaba estimada — bloquea 3.6, 3.7, 3.8, 3.9 y 3.11 por igual, encontrada al hacer 3.9 (decisión 2026-07-27) | 1.5 |
+| 3.6a | **Cliente de API en el frontend**: wrapper de `fetch` (`frontend/lib/api/`), base URL desde `NEXT_PUBLIC_API_URL`, manejo de 404/error. Sin librería nueva (TanStack Query entra cuando 3.7/3.8 necesiten cache/refetch). Agregada al plan — ver Registro, 2026-07-27 | 1.5 |
 | 3.6 | Frontend: página `/produtos` con grid responsive | 2 |
 | 3.7 | Filtro por categoría (chips horizontales scrolleables) | 2 |
 | 3.8 | Búsqueda por nombre con debounce (300ms) | 2 |
@@ -341,14 +298,9 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 **Objetivo**: comprar la infraestructura, configurar todo, **dejar lo construido hasta
 ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 semana sola.
 
-> 🔁 **Movido de "justo después del Sprint 2" a acá** (decisión 2026-07-27): comprar VPS y
-> dominio requiere que el cliente pague o apruebe el gasto, y esa conversación todavía no
-> se tuvo — no vale la pena bloquear el avance esperándola, mejor seguir con features
-> mientras se define cuándo tenerla. Sigue teniendo que cerrar antes del 05/09 (el hito de
-> cobro exige "desplegada"), pero el momento exacto dentro del Bloque A queda abierto: se
-> ejecuta cuando el cliente confirme el pago/gasto de infra, no en una semana fija. La
-> tarea D.3 (cuenta Cloudflare + R2) ya no depende de este sprint — se adelantó a la 3.5
-> porque R2 tiene free tier y no necesita al cliente.
+> 🔁 Se ejecuta cuando el cliente confirme el pago/gasto de infra, no en una semana fija —
+> pero siempre antes del 05/09. Rationale completo: Registro de decisiones de plan (2026-07-27).
+> La D.3 (cuenta Cloudflare + R2) ya no depende de este sprint — se adelantó a la 3.5.
 
 > **Arquitectura de deploy definida en el [ADR 016](docs/decisions/016-deploy-frontend-vps-coolify.md)**:
 > un solo VPS sirve backend + frontend vía Coolify. Cloudflare queda como DNS + CDN + R2.
@@ -562,15 +514,8 @@ features extras que el cliente pida durante el colchón se documentan y se cotiz
 
 ## Definition of Done por tarea
 
-Antes de marcar una tarea como completa:
-
-- ✅ Código en `main` sin warnings de compilación
-- ✅ Funciona en mobile real (probado en celular vía red local, no solo DevTools)
-- ✅ Si toca backend: test de integración del happy path
-- ✅ Si toca UI: validación visual a 320px, 768px, 1024px
-- ✅ Si afecta UX visible: screenshot guardado en la issue de GitHub
-- ✅ Si introdujo decisión técnica: ADR creado o actualizado
-- ✅ Si tocó schema de DB: `docs/db-model.png` regenerado
+La DoD canónica vive en **`CLAUDE.md` §10** (main sin warnings, mobile real, test de
+integración, validación visual, screenshot, ADR, db-model, build/lint/test desde WSL).
 
 **Desde Sprint Despliegue en adelante también aplica:**
 - ✅ Deployado y verificado en producción
@@ -606,6 +551,37 @@ el 2026-07-27, ver nota en "Resumen de fases"):
 > ⚠️ **La conversación sobre el pago del 05/09 va a mediados de agosto, no al final.**
 > El pedido es adelantar el segundo pago contra un hito real (la tienda vendiendo), no
 > contra una promesa. Necesita OK por escrito antes de que la fecha esté encima.
+
+---
+
+## Registro de decisiones de plan
+
+Decisiones fechadas que cambiaron el plan (no son ADRs — son de planificación, no de
+arquitectura). El cuerpo del ROADMAP refleja solo el estado resultante; el porqué vive acá.
+
+**2026-07-27 — Sprint Despliegue movido después del Sprint 3.** Comprar VPS y dominio
+depende de que el cliente pague/apruebe el gasto, y esa conversación todavía no se dio —
+no tiene sentido frenar el avance esperándola; se sigue con el Sprint 3 (catálogo)
+mientras tanto. Sigue en el Bloque A y sigue teniendo que cerrar antes del 05/09 (el hito
+de cobro exige "desplegada"), pero ya no está atado a "justo después de la landing". La
+única dependencia real que generaba —la 3.5 necesita un bucket R2 para el upload firmado—
+se desacopla: R2 tiene free tier y no requiere plata ni aprobación, la cuenta se creó sola
+(prerequisito de 3.5 ya resuelto); VPS + dominio + Coolify sí esperan la conversación de pago.
+
+**2026-07-27 — Tarea 3.6a agregada (cliente de API, 1.5 hs).** No estaba estimada en el
+plan original; bloquea 3.6, 3.7, 3.8, 3.9 y 3.11 por igual. Encontrada al hacer 3.9.
+
+**2026-07-25 — `<AnnouncementBar>` (2.3) y `<FinalCTA>` (2.7) descartados.** No existen
+en la pantalla de Stitch (entre Reviews y Footer va directo) — no se inventa UI sin
+referencia visual.
+
+**2026-07-17 — Re-baseo completo del plan (v2.0).** El calendario original (19 semanas
+desde mayo, 8-10 hs/semana) no sobrevivió: a la semana 8 el estado real era mitad de
+Sprint 1. El desvío no vino de tareas subestimadas, sino de ~55 hs que el plan nunca
+presupuestó: 16 ADRs, reunión y cuestionario con el cliente, design system v2.0, migración
+a Tailwind v4, toolchain WSL, 19 pantallas de Stitch y la landing v1.0 descartada. Ese
+impuesto no se repite: las decisiones grandes ya están tomadas — queda ~15% de
+meta-trabajo, no 45%. Se re-basea contra 22 hs/semana y entrega 30/09.
 
 ---
 
