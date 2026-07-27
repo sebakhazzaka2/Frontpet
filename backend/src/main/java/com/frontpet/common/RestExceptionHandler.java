@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -34,6 +35,14 @@ public class RestExceptionHandler {
                                                      HttpServletRequest request) {
         log.debug("Requisição inválida em {}: {}", request.getRequestURI(), ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, "Requisição inválida.", request);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex,
+                                                          HttpServletRequest request) {
+        // Debug, no error: un login fallido es tráfico normal, no un incidente.
+        log.debug("Falha de autenticação em {}: {}", request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos.", request);
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String message,
