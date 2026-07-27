@@ -30,7 +30,7 @@ explícito del cliente por escrito antes de mediados de agosto** — no el 1/09.
 | | Hs |
 |---|---:|
 | Disponibles 17/07 → 05/09 (7 sem × 22, menos 6 días de panza) | ~119 |
-| Necesarias para el hito de cobro (Sprint 1 resto 8,5 + Sprint 2 24,5 + Despliegue 10 + Sprint 3 22,5 + Sprint 4 30) | 95.5 |
+| Necesarias para el hito de cobro (Sprint 1 resto 8,5 + Sprint 2 24,5 + Sprint 3 22,5 + Despliegue 10 + Sprint 4 30) | 95.5 |
 | **Slack del bloque A** | **~23,5** |
 | Disponibles 06/09 → 30/09 (3,5 sem × 22) | ~77 |
 | Necesarias para la entrega (Sprint 5 19 + Sprint 6 16 + Sprint 7 24,5 + Sprint 8 14) | 73.5 |
@@ -55,9 +55,9 @@ apostando la entrega a que septiembre salga perfecto.
 |---|--------|------|---:|--------|
 | | 0 | Pre-kickoff (GitHub Projects + modelo DB) | 3 | ✅ hecho |
 | **A** | 1 | Setup local: backend + frontend + auth + testing | 16 | 🔄 ~50% |
-| **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 2.0b hecha |
-| **A** | Despliegue | **Compra infra + despliegue inicial + landing en vivo** | 10 | |
-| **A** | 3 | Catálogo + backend de productos | 22.5 | |
+| **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 2.1/2.3/2.4/2.6-2.8 hechas, 2.2/2.5 con detalles abiertos, falta 2.9/2.10 |
+| **A** | 3 | Catálogo + backend de productos | 22.5 | 🔄 3.1-3.3 adelantadas |
+| **A** | Despliegue | **Compra infra + despliegue inicial + landing+catálogo en vivo** | 10 | ⏸️ movida post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
 | **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | ⚠️ el más pesado |
 | | | 🎯 **05/09 — hito de cobro: la tienda vende** | | |
 | **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ⏩ adelantar si hay slack |
@@ -67,6 +67,17 @@ apostando la entrega a que septiembre salga perfecto.
 | | | 🎯 **30/09 — entrega final** | | |
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
 | **Total** | | **169 hs restantes** (Sprints 1-8, con Sprint 1 al 50%) **+ 6,5 opcionales** | **~175,5** | |
+
+> 🔁 **Despliegue movido después del Sprint 3** (decisión 2026-07-27): comprar VPS y
+> dominio depende de que el cliente pague/apruebe el gasto, y esa conversación todavía no
+> se dio — no tiene sentido frenar el avance esperándola. Se sigue de largo con el Sprint 3
+> (catálogo) mientras tanto. Sigue en el Bloque A y sigue teniendo que cerrar antes del
+> 05/09 (el hito de cobro exige "desplegada"), pero ya no está atado a "justo después de la
+> landing". La única dependencia real que esto generaba —la tarea 3.5 necesita un bucket de
+> R2 para probar el upload firmado— se resuelve aparte: **Cloudflare R2 tiene free tier y no
+> requiere plata ni aprobación del cliente**, se crea esa cuenta sola cuando toque 3.5,
+> desacoplada del resto de la compra de infra (VPS + dominio + Coolify, eso sí espera a la
+> conversación de pago). Detalle en la sección del Sprint Despliegue, más abajo.
 
 > ⚠️ **Sprint 4 (30 hs) es el más pesado del plan** y cae justo contra el hito de cobro.
 > Conviene partirlo en dos mitades entregables — venta pública (4.1-4.10) y admin
@@ -130,7 +141,8 @@ funcional y seguro.
   Stitch antes de codearlas (contemplado en las 7.12 y 7.13).
 
 **Hitos clave**:
-- 🎯 Sprint Despliegue (semana 5): primera URL pública con landing en vivo
+- 🎯 Sprint Despliegue (fecha flexible, después del Sprint 3 — ver nota en "Resumen de
+  fases"): primera URL pública en vivo
 - 🎯 Sprint 4 (semana 10): primera venta posible
 - 🎯 Sprint 6 (semana 14): primera reserva online posible
 - 🎯 Sprint 8 (semana 17): MVP completo entregado
@@ -293,55 +305,6 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 
 ---
 
-## Sprint Despliegue (semana 5, ~10 hs)
-
-**Objetivo**: comprar la infraestructura, configurar todo, **dejar la landing en vivo**
-con dominio propio. Este sprint dura 1 semana sola.
-
-> Este sprint se ejecuta cuando ya hay algo concreto que hostear (la landing del Sprint 2).
-> Las compras y configuraciones se agrupan acá para no fragmentar gastos ni atención.
-
-> **Arquitectura de deploy definida en el [ADR 016](docs/decisions/016-deploy-frontend-vps-coolify.md)**:
-> un solo VPS sirve backend + frontend vía Coolify. Cloudflare queda como DNS + CDN + R2.
-> No hay Cloudflare Pages ni adapter de OpenNext.
-
-### Compras y cuentas (~3.5 hs)
-
-| # | Tarea | Hs |
-|---|-------|----|
-| D.1 | Compra de VPS Hetzner **CX32** (4 vCPU / 8 GB, ~€7.50/mes) **región US East (Ashburn)** + SSH key inicial | 1 |
-| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
-| D.3 | Cuenta Cloudflare: **R2 + DNS proxy activado** (sin Pages — ver ADR 016) | 1 |
-| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
-
-### Configuración y deploy (~6.5 hs)
-
-| # | Tarea | Hs |
-|---|-------|----|
-| D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 |
-| D.6 | Configurar Coolify para buildear y servir el **frontend Next 16** con auto-deploy desde GitHub (junto al backend) | 1 |
-| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
-| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
-
-**Entregable**:
-- `https://frontpet.com` con landing en vivo
-- `https://api.frontpet.com` respondiendo (health check OK)
-- Push a `main` dispara deploy automático (frontend y backend)
-- Backups corriendo
-- Sentry recibiendo errores
-
-**Hito** 🎯: primera URL pública. Es buen momento para enviar Loom al cliente con el link
-en vivo y empezar a recibir feedback con tráfico real.
-
-**Riesgos**:
-- Coolify es nuevo → invertir 1 hora extra fuera del sprint para leer su doc antes de arrancar
-- DNS puede tardar hasta 48hs en propagar
-- Primer deploy de Spring Boot a contenedor puede requerir ajuste de memoria del VPS
-- **Los 3 servicios (Spring Boot + Postgres + Next) comparten los 8 GB del CX32.** Vigilar
-  RAM en el primer deploy; el CX22 de 4 GB del plan original directamente no alcanzaba
-
----
-
 ## Sprint 3 — Catálogo + Backend de productos (~22,5 hs)
 
 **Objetivo**: catálogo dinámico desde DB con detalle por producto y CRUD vía API.
@@ -352,7 +315,7 @@ en vivo y empezar a recibir feedback con tráfico real.
 | 3.2 | Modelos JPA + repositorios + servicios | 2 | ✅ **hecha**. `Product/Category/Brand/Species/ProductVariant` + repos + `ProductService`/`CategoryService`/`BrandService`. Suma `slug` (V7, no estaba en el V2 original) y alta inline de marcas (`findOrCreate`, V9) — no estimados en el ROADMAP original |
 | 3.3 | Endpoints públicos: `GET /api/v1/products`, `GET /api/v1/products/{slug}`, `GET /api/v1/categories` | 3 | ✅ **hecha**, + `GET /api/v1/species`. Requirió adelantar la base de `SecurityConfig` (sin ella, `starter-security` bloqueaba todo con 401 — no estaba en el scope de esta tarea, es la 1.3) |
 | 3.4 | Endpoints admin protegidos: `POST/PUT/DELETE /api/v1/admin/products` | 2 |
-| 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado | 3 |
+| 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado. ⚠️ Necesita una cuenta Cloudflare + bucket R2 propios — **no esperar al Sprint Despliegue para esto**: R2 tiene free tier, se crea sola, sin plata ni aprobación del cliente (D.3 se adelanta acá) | 3 |
 | 3.5b | **Restricción del presigned URL**: mime type permitido, tamaño máximo y expiración corta, firmados en la política. Sin esto el bucket es de subida libre a costa nuestra | 1.5 |
 | 3.6 | Frontend: página `/produtos` con grid responsive | 2 |
 | 3.7 | Filtro por categoría (chips horizontales scrolleables) | 2 |
@@ -369,6 +332,63 @@ en vivo y empezar a recibir feedback con tráfico real.
 **Riesgos**:
 - Upload de imágenes a R2 con presigned URLs puede tomar 2 hs extra la primera vez
 - Decidir el tamaño/formato de imágenes (recomendado: WebP, max 1200x1200, < 200KB)
+
+---
+
+## Sprint Despliegue (~10 hs, fecha flexible)
+
+**Objetivo**: comprar la infraestructura, configurar todo, **dejar lo construido hasta
+ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 semana sola.
+
+> 🔁 **Movido de "justo después del Sprint 2" a acá** (decisión 2026-07-27): comprar VPS y
+> dominio requiere que el cliente pague o apruebe el gasto, y esa conversación todavía no
+> se tuvo — no vale la pena bloquear el avance esperándola, mejor seguir con features
+> mientras se define cuándo tenerla. Sigue teniendo que cerrar antes del 05/09 (el hito de
+> cobro exige "desplegada"), pero el momento exacto dentro del Bloque A queda abierto: se
+> ejecuta cuando el cliente confirme el pago/gasto de infra, no en una semana fija. La
+> tarea D.3 (cuenta Cloudflare + R2) ya no depende de este sprint — se adelantó a la 3.5
+> porque R2 tiene free tier y no necesita al cliente.
+
+> **Arquitectura de deploy definida en el [ADR 016](docs/decisions/016-deploy-frontend-vps-coolify.md)**:
+> un solo VPS sirve backend + frontend vía Coolify. Cloudflare queda como DNS + CDN + R2.
+> No hay Cloudflare Pages ni adapter de OpenNext.
+
+### Compras y cuentas (~2.5 hs — D.3 se adelantó a la tarea 3.5)
+
+| # | Tarea | Hs |
+|---|-------|----|
+| D.1 | Compra de VPS Hetzner **CX32** (4 vCPU / 8 GB, ~€7.50/mes) **región US East (Ashburn)** + SSH key inicial | 1 |
+| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
+| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
+
+### Configuración y deploy (~6.5 hs)
+
+| # | Tarea | Hs |
+|---|-------|----|
+| D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 |
+| D.6 | Configurar Coolify para buildear y servir el **frontend Next 16** con auto-deploy desde GitHub (junto al backend) | 1 |
+| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
+| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
+
+**Entregable**:
+- `https://frontpet.com` con landing + catálogo en vivo
+- `https://api.frontpet.com` respondiendo (health check OK)
+- Push a `main` dispara deploy automático (frontend y backend)
+- Backups corriendo
+- Sentry recibiendo errores
+
+**Hito** 🎯: primera URL pública. Es buen momento para enviar Loom al cliente con el link
+en vivo y empezar a recibir feedback con tráfico real.
+
+**Riesgos**:
+- Coolify es nuevo → invertir 1 hora extra fuera del sprint para leer su doc antes de arrancar
+- DNS puede tardar hasta 48hs en propagar
+- Primer deploy de Spring Boot a contenedor puede requerir ajuste de memoria del VPS
+- **Los 3 servicios (Spring Boot + Postgres + Next) comparten los 8 GB del CX32.** Vigilar
+  RAM en el primer deploy; el CX22 de 4 GB del plan original directamente no alcanzaba
+- **Postergarlo demasiado también es un riesgo**: si la conversación de pago con el cliente
+  se estira, este sprint (10 hs, con DNS de hasta 48hs de propagación) se termina apretando
+  contra el 05/09 igual. No es un colchón infinito.
 
 ---
 
@@ -572,9 +592,12 @@ Antes de marcar una tarea como completa:
   > "Te dejo el avance del mes. ¿Hay algo que quieras cambiar antes de seguir?
   > Si no me respondés en 3 días, sigo con el plan original."
 
-Calendario de demos (re-baseado a julio 2026):
+Calendario de demos (re-baseado a julio 2026; Sprint Despliegue con fecha flexible desde
+el 2026-07-27, ver nota en "Resumen de fases"):
 - **Demo 1**: fin de Sprint 2 → landing pulida (Loom + screenshots)
-- **Demo 2**: fin de Sprint Despliegue → landing en vivo con URL pública 🎯
+- **Demo 2**: fin de Sprint 3 → catálogo navegable (todavía en local)
+- **Demo Despliegue**: cuando se resuelva la conversación de pago con el cliente y se
+  ejecute el sprint → primera URL pública en vivo 🎯 (landing + catálogo)
 - **Demo 3**: fin de Sprint 4 → **primera venta posible** 🎯 **← 05/09, hito de cobro**
 - **Demo 4**: fin de Sprint 6 → primera reserva posible 🎯
 - **Entrega final**: **30/09/2026**
@@ -585,5 +608,5 @@ Calendario de demos (re-baseado a julio 2026):
 
 ---
 
-**Última actualización**: 2026-07-17
-**Versión del documento**: 2.0
+**Última actualización**: 2026-07-27
+**Versión del documento**: 2.1
