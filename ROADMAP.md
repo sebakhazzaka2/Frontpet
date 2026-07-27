@@ -270,7 +270,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 2.1 | Estructura general de la landing en componentes React | 3 |
 | 2.2 | `<Hero>` con animaciones Framer Motion (fade-in, slide-up) | 3 |
 | 2.3 | `<TrustBar>`. **`<AnnouncementBar>` descartado** (decisión 2026-07-25) — no existe en la pantalla de Stitch, no se inventa UI sin referencia visual | 1 |
-| 2.4 | `<ServiceCard>` (preview, sin booking todavía, link a `/turnos`) | 2 |
+| 2.4 | `<ServiceCard>` (preview, sin booking todavía, link a `/agendamento`) | 2 |
 | 2.5 | `<ProductCard>` con CTA WhatsApp directo (variante para landing) | 2 |
 | 2.6 | `<Reviews>` con 3-4 testimonios estáticos | 1 |
 | 2.7 | `<FloatingWA>` con pulse animation. **`<FinalCTA>` descartado** (decisión 2026-07-25) — mismo caso que `<AnnouncementBar>`: no existe ninguna sección así entre Reviews y Footer en el HTML real de Stitch, va directo de una a la otra | 2 |
@@ -447,13 +447,13 @@ segundo pago. Avisale al cliente y validá el modelo con tráfico real.
 
 ---
 
-## Sprint 6 — Booking frontend + Admin de turnos (semanas 13-14, ~16 hs)
+## Sprint 6 — Booking frontend + Admin de agendamentos (semanas 13-14, ~16 hs)
 
 **Objetivo**: cierre del flujo de reservas end-to-end.
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 6.1 | Página `/turnos` con wizard de 3 pasos | 5 |
+| 6.1 | Página `/agendamento` con wizard de 3 pasos | 5 |
 | 6.2 | Paso 1: selector de servicio con cards | 1 |
 | 6.3 | Paso 2: selector de fecha (scroll horizontal) + selector de slot (grid 4 cols) | 3 |
 | 6.4 | Paso 3: formulario de datos del cliente y mascota | 2 |

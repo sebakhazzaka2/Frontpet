@@ -21,7 +21,7 @@ Al pensarlo más en frío, **el caso de agendamento no es análogo al de pedidos
   no se entera de nada hasta que el cliente envía el WhatsApp. El mensaje es el único
   canal de detalle de lo que pidió.
 - En **agendamentos**, la plataforma **ya tiene un canal de verdad**: la DB + el panel
-  admin `/admin/turnos`. Los slots se calculan dinámicamente (ver
+  admin `/admin/agendamentos`. Los slots se calculan dinámicamente (ver
   [ADR 005](./005-slots-dinamicos.md)) y el booking queda con estado `PENDING` listo
   para que el admin lo revise.
 
@@ -47,14 +47,14 @@ Flujo concreto:
    - Valida que el slot esté disponible (cálculo dinámico, ver ADR 005).
    - Persiste el booking con estado `PENDING`.
    - Retorna `bookingId` (UUID v7) y resumen.
-4. Frontend redirige a `/turnos/confirmacao` que muestra:
+4. Frontend redirige a `/agendamento/confirmacao` que muestra:
    - Mensaje de éxito
    - Código de reserva (`bookingId` truncado a algo legible, ej. `#FP-1024`)
    - Resumen del agendamento (servicio, fecha, hora, tutor, pet)
    - Status visible: "Aguardando confirmação"
    - Copy claro: "Nosso time vai entrar em contato pelo WhatsApp para confirmar
      o horário em breve."
-5. Admin abre `/admin/turnos`, ve el nuevo `PENDING`, decide:
+5. Admin abre `/admin/agendamentos`, ve el nuevo `PENDING`, decide:
    - **Confirmar** → cambia estado a `CONFIRMED`. Opcionalmente envía un WhatsApp al
      cliente desde su propio celular para confirmar.
    - **Cancelar** → cambia estado a `CANCELLED`. Idealmente avisa al cliente por WA.
@@ -103,7 +103,7 @@ estructuralmente distintos.
 
 **En contra**:
 - Sin DB, no podés calcular slots disponibles → doble-booking inevitable
-- Sin DB, el panel admin `/admin/turnos` no existe
+- Sin DB, el panel admin `/admin/agendamentos` no existe
 - Va explícitamente contra ADR 005 (slots dinámicos requieren DB)
 - Va contra CLAUDE.md sección 7 (admin debe ver turnos del día + próximos 7 días)
 
