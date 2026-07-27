@@ -26,7 +26,7 @@ export default async function ProductDetailPage(props: PageProps<'/produtos/[slu
           </h2>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
             {related.map((relatedProduct) => (
-              <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              <ProductCard key={relatedProduct.slug} product={relatedProduct} />
             ))}
           </div>
         </section>

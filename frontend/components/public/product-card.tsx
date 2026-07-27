@@ -15,7 +15,7 @@ interface ProductCardProps {
 // exista carrito de verdad (decidido 2026-07-25, ver issue #7).
 export function ProductCard({ product }: ProductCardProps) {
   const whatsappHref = buildWhatsAppLink(
-    `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.preco)}).`
+    `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.price)}).`
   )
 
   return (
@@ -25,9 +25,9 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-label={product.nome}
         className="relative aspect-square bg-surface"
       >
-        {product.imagemUrl ? (
+        {product.mainImageUrl ? (
           <Image
-            src={product.imagemUrl}
+            src={product.mainImageUrl}
             alt=""
             fill
             className="object-cover"
@@ -40,11 +40,6 @@ export function ProductCard({ product }: ProductCardProps) {
             <PawPrint className="size-10 text-outline" aria-hidden />
           </div>
         )}
-        {product.maisVendido && (
-          <span className="absolute left-3 top-3 rounded-full bg-orange px-3 py-1 text-caption text-white">
-            Mais vendido
-          </span>
-        )}
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
@@ -52,7 +47,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <h3 className="line-clamp-2 text-sm font-medium text-ink">{product.nome}</h3>
         </Link>
 
-        <p className="text-h3 font-semibold text-orange">{formatPrice(product.preco)}</p>
+        <p className="text-h3 font-semibold text-orange">
+          {product.hasVariants && <span className="text-sm font-normal">A partir de </span>}
+          {formatPrice(product.price)}
+        </p>
 
         <a
           href={whatsappHref}

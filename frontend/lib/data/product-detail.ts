@@ -41,18 +41,14 @@ export function getRelatedProducts(slug: string): Product[] {
   const related: Record<string, Product[]> = {
     'bifinho-de-frango': [
       {
-        id: 'coleira-antipulgas-ajustavel',
         slug: 'coleira-antipulgas-ajustavel',
         nome: 'Coleira Antipulgas Ajustável',
-        categoria: 'Acessórios',
-        preco: 89.9,
+        price: 89.9,
       },
       {
-        id: 'mordedor-kong-classico',
         slug: 'mordedor-kong-classico',
         nome: 'Mordedor Kong Clássico',
-        categoria: 'Brinquedos',
-        preco: 74.9,
+        price: 74.9,
       },
     ],
   }
