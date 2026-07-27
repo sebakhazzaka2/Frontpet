@@ -13,6 +13,7 @@ import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
 import com.frontpet.catalog.dto.ProductVariantDto;
 import com.frontpet.catalog.dto.ProductVariantRequest;
+import com.frontpet.catalog.dto.ProductVariantUpsertRequest;
 import com.frontpet.catalog.dto.TaxonRef;
 import com.frontpet.catalog.dto.UpdateProductRequest;
 import com.frontpet.common.Slugify;
@@ -25,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -186,6 +189,66 @@ public class ProductServiceImpl implements ProductService {
 
         if (request.slug() != null && !request.slug().isBlank()) {
             product.setSlug(resolveSlugForUpdate(tenantId, product, request.slug()));
+        }
+
+        // Sin save() explícito: managed dentro de la transacción.
+        return toDetail(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetail replaceVariants(UUID tenantId, UUID publicId,
+                                         List<ProductVariantUpsertRequest> variants) {
+        Product product = productRepository.findByTenantIdAndPublicId(tenantId, publicId)
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Produto não encontrado: " + publicId));
+
+        if (!product.hasVariants()) {
+            throw new IllegalArgumentException(
+                    "Produto não tem variantes. Edite preço/estoque direto em PUT /admin/products/{id}.");
+        }
+
+        Map<Long, ProductVariant> existingById = product.getVariants().stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+        Set<Long> keptIds = new HashSet<>();
+
+        for (ProductVariantUpsertRequest request : variants) {
+            if (request.id() == null) {
+                ProductVariant variant = new ProductVariant();
+                variant.setProduct(product);
+                variant.setNomeVariante(request.nomeVariante());
+                variant.setPrice(request.price());
+                variant.setStock(request.stock() != null ? request.stock() : 0);
+                variant.setActive(true);
+                product.getVariants().add(variant);
+            } else {
+                ProductVariant existing = existingById.get(request.id());
+                if (existing == null) {
+                    throw new IllegalArgumentException(
+                            "Variante " + request.id() + " não pertence a este produto.");
+                }
+                existing.setNomeVariante(request.nomeVariante());
+                existing.setPrice(request.price());
+                existing.setStock(request.stock() != null ? request.stock() : 0);
+                existing.setActive(true);
+                keptIds.add(request.id());
+            }
+        }
+
+        // Soft-delete: la que no vino en el request se desactiva — nunca
+        // list.remove(), eso dispara orphanRemoval y el DELETE choca contra
+        // la FK de order_items en cuanto haya un pedido real (ver interfaz).
+        // El filtro por getId() != null excluye las recién agregadas arriba
+        // (todavía sin id, IDENTITY lo asigna al hacer flush).
+        for (ProductVariant existing : product.getVariants()) {
+            if (existing.getId() != null && !keptIds.contains(existing.getId())) {
+                existing.setActive(false);
+            }
+        }
+
+        boolean anyActive = product.getVariants().stream().anyMatch(ProductVariant::getActive);
+        if (!anyActive) {
+            throw new IllegalArgumentException("Produto precisa de ao menos uma variante ativa.");
         }
 
         // Sin save() explícito: managed dentro de la transacción.
