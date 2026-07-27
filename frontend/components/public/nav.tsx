@@ -17,7 +17,7 @@ const WHATSAPP_LINK = 'https://wa.me/555596724124'
 
 const NAV_LINKS = [
   { href: '/produtos', label: 'Catálogo' },
-  { href: '/agendamento', label: 'Agendar horário' },
+  { href: '/turnos', label: 'Agendar horário' },
   { href: '/admin/login', label: 'Login' },
 ] as const
 
