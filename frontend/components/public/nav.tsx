@@ -33,6 +33,10 @@ export function Nav() {
             src={logoHorizontal}
             alt="FrontPet Petshop"
             className="h-full w-auto object-contain"
+            // Sin esto, el navegador asume 100vw y pide una imagen mucho más
+            // grande de la que realmente se muestra (~200px de ancho acá).
+            // Encontrado con Lighthouse: "Improve image delivery", 25 KiB.
+            sizes="200px"
             priority
           />
         </Link>

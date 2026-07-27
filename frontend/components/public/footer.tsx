@@ -29,6 +29,7 @@ export function Footer() {
             src={logoHorizontal}
             alt="FrontPet Petshop"
             className="h-10 w-auto object-contain"
+            sizes="200px"
           />
           <p className="max-w-[280px] text-sm text-white/80">
             Banho, tosa e produtos premium para o seu pet, em {SITE_CITY}.
