@@ -1,9 +1,5 @@
 import type { Product } from './products'
-
-export interface TaxonRef {
-  nome: string
-  slug: string
-}
+import type { TaxonRef } from '@/lib/api/client'
 
 export interface ProductVariant {
   id: number

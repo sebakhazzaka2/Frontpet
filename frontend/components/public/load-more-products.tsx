@@ -8,12 +8,18 @@ import type { PageResponse } from '@/lib/api/client'
 
 interface LoadMoreProductsProps {
   initialData: PageResponse<Product>
+  categoria?: string
 }
 
 // 'use client': mantiene el estado de la lista acumulada y dispara el fetch
 // de la próxima página al click de "Carregar mais" (issue #16 — sin scroll
 // infinito, catálogo chico, menos riesgo de romper el Footer fixed).
-export function LoadMoreProducts({ initialData }: LoadMoreProductsProps) {
+//
+// El padre (page.tsx) tiene que pasar key={categoria} — sin eso, cambiar de
+// chip navega a una nueva URL y refetchea initialData, pero este componente
+// no se remonta solo: el useState de abajo se queda con los productos de la
+// categoría anterior.
+export function LoadMoreProducts({ initialData, categoria }: LoadMoreProductsProps) {
   const [products, setProducts] = useState(initialData.items)
   const [page, setPage] = useState(initialData.page)
   const [hasNext, setHasNext] = useState(initialData.hasNext)
@@ -22,7 +28,7 @@ export function LoadMoreProducts({ initialData }: LoadMoreProductsProps) {
   async function handleLoadMore() {
     setLoading(true)
     try {
-      const next = await listProducts({ page: page + 1, size: initialData.size })
+      const next = await listProducts({ page: page + 1, size: initialData.size, categoria })
       setProducts((prev) => [...prev, ...next.items])
       setPage(next.page)
       setHasNext(next.hasNext)
