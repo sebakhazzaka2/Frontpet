@@ -1,6 +1,6 @@
 # ADR 014 — Config de Tailwind CSS-first (`@theme` en `globals.css`)
 
-**Estado**: Aceptada
+**Estado**: Aceptada — actualizada 2026-07-27 (excepción de la landing + cierre del radio de cards)
 **Fecha**: 2026-07-16
 **Sprint**: 2
 
@@ -158,9 +158,8 @@ Se aceptó esta fricción en vez de renombrar los tokens a la convención de sha
 `DESIGN.md` y `CLAUDE.md` nombran explícitamente `rounded-md` = botones y `rounded-lg` =
 cards, y esos nombres ya están en la cabeza y en la doc del proyecto.
 
-**Pendiente de revisión estética.** Los 16px de cards salen de la documentación, no del
-ojo. Al portar la primera pantalla, comparar contra el `screen.png` y confirmar si se
-ven mejor a 12 o a 16. Es cambiar `--radius-lg` en `globals.css`, una línea.
+~~**Pendiente de revisión estética.**~~ **Resuelto — ver Actualización 2026-07-27 abajo:
+cards quedan en 16px.**
 
 ---
 
@@ -190,3 +189,44 @@ La evidencia es estática: contenido de archivos + CSS compilado en `.next/dev`.
 
 **Antes de dar esto por cerrado**: correr `npm run build` y validar visualmente a
 320px / 768px / 1024px (Definition of Done, `CLAUDE.md` §10).
+
+---
+
+## Actualización 2026-07-27 — excepción de la landing y cierre del pendiente de cards
+
+> Contenido movido desde `docs/port-landing-stitch.md` §1/§5 (tarea 2.0b) para que la
+> decisión viva en el ADR y no en un worksheet. El análisis completo con conteos de
+> instancias queda en ese documento como registro histórico.
+
+### La landing NO sigue la tabla de traducción de arriba
+
+La tabla de la sección 6 está construida sobre los **defaults del CDN de Tailwind v3** —
+correcta para 18 de las 19 pantallas. Pero **la landing es la única pantalla con un
+`borderRadius` configurado a mano** (escala propia **4/8/12/20/24** — uniformemente ~4px
+más redonda que la del repo), así que su traducción es distinta:
+
+| En el HTML de la landing | Valor real | Clase del repo |
+|---|---|---|
+| `rounded-lg` (CTAs del hero) | 8px | `rounded-md` |
+| `rounded-xl` (botones) | 12px | `rounded-md` (bajan a 8px) |
+| `rounded-xl` (thumbs, chips, cards flotantes) | 12px | `rounded-lg` |
+| `rounded-2xl` (**cards**) | **20px** | `rounded-lg` (16px) |
+| `rounded-full` | pill | `rounded-full` |
+
+**Regla general que se desprende**: antes de portar una pantalla, verificar si su
+`code.html` define un `borderRadius` propio en el config inline. Si no lo define
+(las otras 17), aplica la tabla de la sección 6. Si lo define, derivar la traducción
+como acá.
+
+Corolario: la afirmación de la sección 6 "los valores de botón nunca estuvieron en
+conflicto: 8px en las cuatro fuentes" no vale para la landing — tenía 7 botones a 12px
+que bajan a 8px al portar (los CTAs del hero ya estaban a 8px, la resolución botones=8px
+se sostiene).
+
+### Cards: cerrado en 16px (decisión con Sebastián, 2026-07-17)
+
+La comparación visual contra `screen.png` que pedía este ADR resultó **inviable** (los
+screenshots disponibles son miniaturas de 128-196px de ancho para una pantalla de 780px;
+un radio de 12/16/20px no se distingue). Se resolvió por decisión directa:
+**`--radius-lg` = 16px se mantiene**. Los cards de la landing (20px en Stitch) se
+estandarizan a 16px. El pendiente de la sección 6 queda cerrado.

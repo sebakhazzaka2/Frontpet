@@ -69,69 +69,20 @@ agregan solos al sistema), screenshots, estado de build/lint/test, preguntas abi
 
 ---
 
-## 2. Prompt-template del agente frontend
+## 2. Ejecución: comando `/port-screen`
+
+El prompt de ejecución vive en **`.claude/commands/port-screen.md`** (movido acá el
+2026-07-27 — antes era un template copy-paste en esta sección). Se invoca:
 
 ```
-Estás portando una pantalla de Stitch a un componente de Next.js en el repo FrontPet
-(monorepo, frontend/ es un Next 16 + Tailwind v4). Es trabajo de ejecución: escribí
-código, no me devuelvas solo un análisis.
-
-CONTEXTO QUE YA ESTÁ RESUELTO — no lo rederives:
-- Tokens de diseño: frontend/app/globals.css, bloque @theme. Colores: navy/navy-dark/
-  navy-light/navy-mid, orange/orange-dark/orange-light, wa/wa-dark, slate, surface/
-  surface-card, ink/ink-muted, outline, hover, star (5º color, semántico, rating). No hay
-  tailwind.config.ts (ADR 014) — no lo recrees.
-- Radios (ADR 014) — traducí SIEMPRE así, las clases de Stitch no significan lo mismo acá:
-  rounded-lg(Stitch)→rounded-md · rounded-xl→rounded-lg · rounded-2xl→rounded-lg ·
-  rounded-3xl→rounded-xl · rounded(default)→rounded-sm · rounded-full→rounded-full.
-- Escala tipográfica: eyebrow/caption/label/sm/base/h3/h2-mobile/h2/display-mobile/
-  display/hero-mobile/hero-tablet/hero. Tamaño Stitch fuera de esta escala: NO agregues
-  un paso nuevo, mapealo al más cercano y avisá en el reporte.
-- Íconos: lucide-react. Tabla de mapeo ya resuelta en docs/port-landing-stitch.md §6
-  (17 íconos). Si aparece uno nuevo: buscá el equivalente 1:1 en lucide-react y
-  **agregalo a esa tabla** (no lo resuelvas solo en el componente).
-- Sin foto real todavía para [PRODUCTO/SERVICIO/LO QUE APLIQUE]: usá el mismo patrón que
-  components/public/product-card.tsx y service-card.tsx — ícono PawPrint centrado sobre
-  bg-surface, nunca un stock hotlinkeado. Mismo criterio para cualquier dato de negocio
-  que Stitch muestre como placeholder (direcciones tipo "Rua Exemplo", teléfonos de
-  mockup, servicios inventados): no se porta, se omite o se pide dato real.
-- Copy siempre en PT-BR. Server Component por defecto — 'use client' solo con
-  comentario de una línea explicando la razón puntual.
-- WhatsApp: buildWhatsAppLink de @/lib/data/site (no hardcodees el número).
-  Precios: formatPrice de @/lib/utils.
-
-TU TAREA:
-1. Pantalla de Stitch: projects/3403942466915386698/screens/{{SCREEN_ID}} ("{{SCREEN_TITLE}}").
-   Leela con mcp__stitch__get_screen y su code.html/screenshot.
-2. Auditá contra lo de arriba: colores fuera de los 5 tokens, radios, tamaños de texto
-   fuera de escala, íconos sin mapear, contenido placeholder/inventado. Estos son los
-   ÚNICOS hallazgos que reportás como "decisión abierta" — el resto (tokens, radios,
-   íconos ya mapeados) lo aplicás directo, sin preguntar.
-3. Si la vista necesita datos: revisá si existe DTO real en
-   backend/src/main/java/com/frontpet/**/dto/. Si existe, el tipo en lib/data/ usa esos
-   mismos nombres de campo. Si no existe todavía, tipo provisorio con comentario
-   explícito de qué lo va a reemplazar y en qué sprint (ver ROADMAP.md).
-4. Implementá: componente(s) en frontend/components/public/, datos (si aplica) en
-   frontend/lib/data/. Reusá WhatsAppIcon, InstagramIcon, buildWhatsAppLink, formatPrice
-   — no dupliques. Si la ruta/página todavía no existe y no es tu tarea crearla, dejá el
-   componente standalone y documentá dónde se enchufa.
-5. Verificá (checklist completo en docs/stitch-implementation-workflow.md §3) antes de
-   reportar.
-6. NO commitees — dejá los cambios en el working tree, el commit lo hace el desarrollador.
-   NO toques Nav, Footer, ni ningún componente ya existente salvo que la tarea lo pida
-   explícitamente. NO instales dependencias nuevas sin marcarlo como pregunta abierta.
-
-REPORTÁ AL FINAL:
-- Archivos tocados/creados
-- Desvíos de Stitch y por qué (tokens/radios/tipografía/íconos aplicados según las
-  tablas — no hace falta detallar esos; sí los que NO tenían resolución previa)
-- Íconos o tokens nuevos que encontraste (para que se agreguen a las tablas canónicas
-  antes de darlos por definitivos)
-- Resultado de build/lint/test
-- Screenshots tomados (rutas) a 320/768/1024px, y 1440 si la vista tiene layout desktop
-  propio
-- Preguntas abiertas / decisiones que no pudiste tomar solo
+/port-screen <SCREEN_ID> "<título de la pantalla>"
 ```
+
+El comando referencia las fuentes canónicas (tokens en `globals.css`, radios en ADR 014,
+íconos en `port-landing-stitch.md` §6, este workflow para etapas y checklist) en vez de
+duplicarlas — si una regla cambia, se cambia en su fuente y el comando la levanta sola.
+Las reglas duras del port (no inventar tokens/datos, no commitear, no tocar componentes
+existentes, no instalar dependencias) están en el comando mismo.
 
 ---
 
