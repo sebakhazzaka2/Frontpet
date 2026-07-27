@@ -1,6 +1,7 @@
 import { listProducts, listCategories } from '@/lib/api/products'
 import { LoadMoreProducts } from '@/components/public/load-more-products'
 import { CategoryFilter } from '@/components/public/category-filter'
+import { ProductSearch } from '@/components/public/product-search'
 
 // Tarea 3.6 (issue #16). Server Component: la primera página se fetchea acá
 // (SEO, sin loading state inicial); <LoadMoreProducts> toma la posta para
@@ -15,22 +16,29 @@ import { CategoryFilter } from '@/components/public/category-filter'
 export const dynamic = 'force-dynamic'
 
 export default async function ProductsPage(props: PageProps<'/produtos'>) {
-  const { categoria } = await props.searchParams
+  const { categoria, busca } = await props.searchParams
   const categoriaSlug = typeof categoria === 'string' ? categoria : undefined
+  const buscaTermo = typeof busca === 'string' ? busca : undefined
 
   // En paralelo: categorías no dependen del filtro elegido.
   const [data, categories] = await Promise.all([
-    listProducts({ categoria: categoriaSlug }),
+    listProducts({ categoria: categoriaSlug, busca: buscaTermo }),
     listCategories(),
   ])
 
   return (
     <div className="mx-auto max-w-content px-6 py-8 lg:px-8 lg:py-12">
       <h1 className="mb-8 text-h2-mobile font-display text-ink md:text-h2">Produtos</h1>
-      <CategoryFilter categories={categories} activeSlug={categoriaSlug} />
-      {/* key: fuerza el remount al cambiar de categoría — ver comentario en
+      <ProductSearch />
+      <CategoryFilter categories={categories} activeSlug={categoriaSlug} busca={buscaTermo} />
+      {/* key: fuerza el remount al cambiar de filtro — ver comentario en
           <LoadMoreProducts>, si no el estado de cliente queda con la lista vieja. */}
-      <LoadMoreProducts key={categoriaSlug ?? 'todos'} initialData={data} categoria={categoriaSlug} />
+      <LoadMoreProducts
+        key={`${categoriaSlug ?? 'todos'}-${buscaTermo ?? ''}`}
+        initialData={data}
+        categoria={categoriaSlug}
+        busca={buscaTermo}
+      />
     </div>
   )
 }

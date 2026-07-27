@@ -10,12 +10,21 @@ interface ListProductsParams {
   page?: number
   size?: number
   categoria?: string
+  busca?: string
 }
 
-export async function listProducts({ page = 0, size = 24, categoria }: ListProductsParams = {}) {
+export async function listProducts({
+  page = 0,
+  size = 24,
+  categoria,
+  busca,
+}: ListProductsParams = {}) {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
   if (categoria) {
     params.set('categoria', categoria)
+  }
+  if (busca) {
+    params.set('busca', busca)
   }
 
   const response = await apiFetch<PageResponse<Product>>(`/products?${params}`)
