@@ -52,10 +52,14 @@ class PublicCatalogControllerTest {
     @Test
     @DisplayName("GET /api/v1/products?busca= filtra por nombre")
     void searchesProducts() throws Exception {
+        // "brinquedo", no "mordedor": el seed real de V5 (tarea 3.12) tiene un
+        // "Mordedor Kong Clássico" que también matchea "mordedor" y rompía la
+        // suposición de "1 solo resultado" — sin relación con esta tarea (3.4),
+        // efecto colateral de que ahora hay data real sembrada en la misma DB.
         persistProduct("Brinquedo Mordedor", "brinquedo-mordedor", new BigDecimal("29.90"));
         persistProduct("Ração Premium", "racao-premium-busca", new BigDecimal("99.90"));
 
-        mockMvc.perform(get("/api/v1/products").param("busca", "mordedor"))
+        mockMvc.perform(get("/api/v1/products").param("busca", "brinquedo"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].slug").value("brinquedo-mordedor"))
                 .andExpect(jsonPath("$.items.length()").value(1));
