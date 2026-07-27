@@ -39,6 +39,16 @@ frontpet:
     # Los endpoints públicos no tienen JWT del cual sacarlo. Ver CurrentTenant.
     id: ${TENANT_ID:01924ccf-0000-7000-8000-000000000001}
 
+  admin:
+    # Seed idempotente del admin único (config/DataInitializer). En prod,
+    # StartupEnvValidator exige que ADMIN_PASSWORD no quede en el default de dev.
+    email: ${ADMIN_EMAIL:admin@frontpet.dev}
+    password: ${ADMIN_PASSWORD:admin123}
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-secret-nao-usar-em-producao-32chars}
+  expiration: ${JWT_EXPIRATION:3600000}
+
 server:
   port: 8080
 
