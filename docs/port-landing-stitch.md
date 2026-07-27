@@ -194,10 +194,12 @@ Las 8 se cerraron con Sebastián. Los cambios de token ya están en `globals.css
 
 Para que cualquier tab/sesión que siga con las tareas 2.3+ no tenga que re-derivar esto.
 
-### Mapeo de 53 íconos Material Symbols → lucide-react
+### Mapeo de íconos Material Symbols → lucide-react
 
 Verificado contra el paquete instalado (`lucide-react` 1.16), no adivinado. En la landing
-aparecen 17 únicos (55 usos) de esos 53 — el resto está en otras pantallas de Stitch:
+aparecen 17 únicos (55 usos) de 53 totales del proyecto — el resto está en otras pantallas
+de Stitch y se agrega acá a medida que el pipeline de `docs/stitch-implementation-workflow.md`
+las va portando (no se remapean de cero cada vez).
 
 | Material Symbols | Lucide | Material Symbols | Lucide |
 |---|---|---|---|
@@ -209,9 +211,9 @@ aparecen 17 únicos (55 usos) de esos 53 — el resto está en otras pantallas d
 | `shopping_cart` | `ShoppingCart` | `location_on` | `MapPin` |
 | `arrow_forward` | `ArrowRight` | `call` | `Phone` |
 | `home` | `Home` | `help` | `HelpCircle` |
-| `content_cut` | `Scissors` | | |
+| `content_cut` | `Scissors` | `chevron_right` | `ChevronRight` |
 
-Ninguno necesitó reemplazo aproximado — los 17 tienen 1:1. WhatsApp es aparte
+Ninguno necesitó reemplazo aproximado — todos 1:1. WhatsApp es aparte
 (`components/shared/whatsapp-icon.tsx`): ícono de marca, no está en ninguna librería de
 pictogramas genéricos.
 
