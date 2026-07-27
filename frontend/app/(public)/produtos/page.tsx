@@ -7,14 +7,13 @@ import { ProductSearch } from '@/components/public/product-search'
 // (SEO, sin loading state inicial); <LoadMoreProducts> toma la posta para
 // "Carregar mais" del lado del cliente.
 //
-// force-dynamic: sin esto, Next 16 prerenderiza esta página como estática en
-// build time y el catálogo queda congelado con lo que había en ese momento —
-// un producto que el admin agregue/edite (tarea 3.4, ya existe) no aparecería
-// hasta el próximo deploy. La estrategia de cache real es la tarea 3.11
-// (revalidateTag con cacheLife) — hasta que esté, dynamic es lo correcto, no
-// un atajo.
-export const dynamic = 'force-dynamic'
-
+// Sin force-dynamic (tarea 3.11): el ISR de listProducts/listCategories
+// (next.revalidate: 60, en lib/api/products.ts) ya resuelve el problema que
+// force-dynamic tapaba en la 3.6 — un producto editado por el admin aparece
+// en como máximo 60s, no recién en el próximo deploy. force-dynamic e ISR
+// no son compatibles: force-dynamic fuerza revalidate:0 en todo fetch de la
+// ruta (doc de Next 16), así que dejarlo puesto habría vuelto inerte el
+// revalidate de abajo.
 export default async function ProductsPage(props: PageProps<'/produtos'>) {
   const { categoria, busca } = await props.searchParams
   const categoriaSlug = typeof categoria === 'string' ? categoria : undefined

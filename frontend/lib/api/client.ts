@@ -25,8 +25,20 @@ export interface PageResponse<T> {
 // librería nueva — cuando el catálogo necesite cache/refetch en cliente
 // (3.7 filtro, 3.8 búsqueda), ahí entra @tanstack/react-query (ya instalado,
 // sin uso todavía).
-export async function apiFetch<T>(path: string): Promise<T | undefined> {
-  const res = await fetch(`${API_URL}/api/v1${path}`)
+//
+// `revalidate` (tarea 3.11): ISR simple vía next.revalidate, confirmado
+// contra la doc de Next 16 (no cacheComponents/PPR — el ROADMAP original
+// estaba escrito para Next 14). Cuando esto corre en el browser (llamado
+// desde <LoadMoreProducts>/<ProductSearch>, Client Components), `next.*` es
+// una extensión server-side de Next — el fetch nativo del browser la ignora
+// sin error, no hace falta condicionarlo.
+export async function apiFetch<T>(
+  path: string,
+  { revalidate }: { revalidate?: number } = {}
+): Promise<T | undefined> {
+  const res = await fetch(`${API_URL}/api/v1${path}`, {
+    next: revalidate !== undefined ? { revalidate } : undefined,
+  })
 
   if (res.status === 404) {
     return undefined

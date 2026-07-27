@@ -27,7 +27,11 @@ export async function listProducts({
     params.set('busca', busca)
   }
 
-  const response = await apiFetch<PageResponse<Product>>(`/products?${params}`)
+  // revalidate: 60 (tarea 3.11) — ISR simple. Peor caso, un producto editado
+  // por el admin tarda hasta 60s en reflejarse, no hasta el próximo deploy.
+  const response = await apiFetch<PageResponse<Product>>(`/products?${params}`, {
+    revalidate: 60,
+  })
   // El backend nunca devuelve 404 acá (lista vacía es 200 con items: []), pero
   // apiFetch tipa como opcional por el 404 genérico — este endpoint no lo usa.
   if (!response) {
@@ -37,7 +41,7 @@ export async function listProducts({
 }
 
 export async function listCategories() {
-  const response = await apiFetch<TaxonRef[]>('/categories')
+  const response = await apiFetch<TaxonRef[]>('/categories', { revalidate: 60 })
   if (!response) {
     throw new Error('GET /categories no debería devolver 404')
   }
