@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { PawPrint, Star } from 'lucide-react'
+import { PawPrint } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
 import { buildWhatsAppLink } from '@/lib/data/site'
 import type { Product } from '@/lib/data/products'
@@ -51,11 +51,6 @@ export function ProductCard({ product }: ProductCardProps) {
         <Link href={`/produtos/${product.slug}`}>
           <h3 className="line-clamp-2 text-sm font-medium text-ink">{product.nome}</h3>
         </Link>
-
-        <div className="flex items-center gap-1">
-          <Star className="size-4 fill-star text-star" />
-          <span className="text-caption text-ink-muted">{product.avaliacao.toFixed(1)}</span>
-        </div>
 
         <p className="text-h3 font-semibold text-orange">{formatPrice(product.preco)}</p>
 
