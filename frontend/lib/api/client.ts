@@ -100,5 +100,15 @@ export async function apiFetch<T>(
     )
   }
 
-  return res.json() as Promise<T>
+  // Algunos endpoints (POST /auth/login, POST /auth/logout) devuelven 200
+  // con body vacío en vez de 204 — ResponseEntity<Void> de Spring no fuerza
+  // 204. res.json() sobre un body vacío tira SyntaxError ("Unexpected end of
+  // JSON input"), que el caller terminaba tratando como fallo de login
+  // aunque el login hubiera sido exitoso (bug real, encontrado con Playwright
+  // al verificar el Bloque D). Leer como texto primero evita asumir status↔body.
+  const raw = await res.text()
+  if (raw.length === 0) {
+    return undefined
+  }
+  return JSON.parse(raw) as T
 }
