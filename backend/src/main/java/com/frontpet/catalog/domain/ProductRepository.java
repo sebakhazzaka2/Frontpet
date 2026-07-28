@@ -39,6 +39,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query(value = """
             SELECT new com.frontpet.catalog.dto.ProductSummary(
+                p.publicId,
                 p.slug,
                 p.nome,
                 p.mainImageUrl,
