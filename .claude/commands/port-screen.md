@@ -6,6 +6,14 @@ Portá la pantalla de Stitch indicada en: $ARGUMENTS
 (si falta el screen ID, listá las pantallas con `mcp__stitch__list_screens` del proyecto
 `projects/3403942466915386698` y pedí confirmación de cuál).
 
+Al listar: si dos o más pantallas son la misma vista en distinto estado de UI (un formulario
+abierto sobre la vista base, productos cargando vs. cargados, vacío/error), no las trates
+como pantallas independientes — es un solo componente con variantes de estado. Agrupalas,
+identificá cuál es la base (comparando `code.html`: layout casi idéntico, difiere lo que
+está visible) y pedí confirmación de cuál portar como base; las demás quedan documentadas
+como el estado/prop que las dispara, no como un port aparte. Ver
+`docs/stitch-implementation-workflow.md` Etapa 0.
+
 Es trabajo de ejecución: escribí código, no devuelvas solo un análisis.
 
 ## Contexto — leelo, no lo rederives

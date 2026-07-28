@@ -24,6 +24,16 @@ como provisorios (mismo criterio que `lib/data/products.ts`). Esto existe para n
 el orden del ROADMAP (CLAUDE.md §9: "un sprint a la vez") ni el ADR 017 (admin = vertical,
 no frontend-first).
 
+**Pantallas duplicadas por estado**: en el listado de `mcp__stitch__list_screens`, más de
+una entrada puede ser la misma vista en un estado de UI distinto — un formulario abierto
+sobre la vista base, una lista de productos cargando vs. ya cargada, un estado vacío o de
+error. No son vistas separadas a portar una por una: es **un solo componente con variantes
+de estado** (condicionales/props), no N componentes. Se detecta comparando el `code.html`
+de las candidatas — layout y estructura casi idénticos, difiere solo lo que está visible
+(overlay de modal, skeleton, mensaje de vacío). Antes de arrancar la Etapa 1, agrupar estas
+variantes, identificar cuál es el estado base, y portar contra esa — las demás quedan como
+nota de qué prop/condición dispara ese estado, no como port aparte.
+
 **Etapa 1 — Auditoría liviana** (ya no hay que re-derivar el sistema completo, solo
 diffear contra lo ya resuelto)
 - Leer la pantalla por MCP (`mcp__stitch__get_screen`) + su `code.html`.

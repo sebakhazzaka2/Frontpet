@@ -315,7 +315,7 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 | D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
 | D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
 
-### Configuración y deploy (~6.5 hs)
+### Configuración y deploy (~7 hs)
 
 | # | Tarea | Hs |
 |---|-------|----|
@@ -323,6 +323,7 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 | D.6 | Configurar Coolify para buildear y servir el **frontend Next 16** con auto-deploy desde GitHub (junto al backend) | 1 |
 | D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
 | D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
+| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 |
 
 **Entregable**:
 - `https://frontpet.com` con landing + catálogo en vivo
