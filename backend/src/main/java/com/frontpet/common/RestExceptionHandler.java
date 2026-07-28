@@ -1,6 +1,7 @@
 package com.frontpet.common;
 
 import com.frontpet.catalog.ProductNotFoundException;
+import com.frontpet.orders.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,13 @@ public class RestExceptionHandler {
         // como error llenaría Sentry de ruido cada vez que un bot pide una URL vieja.
         log.debug("Produto não encontrado: {}", request.getRequestURI());
         return build(HttpStatus.NOT_FOUND, "Produto não encontrado.", request);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ApiError> handleOrderNotFound(OrderNotFoundException ex,
+                                                        HttpServletRequest request) {
+        log.debug("Pedido não encontrado: {}", request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, "Pedido não encontrado.", request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
