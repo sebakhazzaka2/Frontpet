@@ -68,22 +68,29 @@ pesado del plan, contra el hito de cobro del 05/09.
 
 ## 3. Promociones / precio tachado (`price_original`)
 
-**Estado**: la columna existe, sin UI y sin decidir.
+**Estado**: sin sección "Nuestros descuentos" en MVP1 (eso sigue sin decidir — falta ver el
+diseño de Stitch), pero el hueco operativo que esto generó **ya se resolvió (2026-07-27)**.
 
 `V6__catalog_promos.sql` agregó `price_original` a `products` y `product_variants`, con un
 CHECK que garantiza `price_original > price`. La idea era una sección "Nuestros descuentos"
-en la landing.
+en la landing — eso sigue sin estar en la lista de MVP1 del `CLAUDE.md` §7.
 
-**Problema**: no está en la lista de MVP1 del `CLAUDE.md` §7, y ningún componente del
-frontend la usa todavía (grep = 0 resultados, jul/2026).
+**El hueco que generó la decisión "provisoria" original**: la premisa de "si nadie la llena,
+no existe" se rompió con la tarea 3.12 (seed, issue #22) — su propio AC pedía a propósito un
+producto en promoción (`bifinho-de-frango`) para que la búsqueda tuviera algo contra qué
+probarse. Pero ni `CreateProductRequest` ni `UpdateProductRequest` tenían el campo
+`priceOriginal` — no había NINGUNA forma de sacar ese producto de oferta (ni de poner otro)
+vía API, solo tocando la DB a mano. Encontrado en QA manual de Sprint 3.
 
-**Decisión provisoria**: **se deja la columna, sin UI en MVP1.** Es NULLABLE — si nadie la
-llena, no existe. Costo cero y cero riesgo, y evita dos migraciones de ida y vuelta si
-después resulta que el diseño sí la pide.
+**Resolución**: se agregó `priceOriginal` (nullable) a ambos DTOs. Mismas reglas que
+`price` — solo aplica sin variantes, `ProductServiceImpl` valida `priceOriginal > price`
+antes de llegar a Postgres (400 con mensaje claro en vez del 500 genérico que tiraría el
+CHECK). En el `PUT`, `null` saca el producto de oferta — mismo criterio de reemplazo
+completo que ya tenía el resto del record. Tests en `AdminProductControllerTest`.
 
-**Falta definir**: si el diseño de Stitch tiene sección de descuentos. No se pudo verificar
-porque `docs/ui/` está gitignoreado y no está en disco — hay que mirarlo por MCP al portar
-la landing.
+**Sigue sin resolver** (esto es lo que queda pendiente de verdad): si el diseño de Stitch
+tiene una sección de descuentos dedicada. No se pudo verificar porque `docs/ui/` está
+gitignoreado y no está en disco — hay que mirarlo por MCP si esto se retoma.
 
 ---
 
@@ -103,3 +110,116 @@ de WhatsApp, que ya está marcado como pendiente de reemplazo.
 `db/migration/dev`) o si se acepta que V5 es data real y se le saca el cartel.
 
 **Dónde impacta**: Sprint Despliegue.
+
+---
+
+## 5. Gestión de variantes vía admin — RESUELTO (2026-07-27, tarea 3.4b)
+
+**Estado**: implementado. Ya no bloquea nada — queda documentado como historial de por qué
+existía el hueco y qué se decidió, más el límite explícito de lo que 3.4b cubre.
+
+Grep al ROADMAP entero por "variant": aparecía en la 3.2 (modelado) y en la 2.5 (nombre de
+una card del frontend) — **ningún endpoint de admin para crear/editar/borrar variantes**,
+ni en 3.4 ni en Sprint 4 ("Admin productos"). El alta (`POST /admin/products`) sí acepta
+variantes al crear el producto; no había forma de tocarlas después.
+
+**Por qué no se resolvió dentro de 3.4** (que sí edita el resto de los campos del
+producto): `order_items` tiene FK real a `product_variants(id)` (ADR 013). Un endpoint que
+haga "reemplazar el array completo" de variantes borraría filas viejas vía
+`orphanRemoval` — si algún pedido real ya referencia una de esas variantes, el `DELETE`
+choca contra la FK y la transacción falla. Funciona perfecto en dev (sin pedidos históricos)
+y explota en producción justo cuando hay más que perder.
+
+**Resolución (tarea 3.4b)**: `PUT /api/v1/admin/products/{publicId}/variants` —
+`ProductServiceImpl.replaceVariants`. Upsert por id (`id == null` = variante nueva, `id`
+presente = actualiza la existente) + soft-delete (`active = false`, nunca
+`list.remove()`/hard-delete) de las que no vienen en el request. Tres rechazos con 400:
+- el producto todavía no tiene variantes (precio simple) — ver §6, es un caso aparte
+- un `id` del request no pertenece a ESE producto (evita adivinar ids ajenos)
+- el resultado dejaría el producto sin ninguna variante activa (rompería el cálculo de
+  precio del listado público, que hace `COALESCE(price, MIN(variant.price WHERE active))`)
+
+Tests: `AdminProductControllerTest` (upsert + soft-delete, producto sin variantes, id
+ajeno, resultado sin variantes activas).
+
+---
+
+## 6. Mode-switching precio simple ↔ variantes — no cubierto por 3.4b, sin tarea asignada
+
+**Estado**: hueco identificado a propósito al acotar el alcance de 3.4b (2026-07-27), no
+implementado.
+
+`PUT .../variants` (§5) solo funciona si el producto **ya** tiene variantes. Hoy no hay
+forma de convertir un producto de precio simple a "viene en 3kg/10kg/15kg" (o al revés)
+desde el admin — meterlo en 3.4b hubiera repetido el mismo error que originó el hueco
+original: una transición de modo que toca el invariante precio/variantes (ADR 013 §2) no es
+un `if` que se cuela en un endpoint pensado para otra cosa.
+
+**Estimado** (para cuando se agende): ~3-4 hs.
+- Simple → con variantes: relajar el gate de `replaceVariants` para que también acepte un
+  producto sin variantes, y cuando el resultado tenga ≥1 variante activa, poner
+  `price = null` / `stock = 0` en el producto (~1h — la lógica de "crear variante nueva" ya
+  existe, es la parte fácil).
+- Con variantes → simple: enganchar la transición inversa en `PUT /admin/products/{id}`
+  (si el producto tiene variantes y llega un `price` no nulo, interpretarlo como "volver a
+  precio simple" y soft-deletear todas las variantes activas) + tests de la combinación
+  (~2-2.5h — la parte que realmente pesa).
+
+**Dónde impacta**: candidato a Sprint 4 (admin productos) o Fase 2, a criterio de
+Sebastián — no bloquea nada de Sprint 3.
+
+---
+
+## 7. Optimización de imágenes de producto — sin tarea asignada
+
+**Estado**: hueco identificado al implementar 3.5/3.5b (2026-07-27), no implementado.
+
+El upload de 3.5 va directo del browser a R2 vía URL firmada — el backend nunca ve los
+bytes de la imagen. Eso significa que **nada la redimensiona ni la reencodea**: si el admin
+sube una foto de celular sin comprimir, se guarda tal cual y se sirve tal cual a cualquiera
+que entre al catálogo. Contradice el spec recomendado del ROADMAP (WebP, máx 1200x1200,
+<200KB) — hoy ese spec depende 100% de la disciplina del admin, no hay nada en el código que
+lo garantice.
+
+**Dirección recomendada**: resolverlo **client-side** (Canvas API nativa del browser,
+redimensionar + reencodear a WebP antes de subir), no server-side. El backend no participa
+del upload (va directo a R2), así que procesar server-side implicaría un viaje extra
+(bajar de R2 → procesar → volver a subir) en vez de resolverlo una vez, antes de que salga
+del browser. Esto la convierte en tarea de **frontend**, no de backend.
+
+**Estimado**: ~1.5-2 hs (incluye fallback para Safari, que no siempre soporta encode a WebP
+vía Canvas).
+
+**Dónde impacta**: candidato a sumarse al trabajo de 3.6+ (frontend) o Fase 2, a criterio de
+Sebastián.
+
+---
+
+## 8. Tope de tamaño en uploads a R2 no lo garantiza el storage
+
+**Estado**: limitación de la plataforma, aceptada para MVP1 (2026-07-27). El flujo de firmado
+en sí ya es una decisión tomada — ver [ADR 018](decisions/018-r2-presigned-upload-flow.md).
+Esta entrada documenta específicamente la limitación de tamaño y qué haría falta si el modelo
+de amenaza cambia; no está "pendiente de decidir", está pendiente de *revisar si sigue
+alcanzando*.
+
+3.5b pedía "tamaño máximo... firmado en la política", asumiendo que funcionaría igual que
+`Content-Type` (que R2 sí aplica: un PUT real con otro tipo distinto al firmado rompe la
+firma, 403). Contra la doc oficial de R2 (`developers.cloudflare.com/r2/api/s3/presigned-urls/`,
+verificado 2026-07-27): **R2 no soporta `content-length-range` ni presigned POST** — a
+diferencia de S3, no hay forma de que el storage garantice el tamaño máximo de lo que
+efectivamente se sube por un PUT firmado.
+
+`R2StorageServiceImpl` valida el `contentLength` que el cliente **declara** al pedir la URL
+(rechaza sobre 5MB) — es un chequeo honesto pero no una garantía: alguien con curl podría
+declarar 100KB y mandar un PUT de 500MB. Se acepta este límite porque el endpoint de presign
+vive detrás del login de admin (`anyRequest().authenticated()`) — el único que podría
+abusarlo ya tiene, con esa misma sesión, acceso a borrar/editar todo el catálogo. El riesgo
+real (costo de storage) es bajo: R2 cobra ~$0.015/GB/mes, sin cargo por egreso.
+
+**Si el modelo de amenaza cambia** (multi-tenant real, más admins, señales de abuso): la
+garantía dura sería un `HeadObject` post-upload (necesita un `S3Client` además del
+`S3Presigner` actual) que borre el objeto si excede el tope — pero eso suma un endpoint de
+"confirmar upload" que el frontend tendría que integrar, no está estimado.
+
+**Dónde impacta**: nada bloqueado hoy. Revisar si MVP1 deja de ser single-admin.

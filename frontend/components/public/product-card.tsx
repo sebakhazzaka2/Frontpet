@@ -10,12 +10,12 @@ interface ProductCardProps {
   product: Product
 }
 
-// Variante de landing (tarefa 2.5): CTA vai direto pro WhatsApp, não pro
-// carrinho — "Adicionar à sacola" (Stitch) fica pro Sprint 4, quando existir
-// carrinho de verdade (decidido 2026-07-25, ver issue #7).
+// Variante de landing (tarea 2.5): el CTA va directo a WhatsApp, no al
+// carrito — "Adicionar à sacola" (Stitch) queda para el Sprint 4, cuando
+// exista carrito de verdad (decidido 2026-07-25, ver issue #7).
 export function ProductCard({ product }: ProductCardProps) {
   const whatsappHref = buildWhatsAppLink(
-    `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.preco)}).`
+    `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.price)}).`
   )
 
   return (
@@ -25,25 +25,20 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-label={product.nome}
         className="relative aspect-square bg-surface"
       >
-        {product.imagemUrl ? (
+        {product.mainImageUrl ? (
           <Image
-            src={product.imagemUrl}
+            src={product.mainImageUrl}
             alt=""
             fill
             className="object-cover"
             sizes="(min-width: 1024px) 25vw, 50vw"
           />
         ) : (
-          // TODO: reemplazar por foto real do produto quando exista. Sin
-          // stock inventado — mesmo critério do <ServiceCard> (tarefa 2.4).
+          // TODO: reemplazar por foto real del producto cuando exista. Sin
+          // stock inventado — mismo criterio que <ServiceCard> (tarea 2.4).
           <div className="flex h-full w-full items-center justify-center">
             <PawPrint className="size-10 text-outline" aria-hidden />
           </div>
-        )}
-        {product.maisVendido && (
-          <span className="absolute left-3 top-3 rounded-full bg-orange px-3 py-1 text-caption text-white">
-            Mais vendido
-          </span>
         )}
       </Link>
 
@@ -52,7 +47,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <h3 className="line-clamp-2 text-sm font-medium text-ink">{product.nome}</h3>
         </Link>
 
-        <p className="text-h3 font-semibold text-orange">{formatPrice(product.preco)}</p>
+        <p className="text-h3 font-semibold text-orange">
+          {product.hasVariants && <span className="text-sm font-normal">A partir de </span>}
+          {formatPrice(product.price)}
+        </p>
 
         <a
           href={whatsappHref}

@@ -1,14 +1,23 @@
-// Produtos em destaque da landing. Estáticos em Sprint 2 — a tarefa 3.x troca
-// esta fonte pela API real (`GET /api/v1/products`), sem reescrever <ProductCard>
-// (ver CLAUDE.md §5, metodologia de implementação).
+// Espejo del DTO real ProductSummary (backend/src/main/java/com/frontpet/catalog/dto/
+// ProductSummary.java, tarea 3.3 ✅) — mismos nombres de campo, para que el swap de
+// fuente (estática → API real) no requiera tocar <ProductCard> (CLAUDE.md §5).
 //
-// `id`/`slug` são placeholders legíveis, não os `public_id` UUID v7 reais do
-// backend (ADR 013) — esses só existem quando o catálogo tiver seed real.
+// Sin `avaliacao`/rating a propósito: ProductSummary no tiene ese campo — no existe
+// tabla de reviews en MVP1 (ADR 013, CLAUDE.md §7). Decidido 2026-07-26.
 //
-// Sem `avaliacao`/rating de propósito: o DTO real (`ProductSummary`, backend
-// Sprint 3) não tem esse campo — não existe tabela de reviews em MVP1 (ADR
-// 013, CLAUDE.md §7). Mostrar um número sem dado real por trás seria mentir
-// na tela (decidido 2026-07-27).
+// Sin `maisVendido`: decidido 2026-07-27 (issue #16) — no hay pedidos reales todavía
+// (orders recién existe con la tarea 4.8), mostrar un "más vendido" inventado sería
+// mentir en la pantalla. El "top productos" real queda para el dashboard admin (7.3).
+export interface Product {
+  slug: string
+  nome: string
+  mainImageUrl?: string
+  price: number
+  priceOriginal?: number
+  brandNome?: string
+  hasVariants?: boolean
+}
+
 export const PRODUCT_CATEGORIES = [
   'Rações',
   'Acessórios',
@@ -21,45 +30,28 @@ export const PRODUCT_CATEGORIES = [
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
 
-export interface Product {
-  id: string
-  slug: string
-  nome: string
-  /** Sin foto real do produto ainda — `undefined` renderiza um placeholder. */
-  imagemUrl?: string
-  categoria: ProductCategory
-  preco: number
-  maisVendido?: boolean
-}
-
+// Productos destacados de la landing. Estáticos en Sprint 2 por diseño (ADR 017,
+// la landing no consume backend) — a diferencia de /produtos (tarea 3.6), que sí
+// fetchea la API real vía lib/api/products.ts.
 export const FEATURED_PRODUCTS: Product[] = [
   {
-    id: 'racao-premium-adulto-15kg',
     slug: 'racao-premium-adulto-15kg',
     nome: 'Ração Premium Adulto 15kg',
-    categoria: 'Rações',
-    preco: 185.0,
-    maisVendido: true,
+    price: 185.0,
   },
   {
-    id: 'mordedor-interativo-resistente',
     slug: 'mordedor-interativo-resistente',
     nome: 'Mordedor Interativo Resistente',
-    categoria: 'Brinquedos',
-    preco: 42.9,
+    price: 42.9,
   },
   {
-    id: 'guia-e-coleira-premium-soft',
     slug: 'guia-e-coleira-premium-soft',
     nome: 'Guia e Coleira Premium Soft',
-    categoria: 'Acessórios',
-    preco: 89.0,
+    price: 89.0,
   },
   {
-    id: 'cama-nuvem-luxo-ultra-macia',
     slug: 'cama-nuvem-luxo-ultra-macia',
     nome: 'Cama Nuvem Luxo Ultra Macia',
-    categoria: 'Conforto',
-    preco: 159.9,
+    price: 159.9,
   },
 ]

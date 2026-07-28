@@ -1,10 +1,14 @@
 package com.frontpet.catalog;
 
+import com.frontpet.catalog.dto.CreateProductRequest;
 import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
+import com.frontpet.catalog.dto.ProductVariantUpsertRequest;
+import com.frontpet.catalog.dto.UpdateProductRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -56,4 +60,44 @@ public interface ProductService {
      * de construir la entidad.
      */
     String generateUniqueSlug(UUID tenantId, String nome);
+
+    /**
+     * Alta de producto, con o sin variantes (tarea 3.4).
+     *
+     * @throws IllegalArgumentException si la invariante precio/variantes no se
+     *                                  cumple (ADR 013 §2), o si algún slug de
+     *                                  categoría/espécie no existe
+     */
+    ProductDetail create(UUID tenantId, CreateProductRequest request);
+
+    /**
+     * Edición de producto: reemplazo completo de los campos editables, salvo
+     * variantes (docs/pending-decisions.md §5 — no se tocan acá) y salvo
+     * {@code slug} en blanco (significa "no tocar", nunca "vaciar").
+     *
+     * @throws ProductNotFoundException si no existe
+     * @throws IllegalArgumentException si la invariante precio/variantes no se
+     *                                  cumple, si el slug nuevo colisiona con
+     *                                  otro producto, o si algún slug de
+     *                                  categoría/espécie no existe
+     */
+    ProductDetail update(UUID tenantId, UUID publicId, UpdateProductRequest request);
+
+    /**
+     * Reemplaza el conjunto de variantes de un producto (tarea 3.4b —
+     * docs/pending-decisions.md §5): upsert por id + soft-delete de las que
+     * faltan en el request. Nunca hard-delete — {@code order_items} tiene FK
+     * real a {@code product_variants} ({@code ON DELETE RESTRICT}).
+     *
+     * <p>Solo funciona si el producto YA tiene variantes: convertir un
+     * producto de precio simple a variantes (o al revés) es una transición
+     * de modo aparte, no la resuelve este método.
+     *
+     * @throws ProductNotFoundException si no existe
+     * @throws IllegalArgumentException si el producto no tiene variantes, si
+     *                                  algún id no pertenece a este producto,
+     *                                  o si el resultado deja el producto sin
+     *                                  ninguna variante activa
+     */
+    ProductDetail replaceVariants(UUID tenantId, UUID publicId, List<ProductVariantUpsertRequest> variants);
 }

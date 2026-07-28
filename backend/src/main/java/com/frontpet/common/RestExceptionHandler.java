@@ -7,8 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Traduce excepciones del dominio a respuestas HTTP.
@@ -34,7 +39,25 @@ public class RestExceptionHandler {
     public ResponseEntity<ApiError> handleBadRequest(IllegalArgumentException ex,
                                                      HttpServletRequest request) {
         log.debug("Requisição inválida em {}: {}", request.getRequestURI(), ex.getMessage());
-        return build(HttpStatus.BAD_REQUEST, "Requisição inválida.", request);
+        // Usa el mensaje real de la excepción de dominio (ej. BrandService:
+        // "Nome da marca não pode ser vazio.") — antes se pisaba con un texto
+        // genérico y esos mensajes claros nunca llegaban al cliente.
+        String message = ex.getMessage() != null ? ex.getMessage() : "Requisição inválida.";
+        return build(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex,
+                                                     HttpServletRequest request) {
+        // Sin este handler, un @Valid fallido sale con el formato de error por
+        // defecto de Spring, no con nuestro ApiError — inconsistente para el
+        // frontend, que espera la misma forma en todos los 4xx.
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.put(error.getField(), error.getDefaultMessage());
+        }
+        log.debug("Validação falhou em {}: {}", request.getRequestURI(), fieldErrors);
+        return ResponseEntity.badRequest().body(ApiError.ofValidation(request.getRequestURI(), fieldErrors));
     }
 
     @ExceptionHandler(BadCredentialsException.class)

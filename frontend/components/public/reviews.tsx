@@ -1,8 +1,8 @@
 import { Star } from 'lucide-react'
 import { REVIEWS } from '@/lib/data/reviews'
 
-// Fundo `navy` + cards `navy-mid` (AC da tarefa 2.6, issue #8) — o card
-// precisa se despegar do fundo, ver a decisão do token em globals.css.
+// Fondo `navy` + cards `navy-mid` (AC de la tarea 2.6, issue #8) — la card
+// necesita despegarse del fondo, ver la decisión del token en globals.css.
 export function Reviews() {
   return (
     <section className="bg-navy px-6 py-16 lg:px-8">

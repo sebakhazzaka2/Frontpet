@@ -5,73 +5,21 @@
 `projects/3403942466915386698/screens/5ce9a4555404479fb7e807816cda053c` — MOBILE, 780×10100
 **Leída por**: MCP de Stitch (no desde `docs/ui/`, que está stale)
 
-Este documento es el **worksheet de port**, no una decisión de arquitectura. Las decisiones
-que surgieron y necesitan cierre están en la última sección.
+> 🧊 **REGISTRO HISTÓRICO (congelado 2026-07-27).** Worksheet de la tarea 2.0b, cerrada.
+> Todas sus decisiones están resueltas y viven en sus fuentes canónicas: la excepción de
+> radios en el **ADR 014 (Actualización 2026-07-27)**, los tokens nuevos en `globals.css`.
+> **Única sección viva: la tabla de iconos de la §6** — se sigue extendiendo con cada
+> pantalla portada (ver `docs/stitch-implementation-workflow.md`) hasta que termine la
+> migración; ahí se reevalúa extraerla. El resto no se edita más.
 
 ---
 
 ## 1. Radios — la landing es la excepción del ADR 014
 
-**El ADR 014 tiene un punto ciego justo en la pantalla que portamos primero.**
-
-El ADR dice: *"solo la landing define un `borderRadius` propio; las otras 17 no definen
-ninguno y heredan los defaults del CDN de Tailwind v3"*. Correcto. Pero después construye
-la **tabla de traducción sobre los defaults del CDN** — y esa tabla **no aplica a la
-landing**, que es la única con config propia.
-
-| Clase | Default CDN v3 (tabla del ADR) | **Config propia de la landing** | ¿Coinciden? |
-|---|---|---|---|
-| `rounded` | 4px | 4px | ✅ |
-| `rounded-lg` | 8px | 8px | ✅ |
-| `rounded-xl` | 12px | 12px | ✅ |
-| `rounded-2xl` | **16px** | **20px** | ❌ |
-| `rounded-3xl` | 24px | 24px | ✅ |
-
-La landing usa `rounded-2xl` **10 veces, y son todos los cards** (serviços, produtos,
-reviews). O sea: **los cards de la landing están a 20px, no a 12px** como concluyó el ADR
-mirando las otras 17 pantallas.
-
-### Esto reabre la pregunta de los cards, y la mejora
-
-El ADR la planteó como *12px (Stitch) vs 16px (docs)*. Con la landing a la vista, es otra cosa:
-
-| | Botones | Cards |
-|---|---|---|
-| Repo (`@theme`) | 8px | 16px |
-| **Landing de Stitch** (config deliberado) | 8px *y* 12px ⚠️ | **20px** |
-| Otras 17 pantallas (default heredado) | 8px | 12px |
-
-**La landing está escrita sobre una escala 4/8/12/20/24** — uniformemente ~4px más redonda
-que la del repo. No es un error de Stitch: es la única pantalla donde alguien eligió los
-valores a mano.
-
-### Botones: la landing se contradice a sí misma
-
-El ADR afirma *"los valores de botón nunca estuvieron en conflicto: 8px en las cuatro
-fuentes"*. **En la landing no es así**:
-
-- Los **CTAs del hero** usan `rounded-lg` = **8px** ✅ (2 instancias)
-- Los **demás botones** usan `rounded-xl` = **12px** ❌ (7 instancias: "Agendar" de los
-  service cards, "Adicionar" de los product cards)
-
-Como los botones más prominentes —los del hero— ya están a 8px, **la resolución del ADR
-(botones = 8px) se sostiene**. Pero al portar hay **7 botones que bajan de 12 a 8**, no cero.
-
-### Tabla de traducción para ESTA pantalla
-
-| En el HTML de Stitch | Valor real acá | Clase del repo | Instancias |
-|---|---|---|---|
-| `rounded-lg` (CTAs del hero) | 8px | `rounded-md` | 2 |
-| `rounded-xl` (botones) | 12px | `rounded-md` (8px) | 7 |
-| `rounded-xl` (thumbs, chips, cards flotantes) | 12px | `rounded-lg` (16px) | 8 |
-| `rounded-2xl` (**cards**) | **20px** | `rounded-lg` (16px) | 10 |
-| `rounded-full` | pill | `rounded-full` | 15 |
-
-⚠️ **La instrucción del ADR "comparar contra el `screen.png`" no se puede ejecutar.**
-Los dos screenshots disponibles son miniaturas: el del MCP viene a 196×512 y el local
-(`docs/ui/frontpet_Publico/frontpet_landing_page/screen.png`) a **128×1600**, para una
-pantalla de 780×10100. A esa resolución un radio de 12, 16 o 20px ocupa menos de un píxel.
-**Para decidir con el ojo hay que renderizar el `code.html` local en un browser.**
+**Movido al ADR 014, "Actualización 2026-07-27".** La landing es la única pantalla con
+`borderRadius` propio (escala 4/8/12/20/24); su tabla de traducción específica, la regla
+general ("verificar si la pantalla define config propio antes de aplicar la tabla del CDN")
+y el cierre del radio de cards (16px) viven ahora en el ADR.
 
 ---
 
@@ -194,10 +142,12 @@ Las 8 se cerraron con Sebastián. Los cambios de token ya están en `globals.css
 
 Para que cualquier tab/sesión que siga con las tareas 2.3+ no tenga que re-derivar esto.
 
-### Mapeo de 53 íconos Material Symbols → lucide-react
+### Mapeo de íconos Material Symbols → lucide-react
 
 Verificado contra el paquete instalado (`lucide-react` 1.16), no adivinado. En la landing
-aparecen 17 únicos (55 usos) de esos 53 — el resto está en otras pantallas de Stitch:
+aparecen 17 únicos (55 usos) de 53 totales del proyecto — el resto está en otras pantallas
+de Stitch y se agrega acá a medida que el pipeline de `docs/stitch-implementation-workflow.md`
+las va portando (no se remapean de cero cada vez).
 
 | Material Symbols | Lucide | Material Symbols | Lucide |
 |---|---|---|---|
@@ -209,9 +159,9 @@ aparecen 17 únicos (55 usos) de esos 53 — el resto está en otras pantallas d
 | `shopping_cart` | `ShoppingCart` | `location_on` | `MapPin` |
 | `arrow_forward` | `ArrowRight` | `call` | `Phone` |
 | `home` | `Home` | `help` | `HelpCircle` |
-| `content_cut` | `Scissors` | | |
+| `content_cut` | `Scissors` | `chevron_right` | `ChevronRight` |
 
-Ninguno necesitó reemplazo aproximado — los 17 tienen 1:1. WhatsApp es aparte
+Ninguno necesitó reemplazo aproximado — todos 1:1. WhatsApp es aparte
 (`components/shared/whatsapp-icon.tsx`): ícono de marca, no está en ninguna librería de
 pictogramas genéricos.
 
@@ -241,7 +191,7 @@ gradiente navy (`from-navy to-navy-dark`). Falta pedirle al cliente una foto rea
 
 ---
 
-## 6. Conclusión operativa
+## 7. Conclusión operativa
 
 **El copy-paste no sirve para nada acá**, y no solo por los radios: entre 65 valores
 arbitrarios, 26 hex hardcodeados, 13 pesos prohibidos, 53 iconos de otra librería y 2

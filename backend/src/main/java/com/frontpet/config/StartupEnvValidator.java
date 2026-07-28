@@ -37,6 +37,24 @@ public class StartupEnvValidator implements ApplicationListener<ContextRefreshed
     @Value("${frontpet.admin.password}")
     private String adminPassword;
 
+    @Value("${frontpet.r2.account-id}")
+    private String r2AccountId;
+
+    @Value("${frontpet.r2.access-key-id}")
+    private String r2AccessKeyId;
+
+    @Value("${frontpet.r2.secret-access-key}")
+    private String r2SecretAccessKey;
+
+    @Value("${frontpet.r2.bucket-name}")
+    private String r2BucketName;
+
+    @Value("${frontpet.r2.endpoint}")
+    private String r2Endpoint;
+
+    @Value("${frontpet.r2.public-url}")
+    private String r2PublicUrl;
+
     private boolean validated = false;
 
     @Override
@@ -66,6 +84,25 @@ public class StartupEnvValidator implements ApplicationListener<ContextRefreshed
             errors.add("ADMIN_PASSWORD is not set");
         } else if (INSECURE_ADMIN_PASSWORD.equals(adminPassword)) {
             errors.add("ADMIN_PASSWORD must not be the default development value");
+        }
+
+        if (isBlank(r2AccountId)) {
+            errors.add("R2_ACCOUNT_ID is not set");
+        }
+        if (isBlank(r2AccessKeyId)) {
+            errors.add("R2_ACCESS_KEY_ID is not set");
+        }
+        if (isBlank(r2SecretAccessKey)) {
+            errors.add("R2_SECRET_ACCESS_KEY is not set");
+        }
+        if (isBlank(r2BucketName)) {
+            errors.add("R2_BUCKET_NAME is not set");
+        }
+        if (isBlank(r2Endpoint)) {
+            errors.add("R2_ENDPOINT is not set");
+        }
+        if (isBlank(r2PublicUrl)) {
+            errors.add("R2_PUBLIC_URL is not set");
         }
 
         if (!errors.isEmpty()) {
