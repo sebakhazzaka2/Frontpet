@@ -122,6 +122,35 @@ En el total sigue valiendo `Total = Subtotal` (el frete no suma un número al to
 Se alinea con CLAUDE.md §6: `PENDING / CONFIRMED / CANCELLED` (sin `PENDING_WHATSAPP`, que
 este ADR usaba antes). El estado inicial es `PENDING`.
 
+## Actualización 2026-07-28 — Modalidade Entrega/Retirada (Bloque 0, Sprint 4)
+
+Al fijar el contrato de `POST /api/v1/orders` aparecieron dos drifts entre Stitch
+("Sua Sacola") y lo confirmado acá + `V4__orders.sql`, resueltos en el Bloque 0:
+
+### Modalidade Retirada — no tiene columna propia
+Stitch ofrece **Entrega/Retirada** como radio button en el checkout. `V4__orders.sql` solo
+tiene `endereco_entrega` (obligatorio) y `frete_mode` (`GRATIS`/`A_COMBINAR`), sin lugar para
+"retirar en el local" — no se agrega columna nueva por esto. **Decisión**: `modalidade` vive
+en el DTO (`ModalidadeEntrega`), no en la tabla. `OrderServiceImpl` la mapea al persistir:
+- `RETIRADA` → `enderecoEntrega = "Retirada na loja"`, `freteMode = GRATIS`.
+- `ENTREGA` → `enderecoEntrega` = el que mandó el cliente (obligatorio), `freteMode = GRATIS`
+  por defecto (ver punto siguiente).
+
+### `frete_mode` no lo elige el cliente
+Reafirma lo ya dicho arriba ("el sistema no calcula distancia en MVP1; la determina el
+admin/logística"): el checkout **no** le pregunta al cliente si es `GRATIS` o `A_COMBINAR`.
+Todo pedido con `ENTREGA` nace en `GRATIS`; si la dirección real supera los 5km, FrontPet lo
+ajusta manualmente por WhatsApp. **No hay UI de admin para editar `frete_mode` en Sprint 4**
+— deuda conocida, documentada en `docs/pending-decisions.md`.
+
+### Form real: 6 campos, no 3
+Stitch dibuja el form de "Sua Sacola" con solo 3 campos (nome, telefone, modalidade). El form
+real (`CreateOrderRequest`) tiene 6: se agregan `enderecoEntrega`, `formaPagamento` y
+`horarioEntrega` porque `preguntas-cliente.md` §4.2 y esta misma actualización del ADR los
+piden explícitamente, y `V4__orders.sql` los tiene `NOT NULL`. Al portar la pantalla
+(Bloque B), el form extiende el layout de Stitch con esos 3 campos adicionales — no es una
+pantalla nueva, es más campos sobre la misma.
+
 ---
 
 ## Notas para el futuro
