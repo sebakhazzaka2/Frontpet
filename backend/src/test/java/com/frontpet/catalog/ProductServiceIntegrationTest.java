@@ -1,5 +1,6 @@
 package com.frontpet.catalog;
 
+import com.frontpet.AbstractIntegrationTest;
 import com.frontpet.catalog.domain.Category;
 import com.frontpet.catalog.domain.CategoryRepository;
 import com.frontpet.catalog.domain.Product;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @SpringBootTest
 @Transactional
-class ProductServiceIntegrationTest {
+class ProductServiceIntegrationTest extends AbstractIntegrationTest {
 
     /** Tenant sembrado en V5__seed_dev.sql. */
     private static final UUID TENANT = UUID.fromString("01924ccf-0000-7000-8000-000000000001");

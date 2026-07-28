@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -36,7 +37,11 @@ public class AuthService {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password));
-        } catch (Exception e) {
+        } catch (AuthenticationException e) {
+            // Antes era catch (Exception e): tapaba también fallas ajenas al
+            // login (p. ej. una caída de DB) como si fueran "contraseña
+            // incorrecta" (tarea 1.8). El rate limit vive en
+            // LoginRateLimitFilter, antes de llegar acá — no en este catch.
             log.warn("Credenciais inválidas para o usuário: {}", email);
             throw new BadCredentialsException("Email ou senha inválidos.");
         }

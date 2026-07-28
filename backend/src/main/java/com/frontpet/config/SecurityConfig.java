@@ -1,6 +1,7 @@
 package com.frontpet.config;
 
 import com.frontpet.identity.JwtAuthFilter;
+import com.frontpet.identity.LoginRateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -42,9 +43,11 @@ public class SecurityConfig {
     };
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final LoginRateLimitFilter loginRateLimitFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, LoginRateLimitFilter loginRateLimitFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.loginRateLimitFilter = loginRateLimitFilter;
     }
 
     @Bean
@@ -73,7 +76,11 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET).permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        // Exact-match no alcanza: con management.endpoint.health.probes
+                        // habilitado (tarea 1.7), /actuator/health/liveness y /readiness
+                        // — que consume el healthcheck de Coolify — caen en el
+                        // anyRequest().authenticated() de abajo sin el /**.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
                         // Todo lo demás (incluido /api/v1/admin/**) requiere la
                         // cookie de sesión validada por jwtAuthFilter.
@@ -88,6 +95,10 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions ->
                         exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // Orden relativo a jwtAuthFilter irrelevante: shouldNotFilter
+                // lo acota a POST /api/v1/auth/login, ruta disjunta de las que
+                // jwtAuthFilter le importan.
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

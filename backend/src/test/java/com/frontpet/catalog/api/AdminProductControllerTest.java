@@ -1,5 +1,6 @@
 package com.frontpet.catalog.api;
 
+import com.frontpet.AbstractIntegrationTest;
 import com.frontpet.catalog.domain.ProductRepository;
 import com.frontpet.identity.domain.AdminUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class AdminProductControllerTest {
+class AdminProductControllerTest extends AbstractIntegrationTest {
 
     private static final UUID TENANT = UUID.fromString("01924ccf-0000-7000-8000-000000000001");
 

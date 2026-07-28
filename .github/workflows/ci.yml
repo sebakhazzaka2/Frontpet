@@ -7,22 +7,8 @@ on:
 
 jobs:
   backend:
-    name: Backend (Maven + Postgres)
+    name: Backend (Maven + Testcontainers)
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: frontpet
-          POSTGRES_USER: frontpet
-          POSTGRES_PASSWORD: frontpet_dev_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U frontpet"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -33,15 +19,11 @@ jobs:
           java-version: "21"
           cache: maven
 
-      # BackendApplicationTests levanta el contexto completo (Flyway + JPA
-      # ddl-auto: validate), así que necesita el Postgres real de arriba,
-      # no un mock. Mismos defaults que backend/docker-compose.yml.
+      # Los @SpringBootTest levantan un Postgres 16 efímero vía Testcontainers
+      # (ver AbstractIntegrationTest), así que el runner solo necesita Docker —
+      # que ubuntu-latest ya trae. Sin sidecar `services:` y sin DB_* env vars.
       - name: mvn verify
         working-directory: backend
-        env:
-          DB_URL: jdbc:postgresql://localhost:5432/frontpet
-          DB_USERNAME: frontpet
-          DB_PASSWORD: frontpet_dev_pass
         run: mvn -B verify
 
   frontend:
