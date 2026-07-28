@@ -20,12 +20,18 @@ import java.util.List;
  *
  * <p>Sin variantes — ver {@code ProductVariantRequest} y
  * docs/pending-decisions.md §5.
+ *
+ * <p>{@code priceOriginal}: a diferencia de {@code slug}, acá {@code null} SÍ
+ * significa "vaciar" (sacar de promoção), no "no tocar" — coherente con el
+ * resto del record, que es reemplazo completo. Antes de esto no existía
+ * ninguna forma de sacar un produto de oferta vía API (docs/pending-decisions.md §3).
  */
 public record UpdateProductRequest(
         @NotBlank String nome,
         String descricao,
         String mainImageUrl,
         @PositiveOrZero BigDecimal price,
+        @PositiveOrZero BigDecimal priceOriginal,
         @PositiveOrZero Integer stock,
         String brandNome,
         List<String> categorySlugs,

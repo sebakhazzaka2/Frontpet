@@ -122,7 +122,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductDetail create(UUID tenantId, CreateProductRequest request) {
         boolean hasVariants = request.variants() != null && !request.variants().isEmpty();
-        validarPricingInvariant(hasVariants, request.price());
+        validarPricingInvariant(hasVariants, request.price(), request.priceOriginal());
 
         Product product = new Product();
         product.setPublicId(UuidV7.generate());
@@ -136,6 +136,7 @@ public class ProductServiceImpl implements ProductService {
         // price/stock del producto solo valen cuando NO hay variantes — ver el
         // comentario de Product.stock sobre esta asimetría con price.
         product.setPrice(hasVariants ? null : request.price());
+        product.setPriceOriginal(hasVariants ? null : request.priceOriginal());
         product.setStock(hasVariants ? 0 : (request.stock() != null ? request.stock() : 0));
 
         product.setBrand(resolveBrand(tenantId, request.brandNome()));
@@ -165,7 +166,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(
                         "Produto não encontrado: " + publicId));
 
-        validarPricingInvariant(product.hasVariants(), request.price());
+        validarPricingInvariant(product.hasVariants(), request.price(), request.priceOriginal());
 
         product.setNome(request.nome());
         product.setDescricao(request.descricao());
@@ -173,6 +174,10 @@ public class ProductServiceImpl implements ProductService {
 
         if (!product.hasVariants()) {
             product.setPrice(request.price());
+            // null limpa a promoção — reemplazo completo, igual que el resto
+            // del record (docs/pending-decisions.md §3: antes no existía
+            // ninguna forma de sacar un produto de oferta vía API).
+            product.setPriceOriginal(request.priceOriginal());
             product.setStock(request.stock() != null ? request.stock() : 0);
         }
 
@@ -262,8 +267,15 @@ public class ProductServiceImpl implements ProductService {
      * obligatorio; con variantes, el precio del producto no aplica —
      * exigirlo o aceptarlo en simultáneo son dos formas de dejar el dato en
      * un estado contradictorio que nadie va a notar hasta mostrarlo mal.
+     *
+     * <p>{@code priceOriginal} sigue la misma lógica: solo tiene sentido sin
+     * variantes, y tiene que ser mayor que {@code price} — es el mismo
+     * {@code CHECK(price_original > price)} de V6, validado acá para
+     * devolver 400 con mensaje claro en vez de que Postgres lo rechace con
+     * un 500 genérico.
      */
-    private void validarPricingInvariant(boolean hasVariants, BigDecimal requestPrice) {
+    private void validarPricingInvariant(boolean hasVariants, BigDecimal requestPrice,
+                                         BigDecimal requestPriceOriginal) {
         if (!hasVariants && requestPrice == null) {
             throw new IllegalArgumentException(
                     "Produto sem variantes precisa de um preço.");
@@ -271,6 +283,14 @@ public class ProductServiceImpl implements ProductService {
         if (hasVariants && requestPrice != null) {
             throw new IllegalArgumentException(
                     "Produto com variantes não deve informar preço no nível do produto.");
+        }
+        if (hasVariants && requestPriceOriginal != null) {
+            throw new IllegalArgumentException(
+                    "Produto com variantes não deve informar preço original no nível do produto.");
+        }
+        if (requestPriceOriginal != null && requestPriceOriginal.compareTo(requestPrice) <= 0) {
+            throw new IllegalArgumentException(
+                    "Preço original deve ser maior que o preço de venda.");
         }
     }
 

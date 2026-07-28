@@ -200,6 +200,61 @@ class AdminProductControllerTest {
     }
 
     @Test
+    @DisplayName("POST com priceOriginal > price cria produto em promoção")
+    void createsProductOnSale() throws Exception {
+        String body = """
+                {"nome": "Produto Em Promoção", "price": 18.50, "priceOriginal": 24.90}
+                """;
+
+        mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.price").value(18.50))
+                .andExpect(jsonPath("$.priceOriginal").value(24.90));
+    }
+
+    @Test
+    @DisplayName("POST com priceOriginal <= price da 400")
+    void rejectsPriceOriginalNotGreaterThanPrice() throws Exception {
+        String body = """
+                {"nome": "Produto Promoção Inválida", "price": 20.00, "priceOriginal": 20.00}
+                """;
+
+        mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Preço original deve ser maior que o preço de venda."));
+    }
+
+    @Test
+    @DisplayName("PUT com priceOriginal null saca o produto de promoção (docs/pending-decisions.md §3)")
+    void updateClearsPromotion() throws Exception {
+        String createBody = """
+                {"nome": "Produto Sai Da Promoção", "price": 18.50, "priceOriginal": 24.90}
+                """;
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(createBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.priceOriginal").value(24.90))
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+
+        String updateBody = """
+                {"nome": "Produto Sai Da Promoção", "price": 24.90}
+                """;
+
+        mockMvc.perform(put("/api/v1/admin/products/" + publicId)
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content(updateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.price").value(24.90))
+                .andExpect(jsonPath("$.priceOriginal").doesNotExist());
+    }
+
+    @Test
     @DisplayName("POST con nome en blanco da 400 con fieldErrors")
     void rejectsBlankName() throws Exception {
         String body = """

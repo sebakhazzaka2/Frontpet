@@ -68,22 +68,29 @@ pesado del plan, contra el hito de cobro del 05/09.
 
 ## 3. Promociones / precio tachado (`price_original`)
 
-**Estado**: la columna existe, sin UI y sin decidir.
+**Estado**: sin sección "Nuestros descuentos" en MVP1 (eso sigue sin decidir — falta ver el
+diseño de Stitch), pero el hueco operativo que esto generó **ya se resolvió (2026-07-27)**.
 
 `V6__catalog_promos.sql` agregó `price_original` a `products` y `product_variants`, con un
 CHECK que garantiza `price_original > price`. La idea era una sección "Nuestros descuentos"
-en la landing.
+en la landing — eso sigue sin estar en la lista de MVP1 del `CLAUDE.md` §7.
 
-**Problema**: no está en la lista de MVP1 del `CLAUDE.md` §7, y ningún componente del
-frontend la usa todavía (grep = 0 resultados, jul/2026).
+**El hueco que generó la decisión "provisoria" original**: la premisa de "si nadie la llena,
+no existe" se rompió con la tarea 3.12 (seed, issue #22) — su propio AC pedía a propósito un
+producto en promoción (`bifinho-de-frango`) para que la búsqueda tuviera algo contra qué
+probarse. Pero ni `CreateProductRequest` ni `UpdateProductRequest` tenían el campo
+`priceOriginal` — no había NINGUNA forma de sacar ese producto de oferta (ni de poner otro)
+vía API, solo tocando la DB a mano. Encontrado en QA manual de Sprint 3.
 
-**Decisión provisoria**: **se deja la columna, sin UI en MVP1.** Es NULLABLE — si nadie la
-llena, no existe. Costo cero y cero riesgo, y evita dos migraciones de ida y vuelta si
-después resulta que el diseño sí la pide.
+**Resolución**: se agregó `priceOriginal` (nullable) a ambos DTOs. Mismas reglas que
+`price` — solo aplica sin variantes, `ProductServiceImpl` valida `priceOriginal > price`
+antes de llegar a Postgres (400 con mensaje claro en vez del 500 genérico que tiraría el
+CHECK). En el `PUT`, `null` saca el producto de oferta — mismo criterio de reemplazo
+completo que ya tenía el resto del record. Tests en `AdminProductControllerTest`.
 
-**Falta definir**: si el diseño de Stitch tiene sección de descuentos. No se pudo verificar
-porque `docs/ui/` está gitignoreado y no está en disco — hay que mirarlo por MCP al portar
-la landing.
+**Sigue sin resolver** (esto es lo que queda pendiente de verdad): si el diseño de Stitch
+tiene una sección de descuentos dedicada. No se pudo verificar porque `docs/ui/` está
+gitignoreado y no está en disco — hay que mirarlo por MCP si esto se retoma.
 
 ---
 
