@@ -9,6 +9,11 @@
    ────────────────────────────────────────────────────────────────────────── */
 
 @import "tailwindcss";
+/* tw-animate-css: ya estaba en package.json pero nunca se importaba — las
+   utilidades animate-in/fade-in/zoom-in-* que dialog.tsx, sheet.tsx,
+   select.tsx y dropdown-menu.tsx traen de fábrica (Bloque 0) no hacían nada
+   sin esto. Encontrado al construir <CartButton> (Bloque A, issue #29). */
+@import "tw-animate-css";
 
 @theme {
   /* ── Paleta base — 4 colores (CLAUDE.md §5) ────────────────────────────
