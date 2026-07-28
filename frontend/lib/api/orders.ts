@@ -41,8 +41,9 @@ export interface OrderItemDetail {
 }
 
 // Espejo de OrderDetail — response de POST /orders y del detalle admin.
-// `whatsappMessage`: mensaje pre-formateado (ADR 010) ya armado por el
-// backend; el frontend solo hace encodeURIComponent y redirige a wa.me.
+// Sin `whatsappMessage`: corregido junto con el .java (Bloque B, issue #30) —
+// el mensaje lo arma el frontend con buildOrderMessage() (lib/whatsapp/templates.ts),
+// no el backend.
 export interface OrderDetail {
   publicId: string
   status: OrderStatus
@@ -57,7 +58,6 @@ export interface OrderDetail {
   createdAt: string
   confirmedAt?: string
   cancelledAt?: string
-  whatsappMessage: string
 }
 
 // Espejo de OrderSummary — lista del admin ("Gestão de Pedidos").

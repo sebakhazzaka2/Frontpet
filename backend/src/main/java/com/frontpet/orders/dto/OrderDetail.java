@@ -12,12 +12,14 @@ import java.util.UUID;
 /**
  * Response de {@code POST /api/v1/orders} y de la vista de detalle del admin.
  *
- * @param whatsappMessage mensaje pre-formateado (ADR 010) ya armado por el
- *                        backend con el loop sobre {@code items}. El frontend
- *                        solo hace {@code encodeURIComponent} y redirige a
- *                        {@code wa.me/<numero>?text=<mensaje>} — la plantilla
- *                        vive en el backend porque acá es donde se conocen
- *                        los datos reales del pedido recién creado
+ * <p>Sin {@code whatsappMessage}: el Bloque 0 lo había puesto acá asumiendo
+ * que el backend arma la plantilla, pero el plan de Sprint 4 (issue #30,
+ * tarea 4.9) asigna esa responsabilidad al frontend —
+ * {@code buildOrderMessage()} en {@code lib/whatsapp/templates.ts}, con los
+ * datos que ya devuelve este mismo record. Corregido acá antes de que el
+ * Bloque C (backend de orders) lo implementara duplicado. ADR 010 ya
+ * contemplaba la ambigüedad ("ubicación propuesta: /lib/whatsapp/templates.ts
+ * (o equivalente backend)") — el plan la resuelve a favor del frontend.
  */
 public record OrderDetail(
         UUID publicId,
@@ -32,7 +34,6 @@ public record OrderDetail(
         List<OrderItemDetail> items,
         Instant createdAt,
         Instant confirmedAt,
-        Instant cancelledAt,
-        String whatsappMessage
+        Instant cancelledAt
 ) {
 }
