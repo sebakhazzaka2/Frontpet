@@ -21,10 +21,44 @@ export interface PageResponse<T> {
   hasNext: boolean
 }
 
-// Wrapper mínimo de fetch para Server Components (tarea 3.6a). Sin
-// librería nueva — cuando el catálogo necesite cache/refetch en cliente
-// (3.7 filtro, 3.8 búsqueda), ahí entra @tanstack/react-query (ya instalado,
-// sin uso todavía).
+// Espejo de ApiError (backend/src/main/java/com/frontpet/common/ApiError.java) —
+// cuerpo de error uniforme de toda la API. `fieldErrors` solo viene poblado en
+// errores de validación (@Valid fallido).
+export interface ApiErrorBody {
+  status: number
+  error: string
+  message: string
+  path: string
+  timestamp: string
+  fieldErrors?: Record<string, string>
+}
+
+// Error tipado que preserva el `message` en PT-BR del backend (ADR 007) y los
+// `fieldErrors` para que un formulario (react-hook-form) pueda mapearlos a
+// campo por campo sin reparsear el body.
+export class ApiFetchError extends Error {
+  status: number
+  fieldErrors?: Record<string, string>
+
+  constructor(message: string, status: number, fieldErrors?: Record<string, string>) {
+    super(message)
+    this.name = 'ApiFetchError'
+    this.status = status
+    this.fieldErrors = fieldErrors
+  }
+}
+
+interface ApiFetchOptions {
+  revalidate?: number
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+  body?: unknown
+  headers?: Record<string, string>
+}
+
+// Wrapper de fetch para Server y Client Components (tarea 3.6a, extendido en
+// el Bloque 0 del Sprint 4 para soportar escrituras). Sin librería nueva —
+// cuando el catálogo necesite cache/refetch en cliente (3.7 filtro, 3.8
+// búsqueda), ahí entra @tanstack/react-query (ya instalado, sin uso todavía).
 //
 // `revalidate` (tarea 3.11): ISR simple vía next.revalidate, confirmado
 // contra la doc de Next 16 (no cacheComponents/PPR — el ROADMAP original
@@ -32,11 +66,20 @@ export interface PageResponse<T> {
 // desde <LoadMoreProducts>/<ProductSearch>, Client Components), `next.*` es
 // una extensión server-side de Next — el fetch nativo del browser la ignora
 // sin error, no hace falta condicionarlo.
+//
+// `credentials: 'include'`: necesario para que el navegador mande la cookie
+// HttpOnly del login (ADR 004) en los endpoints admin — back y front corren
+// en orígenes distintos (CorsConfig.java ya habilita allowCredentials). No
+// afecta a los endpoints públicos, que no dependen de cookie.
 export async function apiFetch<T>(
   path: string,
-  { revalidate }: { revalidate?: number } = {}
+  { revalidate, method = 'GET', body, headers }: ApiFetchOptions = {}
 ): Promise<T | undefined> {
   const res = await fetch(`${API_URL}/api/v1${path}`, {
+    method,
+    credentials: 'include',
+    headers: body !== undefined ? { 'Content-Type': 'application/json', ...headers } : headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
     next: revalidate !== undefined ? { revalidate } : undefined,
   })
 
@@ -44,8 +87,17 @@ export async function apiFetch<T>(
     return undefined
   }
 
+  if (res.status === 204) {
+    return undefined
+  }
+
   if (!res.ok) {
-    throw new Error(`API ${path} respondió ${res.status}`)
+    const apiError = (await res.json().catch(() => null)) as ApiErrorBody | null
+    throw new ApiFetchError(
+      apiError?.message ?? `API ${path} respondió ${res.status}`,
+      res.status,
+      apiError?.fieldErrors
+    )
   }
 
   return res.json() as Promise<T>
