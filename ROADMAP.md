@@ -46,19 +46,19 @@ apostando la entrega a que septiembre salga perfecto.
 | Bloque | Sprint | Foco | Hs | Estado |
 |---|--------|------|---:|--------|
 | | 0 | Pre-kickoff (GitHub Projects + modelo DB) | 3 | ✅ hecho |
-| **A** | 1 | Setup local: backend + frontend + auth + testing | 16 | 🔄 ~50% |
-| **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 2.1/2.3/2.4/2.6-2.8 hechas, 2.2/2.5 con detalles abiertos, falta 2.9/2.10 |
-| **A** | 3 | Catálogo + backend de productos | 24 | 🔄 3.1-3.3/3.12 adelantadas, 3.9 parcial |
-| **A** | Despliegue | **Compra infra + despliegue inicial + landing+catálogo en vivo** | 10 | ⏸️ movida post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
-| **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | ⚠️ el más pesado |
-| | | 🎯 **05/09 — hito de cobro: la tienda vende** | | |
-| **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ⏩ adelantar si hay slack |
+| **A** | 1 | Setup local: backend + frontend + auth + testing | 16 | 🔄 ~60% — falta completar entidades JPA de `identity`/`booking`/`orders`/`notifications` (1.1), Testcontainers (1.6), Logback JSON + actuator (1.7), rate limit login (1.8) |
+| **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 ~94% — 2.0b-2.9 hechas (incluye perf/Lighthouse), falta confirmar 2.10 (responsive formal a 320/768/1024/1440) |
+| **A** | 3 | Catálogo + backend de productos | 24 | ✅ **cerrado (2026-07-27)** — 3.1-3.12 hechas, mergeado a `main` (PR #26) |
+| **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | 🔄 **arrancando** (branch `feat/cart-checkout`) — el más pesado |
+| **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ⏩ va justo después del 4, usando el slack del bloque A |
+| **A** | Despliegue | **Compra infra + despliegue inicial** — landing + catálogo + venta + booking backend en vivo | 10 | ⏸️ pospuesta otra vez: ahora va **después del Sprint 4 y 5**, no inmediatamente post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
+| | | 🎯 **05/09 — hito de cobro: la tienda vende** (requiere Sprint 4 + Despliegue cerrados; el orden 4→5→Despliegue debe dejar margen para que Despliegue cierre antes de esta fecha) | | |
 | **B** | 6 | Booking frontend + Admin de turnos | 16 | |
 | **B** | 7 | Dashboard + LGPD + Marketing + Reset de senha + Polish | 24.5 | |
 | **B** | 8 | Capacitación + entrega formal | 14 | |
 | | | 🎯 **30/09 — entrega final** | | |
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
-| **Total** | | **170,5 hs restantes** (Sprints 1-8, con Sprint 1 al 50%) **+ 6,5 opcionales** | **~177** | |
+| **Total** | | **~121,5 hs restantes** (Sprints 1-8: 1 al ~60%, 2 al ~94%, 3 cerrado) **+ 6,5 opcionales** | **~128** | |
 
 > 🔁 Despliegue movido después del Sprint 3 — ver Registro de decisiones de plan (2026-07-27).
 
@@ -194,14 +194,14 @@ contra Postgres en Docker.
 
 | # | Tarea | Hs | Estado |
 |---|-------|---:|---|
-| 1.1 | Setup Spring Boot 3 con estructura modular: `tenant`, `identity`, `catalog`, `booking`, `orders`, `notifications` | 4 | 🔄 packages creados pero vacíos (`.gitkeep`); faltan entidades JPA |
+| 1.1 | Setup Spring Boot 3 con estructura modular: `tenant`, `identity`, `catalog`, `booking`, `orders`, `notifications` | 4 | 🔄 `tenant` y `catalog` con entidades JPA reales; `identity`/`booking`/`orders`/`notifications` siguen en `.gitkeep` |
 | 1.2 | Postgres en Docker Compose + Flyway + primera migración | 2 | ✅ **adelantado**: V1–V4 cubren identity, catalog, booking y orders (tareas 3.1 / 4.1 / 5.1 ya hechas) |
-| 1.3 | Spring Security + JWT en cookie HttpOnly + endpoint `POST /api/v1/auth/login` funcional | 3 | |
+| 1.3 | Spring Security + JWT en cookie HttpOnly + endpoint `POST /api/v1/auth/login` funcional | 3 | ✅ **hecha** (`9f16dc8`, PR #24) — portado del repo consultorio como estaba previsto |
 | 1.4 | Setup Next 16 + Framer Motion + TanStack Query + React Hook Form. Verificar que los tokens de `@theme` en `globals.css` funcionan end-to-end (**no hay `tailwind.config.ts` — ver ADR 014**) | 1.5 | ✅ |
-| 1.5 | CORS configurado, primer endpoint del frontend consumiendo backend local | 1 | 🔄 mitad hecha: CORS configurado y testeado. Falta que el frontend efectivamente consuma un endpoint — hoy no llama a nada |
-| 1.6 | **Testcontainers + primer test de integración** del endpoint de login. Sirve como template para todos los siguientes | 2 | ⚠️ Testcontainers **no está en el `pom.xml`** todavía |
-| 1.7 | **Logback con JSON structured output** + endpoint `/actuator/health` configurado y testeado | 0.5 | |
-| 1.8 | **Rate limit + lockout en el login**: máx. N intentos por IP/usuario en ventana, backoff. Un solo usuario admin y sin protección de fuerza bruta es un login de juguete | 2 | |
+| 1.5 | CORS configurado, primer endpoint del frontend consumiendo backend local | 1 | ✅ **hecha** — se cerró con la 3.6a (`ed5fc19`): el cliente de API ya consume `/produtos` real |
+| 1.6 | **Testcontainers + primer test de integración** del endpoint de login. Sirve como template para todos los siguientes | 2 | ⚠️ **pendiente** — Testcontainers sigue sin estar en el `pom.xml`; los tests de catálogo (3.2/3.4) corren sin él. Es la deuda que la nota original advertía: ya llevamos 3 sprints de tests sin el template |
+| 1.7 | **Logback con JSON structured output** + endpoint `/actuator/health` configurado y testeado | 0.5 | ⏳ pendiente |
+| 1.8 | **Rate limit + lockout en el login**: máx. N intentos por IP/usuario en ventana, backoff. Un solo usuario admin y sin protección de fuerza bruta es un login de juguete | 2 | ⏳ pendiente |
 
 **Entregable**:
 - Backend en `localhost:8080`, frontend en `localhost:3000`, ambos conectados
@@ -275,13 +275,13 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 | 3.4b | **Gestión de variantes vía admin**: `PUT /admin/products/{id}/variants`, upsert por id + soft-delete. Hueco encontrado al cerrar 3.4 (docs/pending-decisions.md §5, ahora resuelta) — no estaba en el ROADMAP original | 2 | ✅ **hecha (2026-07-27)**. Sin mode-switching precio-simple↔variantes (§6 de pending-decisions, ~3-4hs si se agenda) |
 | 3.5 | Integración Cloudflare R2 SDK en backend + endpoint de upload firmado. ✅ **Prerequisito resuelto (2026-07-27)**: cuenta Cloudflare + bucket R2 (`frontpet-products`) creados, credenciales del API Token (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`) guardadas fuera del repo, listas para cargarlas como env vars cuando se implemente esta tarea | 3 | ✅ **hecha (2026-07-27)**. `POST /api/v1/admin/products/images/presign`. ⚠️ Suma env var `R2_PUBLIC_URL` (no estaba en la lista original — necesaria para armar `mainImageUrl` después del upload) |
 | 3.5b | **Restricción del presigned URL**: mime type permitido, tamaño máximo y expiración corta, firmados en la política. Sin esto el bucket es de subida libre a costa nuestra | 1.5 | ✅ **hecha (2026-07-27)**. ⚠️ `Content-Type` sí queda firmado/aplicado por R2; el tamaño máximo **no** — R2 no soporta `content-length-range` (a diferencia de S3). Queda como chequeo sobre lo declarado, aceptado porque el endpoint es admin-only (docs/pending-decisions.md §8) |
-| 3.6a | **Cliente de API en el frontend**: wrapper de `fetch` (`frontend/lib/api/`), base URL desde `NEXT_PUBLIC_API_URL`, manejo de 404/error. Sin librería nueva (TanStack Query entra cuando 3.7/3.8 necesiten cache/refetch). Agregada al plan — ver Registro, 2026-07-27 | 1.5 |
-| 3.6 | Frontend: página `/produtos` con grid responsive | 2 |
-| 3.7 | Filtro por categoría (chips horizontales scrolleables) | 2 |
-| 3.8 | Búsqueda por nombre con debounce (300ms) | 2 |
-| 3.9 | Página `/produtos/[slug]` con **una** imagen y descripción (galería es Fase 2, ver `CLAUDE.md` §7). **`params` es una Promise en Next 16** — usar `PageProps<'/produtos/[slug]'>` de `next typegen` | 2 | 🔄 **parcial**: shell de UI + `params`/imagen única hechos con datos estáticos (issue #19); falta el fetch real (esperaba a 3.6a) y el gating de CTA cuando `hasVariants` |
-| 3.10 | Skeletons de carga, estados vacíos, error boundaries | 1 |
-| 3.11 | Caching del catálogo en Next 16. ⚠️ **Esta tarea está escrita para Next 14**: `revalidateTag` ahora exige un segundo argumento (perfil de `cacheLife`) y PPR se activa con `cacheComponents`. Revisar contra la doc de 16 antes de implementar | 1 |
+| 3.6a | **Cliente de API en el frontend**: wrapper de `fetch` (`frontend/lib/api/`), base URL desde `NEXT_PUBLIC_API_URL`, manejo de 404/error. Sin librería nueva (TanStack Query entra cuando 3.7/3.8 necesiten cache/refetch). Agregada al plan — ver Registro, 2026-07-27 | 1.5 | ✅ **hecha** (`ed5fc19`) |
+| 3.6 | Frontend: página `/produtos` con grid responsive | 2 | ✅ **hecha** (`dfeb1f2`), con paginación |
+| 3.7 | Filtro por categoría (chips horizontales scrolleables) | 2 | ✅ **hecha** (`e74c200`) |
+| 3.8 | Búsqueda por nombre con debounce (300ms) | 2 | ✅ **hecha** (`73cb5dc`) |
+| 3.9 | Página `/produtos/[slug]` con **una** imagen y descripción (galería es Fase 2, ver `CLAUDE.md` §7). **`params` es una Promise en Next 16** — usar `PageProps<'/produtos/[slug]'>` de `next typegen` | 2 | ✅ **hecha** — shell + fetch real (`ed5fc19`) + variant picker/gating de CTA (`67d6cbf`) |
+| 3.10 | Skeletons de carga, estados vacíos, error boundaries | 1 | ✅ **hecha** (`c3ed00a`) |
+| 3.11 | Caching del catálogo en Next 16. ⚠️ **Esta tarea está escrita para Next 14**: `revalidateTag` ahora exige un segundo argumento (perfil de `cacheLife`) y PPR se activa con `cacheComponents`. Revisar contra la doc de 16 antes de implementar | 1 | ✅ **hecha** — ISR vía `next.revalidate` (`a80df15`) |
 | 3.12 | Seed con 10 productos de prueba | 1 | ✅ **hecha** — `backend/.../db/seed-dev/products.sql`, fuera de Flyway a propósito (no es apto para producción, ver comentario del archivo) |
 
 **Entregable**: catálogo navegable real en producción, indexable por Google, optimizado.
@@ -559,6 +559,22 @@ el 2026-07-27, ver nota en "Resumen de fases"):
 
 Decisiones fechadas que cambiaron el plan (no son ADRs — son de planificación, no de
 arquitectura). El cuerpo del ROADMAP refleja solo el estado resultante; el porqué vive acá.
+
+**2026-07-27 — Cierre de Sprint 3, arranque de Sprint 4, Despliegue pospuesto otra vez
+(ahora después del Sprint 5).** Sprint 3 se da por cerrado: 3.1-3.12 completas, mergeadas
+a `main` (PR #26). El estado real (verificado contra `git log`, no solo contra las
+anotaciones de esta tabla) también dejó a Sprint 1 en ~60% y Sprint 2 en ~94% — las cifras
+de ambos se corrigieron acá porque habían quedado desactualizadas respecto al trabajo hecho
+de paso al avanzar el catálogo (p. ej. 1.5 se cerró sola con el cliente de API de la 3.6a).
+Se sigue sin comprar infra: la conversación de pago con el cliente todavía no se dio, y se
+decide adelantar **Sprint 4 (carrito + pedidos + admin) y Sprint 5 (booking backend)** antes
+del Sprint Despliegue, en vez de desplegar solo landing+catálogo. Esto coincide con la
+recomendación original del ROADMAP de adelantar el Sprint 5 con el slack del bloque A — solo
+formaliza el orden. **Riesgo a vigilar**: el hito de cobro del 05/09 exige la tienda
+"vendiendo y desplegada"; el Despliegue (10 hs) tiene que cerrar antes de esa fecha sin
+importar qué tan tarde se ejecute — cuanto más se lo pisa contra septiembre, menos margen
+queda para las hasta 48 hs de propagación DNS y el ajuste fino de Coolify. Arranca en la
+branch `feat/cart-checkout` (Sprint 4A: carrito + checkout + pedidos por WhatsApp).
 
 **2026-07-27 — Sprint Despliegue movido después del Sprint 3.** Comprar VPS y dominio
 depende de que el cliente pague/apruebe el gasto, y esa conversación todavía no se dio —
