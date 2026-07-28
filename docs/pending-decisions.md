@@ -190,7 +190,11 @@ Sebastián.
 
 ## 8. Tope de tamaño en uploads a R2 no lo garantiza el storage
 
-**Estado**: limitación de la plataforma, aceptada para MVP1 (2026-07-27).
+**Estado**: limitación de la plataforma, aceptada para MVP1 (2026-07-27). El flujo de firmado
+en sí ya es una decisión tomada — ver [ADR 018](decisions/018-r2-presigned-upload-flow.md).
+Esta entrada documenta específicamente la limitación de tamaño y qué haría falta si el modelo
+de amenaza cambia; no está "pendiente de decidir", está pendiente de *revisar si sigue
+alcanzando*.
 
 3.5b pedía "tamaño máximo... firmado en la política", asumiendo que funcionaría igual que
 `Content-Type` (que R2 sí aplica: un PUT real con otro tipo distinto al firmado rompe la
