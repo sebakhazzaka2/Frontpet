@@ -3,13 +3,18 @@
 import { useState } from 'react'
 import { CheckCircle2, Truck } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { AddToCartButton } from '@/components/public/add-to-cart-button'
+import { QuantityStepper } from '@/components/public/quantity-stepper'
 import { buildWhatsAppLink } from '@/lib/data/site'
 import type { ProductVariant } from '@/lib/data/product-detail'
 import { formatPrice } from '@/lib/utils'
 
 interface ProductVariantPickerProps {
   variants: ProductVariant[]
+  productPublicId: string
+  productSlug: string
   productNome: string
+  productImageUrl?: string
   descricao: string
 }
 
@@ -28,9 +33,26 @@ interface ProductVariantPickerProps {
 // `descricao` entra como prop (no queda en el Server Component padre) porque
 // el orden visual real es precio → estoque → descrição → CTA, y las tres
 // primeras dependen de la misma selección — separarlas partiría el estado.
-export function ProductVariantPicker({ variants, productNome, descricao }: ProductVariantPickerProps) {
+//
+// Add-to-cart (issue #29, Bloque A): `quantidade` se resetea a 1 cada vez que
+// cambia `selectedId` — cambiar de variante y arrastrar la cantidad de la
+// anterior sería confuso (¿"3" es de la variante vieja o la nueva?).
+export function ProductVariantPicker({
+  variants,
+  productPublicId,
+  productSlug,
+  productNome,
+  productImageUrl,
+  descricao,
+}: ProductVariantPickerProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [quantidade, setQuantidade] = useState(1)
   const selected = variants.find((variant) => variant.id === selectedId)
+
+  function selectVariant(id: number) {
+    setSelectedId(id)
+    setQuantidade(1)
+  }
 
   const whatsappHref = selected
     ? buildWhatsAppLink(
@@ -47,7 +69,7 @@ export function ProductVariantPicker({ variants, productNome, descricao }: Produ
             <button
               key={variant.id}
               type="button"
-              onClick={() => setSelectedId(variant.id)}
+              onClick={() => selectVariant(variant.id)}
               className={
                 variant.id === selectedId
                   ? 'shrink-0 rounded-full bg-orange px-4 py-1.5 text-label text-white'
@@ -97,6 +119,25 @@ export function ProductVariantPicker({ variants, productNome, descricao }: Produ
       </div>
 
       <p className="text-sm leading-relaxed text-ink-muted">{descricao}</p>
+
+      {selected && selected.stock > 0 && (
+        <QuantityStepper quantidade={quantidade} onChange={setQuantidade} max={selected.stock} />
+      )}
+
+      {selected && selected.stock > 0 && (
+        <AddToCartButton
+          item={{
+            productPublicId,
+            productSlug,
+            productNome,
+            productImageUrl,
+            variantId: selected.id,
+            variantNome: selected.nomeVariante,
+            unitPrice: selected.price,
+          }}
+          quantidade={quantidade}
+        />
+      )}
 
       {whatsappHref ? (
         <a

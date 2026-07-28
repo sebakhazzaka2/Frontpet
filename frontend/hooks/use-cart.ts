@@ -24,6 +24,13 @@ const listeners = new Set<Listener>()
 // loop de renders. Se actualiza únicamente dentro de writeStorage.
 let cachedItems: CartItem[] | null = null
 
+// Misma razón que cachedItems, pero para getServerSnapshot: un `[]` literal
+// nuevo en cada call rompe la garantía de referencia estable de
+// useSyncExternalStore — React lo detecta y avisa "should be cached to avoid
+// an infinite loop" en cada render (confirmado con Playwright al validar el
+// Bloque A). Server y cliente sin hidratar comparten el mismo carrito vacío.
+const EMPTY_CART: CartItem[] = []
+
 function readStorage(): CartItem[] {
   try {
     const raw = window.sessionStorage.getItem(STORAGE_KEY)
@@ -59,7 +66,7 @@ function getSnapshot(): CartItem[] {
 }
 
 function getServerSnapshot(): CartItem[] {
-  return []
+  return EMPTY_CART
 }
 
 export function useCart() {
