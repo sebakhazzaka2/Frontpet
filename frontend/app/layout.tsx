@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Fredoka, Plus_Jakarta_Sans } from 'next/font/google'
+import { Toaster } from '@/components/ui/sonner'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -184,16 +185,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </Providers>
 
         {/*
-          Portal de toasts — Sonner (Sprint 4+).
-          Descomentar cuando se instale: pnpm add sonner
-
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: { fontFamily: 'var(--font-sans)' },
-            }}
-          />
+          Portal de toasts — Sonner (Bloque 0, Sprint 4). top-center: el borde
+          inferior de la pantalla ya está ocupado por BottomNav + FloatingWA
+          (y CartButton en 4.3) — bottom-right choca con eso en mobile.
         */}
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: { fontFamily: 'var(--font-sans)' },
+          }}
+        />
       </body>
     </html>
   )
