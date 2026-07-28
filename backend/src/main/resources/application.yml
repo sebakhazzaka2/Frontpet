@@ -59,12 +59,29 @@ frontpet:
     # upload, pero el presign en sí no lo necesita para firmar el PUT.
     public-url: ${R2_PUBLIC_URL:}
 
+  login-rate-limit:
+    # Rate limit del login por IP (tarea 1.8, ADR 019). Escape hatch: false
+    # desactiva el bloqueo sin tocar código, para rescatar a alguien con un
+    # redeploy si hace falta.
+    enabled: ${LOGIN_RATE_LIMIT_ENABLED:true}
+    max-failures: 10
+    window: 15m
+
 jwt:
   secret: ${JWT_SECRET:dev-only-secret-nao-usar-em-producao-32chars}
   expiration: ${JWT_EXPIRATION:3600000}
 
 server:
   port: 8080
+  # FRAMEWORK registra el ForwardedHeaderFilter de Spring, que reescribe
+  # getRemoteAddr() desde X-Forwarded-* y descarta esos headers.
+  #
+  # ⚠️ Default NONE a propósito. Solo poner FRAMEWORK cuando Caddy sea el
+  # ÚNICO camino de entrada y esté configurado con `trusted_proxies` (rangos
+  # de Cloudflare). Si la app es alcanzable directo y esto está en FRAMEWORK,
+  # cualquiera se saltea el rate limit del login con un header falso. Ver
+  # ADR 019 y el checklist del Sprint Despliegue.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:NONE}
 
 management:
   endpoints:
