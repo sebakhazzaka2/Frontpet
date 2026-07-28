@@ -1,6 +1,7 @@
 package com.frontpet.catalog;
 
 import com.frontpet.catalog.dto.CreateProductRequest;
+import com.frontpet.catalog.dto.OrderLineSnapshot;
 import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
 import com.frontpet.catalog.dto.ProductVariantUpsertRequest;
@@ -100,4 +101,33 @@ public interface ProductService {
      *                                  ninguna variante activa
      */
     ProductDetail replaceVariants(UUID tenantId, UUID publicId, List<ProductVariantUpsertRequest> variants);
+
+    /**
+     * Resuelve una línea de carrito contra el catálogo, para que
+     * {@code orders} congele el snapshot correcto sin conocer las entidades
+     * de este módulo (CLAUDE.md §5).
+     *
+     * @param variantId null si el producto no tiene variantes
+     * @throws ProductNotFoundException se o produto não existe, está inativo,
+     *                                  ou pertence a outro tenant
+     * @throws IllegalArgumentException se a variante não existe, não pertence
+     *                                  a este produto, está inativa, ou o
+     *                                  produto tem variantes e {@code variantId}
+     *                                  veio nulo (e vice-versa)
+     */
+    OrderLineSnapshot resolveOrderLine(UUID tenantId, UUID productPublicId, Long variantId);
+
+    /**
+     * Resuelve el {@code publicId} de un producto a partir de su id interno.
+     * {@code orders} lo usa para armar {@code OrderItemDetail} sin guardar
+     * {@code publicId} en {@code order_items} (que referencia el producto por
+     * su id interno, igual que la FK de la DB) ni importar entidades de este
+     * módulo.
+     *
+     * @throws ProductNotFoundException si el id no corresponde a ningún
+     *                                  producto de este tenant (no debería
+     *                                  pasar nunca: {@code order_items} tiene
+     *                                  {@code ON DELETE RESTRICT})
+     */
+    UUID getPublicIdById(UUID tenantId, Long productId);
 }
