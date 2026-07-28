@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, ChevronRight, PawPrint, Truck } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { ProductVariantPicker } from '@/components/public/product-variant-picker'
 import { buildWhatsAppLink } from '@/lib/data/site'
 import type { ProductDetail } from '@/lib/data/product-detail'
 import { formatPrice } from '@/lib/utils'
@@ -20,9 +21,10 @@ interface ProductDetailViewProps {
 // - Sin selector de cantidad: queda para el Sprint 4, cuando exista carrinho.
 // - CTA directo a WhatsApp, "Adicionar ao carrinho" queda para el Sprint 4.
 //
-// NO implementado todavía (issue #19, comentario 2026-07-27): selector de
-// variante. Cuando `product.variants.length > 0`, `price` viene null del
-// backend — el CTA queda deshabilitado en vez de inventar un precio.
+// Selector de variante (issue #19, resuelto 2026-07-27): cuando
+// `product.variants.length > 0`, `price` viene null del backend — el bloque
+// precio/estoque/descrição/CTA se delega entero a <ProductVariantPicker>
+// (ver ese archivo) en vez de bifurcar acá cada pieza por separado.
 export function ProductDetailView({ product }: ProductDetailViewProps) {
   const categoria = product.categories[0]
   const whatsappHref =
@@ -88,62 +90,52 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             </h1>
           </div>
 
-          <div className="flex flex-col gap-1">
-            {product.price != null ? (
-              <>
+          {product.variants.length > 0 ? (
+            <ProductVariantPicker
+              variants={product.variants}
+              productNome={product.nome}
+              descricao={product.descricao}
+            />
+          ) : (
+            <>
+              <div className="flex flex-col gap-1">
                 {product.onSale && (
                   <span className="text-sm text-ink-muted line-through">
                     {formatPrice(product.priceOriginal!)}
                   </span>
                 )}
                 <span className="text-h2 font-semibold text-orange">
-                  {formatPrice(product.price)}
+                  {formatPrice(product.price!)}
                 </span>
-              </>
-            ) : (
-              // TODO: selector de variante (issue #19) — por ahora, sin precio
-              // fijo para no inventar un valor que no es el de ninguna opción.
-              <span className="text-sm text-ink-muted">
-                Selecione uma variante para ver o preço
-              </span>
-            )}
-          </div>
+              </div>
 
-          <div className="flex flex-col gap-2 rounded-lg border border-outline/30 bg-surface p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="size-5 shrink-0 text-ink" />
-              <span className="text-label text-ink">
-                {product.stock > 0 ? 'Em estoque' : 'Fora de estoque'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Truck className="size-5 shrink-0 text-ink" />
-              <span className="text-label text-ink">
-                Frete grátis para Santana do Livramento e Rivera
-              </span>
-            </div>
-          </div>
+              <div className="flex flex-col gap-2 rounded-lg border border-outline/30 bg-surface p-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="size-5 shrink-0 text-ink" />
+                  <span className="text-label text-ink">
+                    {product.stock > 0 ? 'Em estoque' : 'Fora de estoque'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Truck className="size-5 shrink-0 text-ink" />
+                  <span className="text-label text-ink">
+                    Frete grátis para Santana do Livramento e Rivera
+                  </span>
+                </div>
+              </div>
 
-          <p className="text-sm leading-relaxed text-ink-muted">{product.descricao}</p>
+              <p className="text-sm leading-relaxed text-ink-muted">{product.descricao}</p>
 
-          {whatsappHref ? (
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 flex h-12 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
-            >
-              <WhatsAppIcon className="size-5" />
-              Pedir pelo WhatsApp
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="mt-2 flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-outline/40 text-sm font-medium text-ink-muted"
-            >
-              Selecione uma variante
-            </button>
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex h-12 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
+              >
+                <WhatsAppIcon className="size-5" />
+                Pedir pelo WhatsApp
+              </a>
+            </>
           )}
         </div>
       </div>
