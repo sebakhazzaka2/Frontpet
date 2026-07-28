@@ -1,5 +1,6 @@
 package com.frontpet.catalog;
 
+import com.frontpet.AbstractIntegrationTest;
 import com.frontpet.catalog.domain.Brand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @SpringBootTest
 @Transactional
-class BrandServiceIntegrationTest {
+class BrandServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final UUID TENANT = UUID.fromString("01924ccf-0000-7000-8000-000000000001");
 

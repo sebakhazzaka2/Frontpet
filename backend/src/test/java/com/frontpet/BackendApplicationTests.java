@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * encontró diferencias.
  */
 @SpringBootTest
-class BackendApplicationTests {
+class BackendApplicationTests extends AbstractIntegrationTest {
 
     @Test
     void contextLoads() {

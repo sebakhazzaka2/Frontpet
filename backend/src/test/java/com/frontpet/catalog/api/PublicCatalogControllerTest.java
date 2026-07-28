@@ -1,5 +1,6 @@
 package com.frontpet.catalog.api;
 
+import com.frontpet.AbstractIntegrationTest;
 import com.frontpet.catalog.domain.Product;
 import com.frontpet.catalog.domain.ProductRepository;
 import com.frontpet.common.UuidV7;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class PublicCatalogControllerTest {
+class PublicCatalogControllerTest extends AbstractIntegrationTest {
 
     private static final UUID TENANT = UUID.fromString("01924ccf-0000-7000-8000-000000000001");
 
@@ -52,10 +53,13 @@ class PublicCatalogControllerTest {
     @Test
     @DisplayName("GET /api/v1/products?busca= filtra por nombre")
     void searchesProducts() throws Exception {
-        // "brinquedo", no "mordedor": el seed real de V5 (tarea 3.12) tiene un
-        // "Mordedor Kong Clássico" que también matchea "mordedor" y rompía la
-        // suposición de "1 solo resultado" — sin relación con esta tarea (3.4),
-        // efecto colateral de que ahora hay data real sembrada en la misma DB.
+        // "brinquedo", no "mordedor": contra el Postgres local (antes de la
+        // 1.6) un "Mordedor Kong Clássico" cargado a mano vía
+        // db/seed-dev/products.sql matcheaba también "mordedor" y rompía la
+        // suposición de "1 solo resultado". Ese archivo no es una migración
+        // Flyway — el contenedor de AbstractIntegrationTest no lo tiene, así
+        // que el único producto con "mordedor" en la DB es el que persiste
+        // este test.
         persistProduct("Brinquedo Mordedor", "brinquedo-mordedor", new BigDecimal("29.90"));
         persistProduct("Ração Premium", "racao-premium-busca", new BigDecimal("99.90"));
 

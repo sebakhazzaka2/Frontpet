@@ -1,5 +1,6 @@
 package com.frontpet.config;
 
+import com.frontpet.AbstractIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class CorsConfigTest {
+class CorsConfigTest extends AbstractIntegrationTest {
 
     private static final String FRONTEND = "http://localhost:3000";
 

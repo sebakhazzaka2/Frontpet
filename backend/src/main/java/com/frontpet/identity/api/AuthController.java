@@ -2,6 +2,8 @@ package com.frontpet.identity.api;
 
 import com.frontpet.identity.AuthService;
 import com.frontpet.identity.SessionCookie;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +33,7 @@ public class AuthController {
     private long jwtExpirationMs;
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@RequestBody LoginRequest body) {
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest body) {
         String token = authService.login(body.email(), body.password());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, sessionCookie(token, Duration.ofMillis(jwtExpirationMs)).toString())
@@ -57,6 +59,8 @@ public class AuthController {
                 .build();
     }
 
-    public record LoginRequest(String email, String password) {
+    public record LoginRequest(
+            @NotBlank(message = "Email é obrigatório.") String email,
+            @NotBlank(message = "Senha é obrigatória.") String password) {
     }
 }

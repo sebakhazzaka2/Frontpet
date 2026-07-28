@@ -1,5 +1,6 @@
 package com.frontpet.catalog;
 
+import com.frontpet.AbstractIntegrationTest;
 import com.frontpet.catalog.domain.Product;
 import com.frontpet.catalog.domain.ProductRepository;
 import com.frontpet.catalog.domain.ProductVariant;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @TestPropertySource(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 @Transactional
-class ProductDetailQueryCountTest {
+class ProductDetailQueryCountTest extends AbstractIntegrationTest {
 
     private static final UUID TENANT = UUID.fromString("01924ccf-0000-7000-8000-000000000001");
 

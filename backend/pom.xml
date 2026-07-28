@@ -114,6 +114,14 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Postgres efímero por corrida de tests (tarea 1.6). Versión gestionada
+		     por el testcontainers-bom que importa spring-boot-dependencies 3.5.14. -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
