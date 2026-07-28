@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { PawPrint } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { AddToCartButton } from '@/components/public/add-to-cart-button'
 import { buildWhatsAppLink } from '@/lib/data/site'
 import type { Product } from '@/lib/data/products'
 import { formatPrice } from '@/lib/utils'
@@ -10,10 +11,20 @@ interface ProductCardProps {
   product: Product
 }
 
-// Variante de landing (tarea 2.5): el CTA va directo a WhatsApp, no al
-// carrito — "Adicionar à sacola" (Stitch) queda para el Sprint 4, cuando
-// exista carrito de verdad (decidido 2026-07-25, ver issue #7).
+// Tarea 4.5 (issue #29): "Adicionar à sacola" se agrega junto al CTA de
+// WhatsApp que ya existía (tarea 2.5) — la pantalla real de Stitch
+// ("Catálogo com CTAs Unificados") muestra los dos botones lado a lado, no
+// uno reemplazando al otro (verificado contra el code.html, no inventado).
+//
+// Solo se ofrece agregar al carrito cuando `product.publicId` existe (los
+// datos reales de /produtos lo tienen desde el Bloque A; FEATURED_PRODUCTS
+// de la landing es estático y no, ver lib/data/products.ts) y cuando el
+// producto NO tiene variantes: con variantes hace falta elegir una primero,
+// eso vive en /produtos/{slug} (product-variant-picker.tsx) — agregar "la
+// primera" o "la más barata" en silencio sería inventar la elección del
+// cliente.
 export function ProductCard({ product }: ProductCardProps) {
+  const canAddToCart = product.publicId != null && !product.hasVariants
   const whatsappHref = buildWhatsAppLink(
     `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.price)}).`
   )
@@ -52,15 +63,29 @@ export function ProductCard({ product }: ProductCardProps) {
           {formatPrice(product.price)}
         </p>
 
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto flex h-10 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
-        >
-          <WhatsAppIcon className="size-4" />
-          Pedir pelo WhatsApp
-        </a>
+        <div className="mt-auto flex flex-col gap-2">
+          {canAddToCart && (
+            <AddToCartButton
+              item={{
+                productPublicId: product.publicId!,
+                productSlug: product.slug,
+                productNome: product.nome,
+                productImageUrl: product.mainImageUrl,
+                unitPrice: product.price,
+              }}
+            />
+          )}
+
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
+          >
+            <WhatsAppIcon className="size-4" />
+            Pedir pelo WhatsApp
+          </a>
+        </div>
       </div>
     </div>
   )

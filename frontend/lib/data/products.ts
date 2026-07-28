@@ -8,7 +8,14 @@
 // Sin `maisVendido`: decidido 2026-07-27 (issue #16) — no hay pedidos reales todavía
 // (orders recién existe con la tarea 4.8), mostrar un "más vendido" inventado sería
 // mentir en la pantalla. El "top productos" real queda para el dashboard admin (7.3).
+//
+// `publicId` opcional (issue #29, Bloque A): agregado a ProductSummary.java para que
+// <AddToCartButton> sepa qué producto agregar. Es opcional porque FEATURED_PRODUCTS
+// (abajo) es data estática de landing sin producto real detrás (ADR 017) — sin
+// publicId, <ProductCard> no ofrece "Adicionar à sacola" ahí y mantiene el CTA de
+// WhatsApp que ya tenía, sin inventar un id que no existe en el catálogo real.
 export interface Product {
+  publicId?: string
   slug: string
   nome: string
   mainImageUrl?: string

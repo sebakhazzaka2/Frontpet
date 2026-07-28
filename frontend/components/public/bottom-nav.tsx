@@ -4,8 +4,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Calendar, Home, ShoppingBag, ShoppingCart } from 'lucide-react'
+import { Calendar, Home, ShoppingBag } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { CartButton } from '@/components/public/cart-button'
 import { buildWhatsAppLink } from '@/lib/data/site'
 
 const WHATSAPP_LINK = buildWhatsAppLink('Olá! Gostaria de mais informações.')
@@ -53,12 +54,7 @@ export function BottomNav() {
         )
       })}
 
-      {/* Carrinho estático: mismo criterio que el de Nav — sin badge, no hay
-          estado de carrito real hasta Sprint 4. */}
-      <button type="button" className="flex w-14 flex-col items-center justify-center gap-0.5 text-ink-muted">
-        <ShoppingCart className="size-5" />
-        <span className="text-caption">Carrinho</span>
-      </button>
+      <CartButton variant="bottom-nav" />
 
       <a
         href={WHATSAPP_LINK}

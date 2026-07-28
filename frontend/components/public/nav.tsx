@@ -6,8 +6,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Menu, ShoppingCart, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { CartButton } from '@/components/public/cart-button'
 import logoHorizontal from '@/public/brand/frontpet-logo-horizontal.png'
 import { buildWhatsAppLink } from '@/lib/data/site'
 
@@ -78,12 +79,7 @@ export function Nav() {
               <WhatsAppIcon className="size-5" />
             </a>
 
-            {/* Carrinho estático: sin badge de cantidad. No hay estado de carrito
-                real hasta el Sprint 4 (sessionStorage) — un punto de notificación
-                acá sería un dato inventado. */}
-            <button type="button" className="p-2 text-white" aria-label="Carrinho">
-              <ShoppingCart className="size-5" />
-            </button>
+            <CartButton />
 
             <button
               type="button"

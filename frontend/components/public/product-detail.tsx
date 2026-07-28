@@ -1,9 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, ChevronRight, PawPrint, Truck } from 'lucide-react'
-import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
 import { ProductVariantPicker } from '@/components/public/product-variant-picker'
-import { buildWhatsAppLink } from '@/lib/data/site'
+import { SimpleProductActions } from '@/components/public/simple-product-actions'
 import type { ProductDetail } from '@/lib/data/product-detail'
 import { formatPrice } from '@/lib/utils'
 
@@ -18,21 +17,14 @@ interface ProductDetailViewProps {
 // - Sin tabs de tabla nutricional/instrucciones: el DTO real solo tiene `descricao`.
 // - Sin rating/avaliações: sin tabla de reviews en MVP1 (mismo criterio del
 //   <ProductCard>, ADR 013).
-// - Sin selector de cantidad: queda para el Sprint 4, cuando exista carrinho.
-// - CTA directo a WhatsApp, "Adicionar ao carrinho" queda para el Sprint 4.
 //
-// Selector de variante (issue #19, resuelto 2026-07-27): cuando
-// `product.variants.length > 0`, `price` viene null del backend — el bloque
-// precio/estoque/descrição/CTA se delega entero a <ProductVariantPicker>
-// (ver ese archivo) en vez de bifurcar acá cada pieza por separado.
+// Selector de cantidad + add-to-cart (issue #29, Bloque A — resuelve el TODO
+// que dejó la 3.9): el bloque precio/estoque/descrição/CTA para el caso SIN
+// variantes se delega a <SimpleProductActions>, misma razón que
+// <ProductVariantPicker> para el caso CON variantes — cuando
+// `product.variants.length > 0`, `price` viene null del backend.
 export function ProductDetailView({ product }: ProductDetailViewProps) {
   const categoria = product.categories[0]
-  const whatsappHref =
-    product.price != null
-      ? buildWhatsAppLink(
-          `Olá! Tenho interesse no produto "${product.nome}" (${formatPrice(product.price)}).`
-        )
-      : undefined
 
   return (
     <div className="mx-auto max-w-content px-6 py-8 lg:px-8 lg:py-12">
@@ -93,7 +85,10 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           {product.variants.length > 0 ? (
             <ProductVariantPicker
               variants={product.variants}
+              productPublicId={product.publicId}
+              productSlug={product.slug}
               productNome={product.nome}
+              productImageUrl={product.mainImageUrl}
               descricao={product.descricao}
             />
           ) : (
@@ -126,15 +121,14 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
               <p className="text-sm leading-relaxed text-ink-muted">{product.descricao}</p>
 
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 flex h-12 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
-              >
-                <WhatsAppIcon className="size-5" />
-                Pedir pelo WhatsApp
-              </a>
+              <SimpleProductActions
+                productPublicId={product.publicId}
+                productSlug={product.slug}
+                productNome={product.nome}
+                productImageUrl={product.mainImageUrl}
+                price={product.price!}
+                stock={product.stock}
+              />
             </>
           )}
         </div>
