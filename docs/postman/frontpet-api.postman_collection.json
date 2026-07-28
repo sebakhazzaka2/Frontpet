@@ -1,0 +1,661 @@
+{
+  "info": {
+    "name": "FrontPet API — Sprint 3 (catálogo + admin + R2)",
+    "description": "Cobertura manual de los endpoints de Sprint 3. Complementa (no reemplaza) ./mvnw test — esto es para probar contra datos reales del seed-dev, no para CI.\n\n⚠️ ADR 004: la cookie de sesión se marca Secure siempre, incluso en dev. Contra http://localhost:8080 (sin túnel HTTPS), el manejo automático de cookies de Postman puede no persistirla entre requests. La request de Login ya trae un script que la guarda a mano en {{jwtCookie}} y las requests de Admin la mandan explícita en el header Cookie — no dependas del cookie jar automático.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "adminEmail", "value": "admin@frontpet.dev" },
+    { "key": "adminPassword", "value": "admin123" },
+    { "key": "jwtCookie", "value": "" },
+    { "key": "slugSimples", "value": "bifinho-de-frango" },
+    { "key": "slugConVariantes", "value": "racao-golden-formula-frango-e-carne-adulto" },
+    { "key": "publicIdCreado", "value": "" },
+    { "key": "slugCreado", "value": "" },
+    { "key": "publicIdConVariantes", "value": "" },
+    { "key": "variantIdCreado", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const setCookie = pm.response.headers.get('Set-Cookie');",
+                  "pm.test('trae Set-Cookie', () => pm.expect(setCookie).to.not.be.null);",
+                  "if (setCookie) {",
+                  "  const match = setCookie.match(/frontpet_session=([^;]+)/);",
+                  "  if (match) pm.collectionVariables.set('jwtCookie', 'frontpet_session=' + match[1]);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login con password incorrecta (401 esperado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('401', () => pm.response.to.have.status(401));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"password-incorrecta\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Cookie", "value": "{{jwtCookie}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Público (sin auth)",
+      "item": [
+        {
+          "name": "GET /products (default)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('shape de PageResponse', () => {",
+                  "  pm.expect(body).to.have.all.keys('items','page','size','totalItems','totalPages','hasNext');",
+                  "});",
+                  "pm.test('9 activos del seed (ajustar si cambió)', () => pm.expect(body.totalItems).to.eql(9));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/products", "host": ["{{baseUrl}}"], "path": ["products"] }
+          }
+        },
+        {
+          "name": "GET /products?categoria=racoes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('2 productos en Rações (seed)', () => pm.expect(pm.response.json().totalItems).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?categoria=racoes",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "categoria", "value": "racoes" }]
+            }
+          }
+        },
+        {
+          "name": "GET /products?busca=golden",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?busca=golden",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "busca", "value": "golden" }]
+            }
+          }
+        },
+        {
+          "name": "GET /products?busca=racao (sin unaccent — 0 resultados, ver comentario del seed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('0 resultados porque busca es sin unaccent (\"racao\" no matchea \"Ração\")', () => {",
+                  "  pm.expect(pm.response.json().totalItems).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?busca=racao",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "busca", "value": "racao" }]
+            }
+          }
+        },
+        {
+          "name": "GET /products?categoria=X&busca=Y (combinados)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?categoria=racoes&busca=Golden",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "categoria", "value": "racoes" },
+                { "key": "busca", "value": "Golden" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /products?size=2 (paginación, hasNext esperado true)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('hasNext true con size chico', () => pm.expect(pm.response.json().hasNext).to.be.true);"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?page=0&size=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "2" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /products?size=100000 (tope duro esperado: cap a 100)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('size cappeado a 100, no 100000', () => pm.expect(pm.response.json().size).to.eql(100));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?size=100000",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "size", "value": "100000" }]
+            }
+          }
+        },
+        {
+          "name": "GET /products/{slug} — producto simple",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('price no es null (sin variantes)', () => pm.expect(body.price).to.not.be.null);",
+                  "pm.test('variants vacío', () => pm.expect(body.variants).to.have.lengthOf(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/products/{{slugSimples}}", "host": ["{{baseUrl}}"], "path": ["products", "{{slugSimples}}"] }
+          }
+        },
+        {
+          "name": "GET /products/{slug} — producto con variantes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('price es null cuando hasVariants', () => pm.expect(body.price).to.be.null);",
+                  "pm.test('variants tiene entradas', () => pm.expect(body.variants.length).to.be.greaterThan(0));",
+                  "pm.test('variante inactiva (1kg) no cuenta para el mínimo del listado', () => {",
+                  "  const activas = body.variants.filter(v => v.stock > 0 || true);",
+                  "  pm.expect(activas.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/{{slugConVariantes}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{slugConVariantes}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /products/produto-que-nao-existe (404 esperado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('404', () => pm.response.to.have.status(404));"] }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/produto-que-nao-existe",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "produto-que-nao-existe"]
+            }
+          }
+        },
+        {
+          "name": "GET /products/comedouro-duplo-inox (inactivo — 404 esperado, no 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('404 aunque el registro existe, porque active=false', () => pm.response.to.have.status(404));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/comedouro-duplo-inox",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "comedouro-duplo-inox"]
+            }
+          }
+        },
+        {
+          "name": "GET /categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('7 categorías canónicas', () => pm.expect(pm.response.json()).to.have.lengthOf(7));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "GET /species",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('2 espécies (Cães, Gatos)', () => pm.expect(pm.response.json()).to.have.lengthOf(2));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/species", "host": ["{{baseUrl}}"], "path": ["species"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Admin — sin login (401 esperado)",
+      "item": [
+        {
+          "name": "POST /admin/products sin cookie",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('401, no 403 (ver fix del backend)', () => pm.response.to.have.status(401));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Producto sin auth\",\n  \"price\": 10.00,\n  \"stock\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/admin/products", "host": ["{{baseUrl}}"], "path": ["admin", "products"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Admin — Produtos (requiere Login primero)",
+      "item": [
+        {
+          "name": "POST /admin/products — simple, sin variantes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('publicIdCreado', body.publicId);",
+                  "pm.collectionVariables.set('slugCreado', body.slug);",
+                  "pm.test('slug autogenerado desde nome (prefijo, no exacto: slugs de corridas previas no se liberan al soft-deletear)', () => {",
+                  "  pm.expect(body.slug).to.match(/^produto-de-teste-postman(-\\d+)?$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Produto de Teste Postman\",\n  \"descricao\": \"Criado via collection, para validar o CRUD admin\",\n  \"mainImageUrl\": null,\n  \"price\": 49.90,\n  \"stock\": 10,\n  \"brandNome\": \"Marca Teste\",\n  \"categorySlugs\": [\"outros\"],\n  \"speciesSlugs\": [\"caes\"],\n  \"variants\": []\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/products", "host": ["{{baseUrl}}"], "path": ["admin", "products"] }
+          }
+        },
+        {
+          "name": "POST /admin/products — sin price ni variantes (400 esperado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('400 — la invariante cruzada vive en el service, no en @Valid', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Produto sin precio ni variantes\",\n  \"variants\": []\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/products", "host": ["{{baseUrl}}"], "path": ["admin", "products"] }
+          }
+        },
+        {
+          "name": "POST /admin/products — con variantes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('price null cuando hay variantes', () => pm.expect(body.price).to.be.null);",
+                  "pm.test('2 variantes creadas', () => pm.expect(body.variants).to.have.lengthOf(2));",
+                  "pm.collectionVariables.set('publicIdConVariantes', body.publicId);",
+                  "if (body.variants.length) pm.collectionVariables.set('variantIdCreado', body.variants[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Produto Teste Com Variantes\",\n  \"descricao\": \"Para validar price=null quando hasVariants\",\n  \"categorySlugs\": [\"racoes\"],\n  \"speciesSlugs\": [\"caes\"],\n  \"variants\": [\n    { \"nomeVariante\": \"1kg\", \"price\": 19.90, \"stock\": 5 },\n    { \"nomeVariante\": \"3kg\", \"price\": 49.90, \"stock\": 5 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/products", "host": ["{{baseUrl}}"], "path": ["admin", "products"] }
+          }
+        },
+        {
+          "name": "PUT /admin/products/{publicId} — edición completa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('precio actualizado', () => pm.expect(pm.response.json().price).to.eql(59.90));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Produto de Teste Postman (editado)\",\n  \"descricao\": \"Descrição editada\",\n  \"mainImageUrl\": null,\n  \"price\": 59.90,\n  \"stock\": 8,\n  \"brandNome\": \"Marca Teste\",\n  \"categorySlugs\": [\"outros\"],\n  \"speciesSlugs\": [\"caes\", \"gatos\"],\n  \"slug\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{publicIdCreado}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "products", "{{publicIdCreado}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT /admin/products/{publicId}/variants — upsert (1 nueva + 1 update, 3kg omitida se soft-deletea)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const nomes = body.variants.map(v => v.nomeVariante).sort();",
+                  "pm.test('exactamente 2 variantes activas (3kg omitida quedó soft-deleted, toDetail() filtra inactivas)', () => {",
+                  "  pm.expect(body.variants).to.have.lengthOf(2);",
+                  "});",
+                  "pm.test('1kg quedó actualizado', () => pm.expect(nomes).to.include('1kg (atualizado)'));",
+                  "pm.test('5kg se creó', () => pm.expect(nomes).to.include('5kg (nova)'));",
+                  "pm.test('3kg ya no aparece (soft-deleted, no hard-delete)', () => pm.expect(nomes).to.not.include('3kg'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"id\": {{variantIdCreado}}, \"nomeVariante\": \"1kg (atualizado)\", \"price\": 21.90, \"stock\": 3 },\n  { \"id\": null, \"nomeVariante\": \"5kg (nova)\", \"price\": 79.90, \"stock\": 2 }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{publicIdConVariantes}}/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "products", "{{publicIdConVariantes}}", "variants"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /admin/products/{publicId} — soft delete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Cookie", "value": "{{jwtCookie}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{publicIdCreado}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "products", "{{publicIdCreado}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /products/{slug del creado} después del delete (404 esperado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('404 — soft-deleted no aparece en público', () => pm.response.to.have.status(404));"] }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/{{slugCreado}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{slugCreado}}"]
+            },
+            "description": "Usa el slug real devuelto por el create, no uno hardcodeado — UpdateProductRequest.slug=null significa 'no tocar el slug actual' (ver javadoc del DTO), así que sigue siendo el de la creación, no '...-editado'."
+          }
+        },
+        {
+          "name": "DELETE /admin/products/{publicIdConVariantes} — limpieza (sin esto la colección no es idempotente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('204', () => pm.response.to.have.status(204));"] }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Cookie", "value": "{{jwtCookie}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{publicIdConVariantes}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "products", "{{publicIdConVariantes}}"]
+            },
+            "description": "Sin este delete, cada corrida deja un producto 'con variantes' vivo en la categoría Rações — los conteos hardcodeados de la sección 2 (9 activos, 2 en Rações) van a ir subiendo en cada corrida sucesiva."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Admin — R2 Upload (tarea 3.5/3.5b)",
+      "item": [
+        {
+          "name": "POST /admin/products/images/presign — válido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('trae uploadUrl y publicUrl', () => {",
+                  "  pm.expect(body.uploadUrl).to.be.a('string');",
+                  "  pm.expect(body.publicUrl).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"foto-teste.jpg\",\n  \"contentType\": \"image/jpeg\",\n  \"contentLength\": 204800\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/products/images/presign", "host": ["{{baseUrl}}"], "path": ["admin", "products", "images", "presign"] }
+          }
+        },
+        {
+          "name": "POST /admin/products/images/presign — mime type no permitido (400 esperado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('400', () => pm.response.to.have.status(400));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"foto.svg\",\n  \"contentType\": \"image/svg+xml\",\n  \"contentLength\": 10000\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/products/images/presign", "host": ["{{baseUrl}}"], "path": ["admin", "products", "images", "presign"] }
+          }
+        },
+        {
+          "name": "POST /admin/products/images/presign — excede 5MB (400 esperado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('400', () => pm.response.to.have.status(400));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "{{jwtCookie}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"foto-grande.jpg\",\n  \"contentType\": \"image/jpeg\",\n  \"contentLength\": 6291456\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/products/images/presign", "host": ["{{baseUrl}}"], "path": ["admin", "products", "images", "presign"] }
+          }
+        },
+        {
+          "name": "PUT directo a uploadUrl (fuera de Postman, ver descripción)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "image/jpeg" }],
+            "body": { "mode": "file" },
+            "url": { "raw": "{{uploadUrlManual}}", "host": ["{{uploadUrlManual}}"] },
+            "description": "Copiá el `uploadUrl` de la respuesta del presign válido de arriba, pegalo en la URL, adjuntá un JPG real de <5MB en el body (binary) y mandá el PUT. Si responde 200/OK, la foto quedó en el bucket real — recién ahí `publicUrl` sirve como `mainImageUrl` en un create/update."
+          }
+        }
+      ]
+    }
+  ]
+}
