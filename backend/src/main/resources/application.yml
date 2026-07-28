@@ -66,7 +66,44 @@ jwt:
 server:
   port: 8080
 
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo health. Ni info ni metrics: no hay Prometheus en MVP1, y lo que
+        # no está expuesto no puede filtrar nada.
+        include: health
+  endpoint:
+    health:
+      # /actuator/health es permitAll, así que su cuerpo es público. Con
+      # `never` devuelve {"status":"UP"} y nada más — pero el chequeo de la DB
+      # SIGUE corriendo y sigue determinando ese UP/DOWN. Se oculta el
+      # detalle, no el chequeo.
+      show-details: never
+      probes:
+        enabled: true # habilita /actuator/health/liveness y /readiness para Coolify
+
 logging:
   level:
     root: INFO
     com.frontpet: DEBUG
+
+---
+# ── Perfil prod ────────────────────────────────────────────────────────────
+# Logging JSON estructurado SOLO en prod: leer JSON a mano en la terminal
+# local es insufrible y no aporta nada sin un agregador detrás.
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    com.frontpet: INFO # DEBUG en prod llena disco y filtra información
+  structured:
+    format:
+      console: ecs # Formatter nativo de Boot 3.4+. Sin dependencias extra.
+    ecs:
+      service:
+        name: frontpet-backend
+        environment: production
