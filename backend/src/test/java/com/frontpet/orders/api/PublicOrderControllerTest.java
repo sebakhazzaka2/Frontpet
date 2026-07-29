@@ -56,8 +56,7 @@ class PublicOrderControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.publicId").isNotEmpty())
                 .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.whatsappMessage").value(
-                        org.hamcrest.Matchers.containsString("Ração Checkout Público")));
+                .andExpect(jsonPath("$.items[0].nomeSnapshot").value("Ração Checkout Público"));
     }
 
     @Test

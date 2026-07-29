@@ -65,7 +65,6 @@ class OrderServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(detail.items()).hasSize(2);
         assertThat(detail.subtotal()).isEqualByComparingTo(
                 new BigDecimal("29.90").multiply(BigDecimal.valueOf(2)).add(new BigDecimal("189.90")));
-        assertThat(detail.whatsappMessage()).isNotBlank();
     }
 
     @Test

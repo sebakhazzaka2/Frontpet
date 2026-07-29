@@ -192,8 +192,6 @@ public class OrderServiceImpl implements OrderService {
                         i.getQuantidade()))
                 .toList();
 
-        String whatsappMessage = OrderWhatsAppTemplate.build(order, items);
-
         return new OrderDetail(
                 order.getPublicId(),
                 order.getStatus(),
@@ -207,7 +205,6 @@ public class OrderServiceImpl implements OrderService {
                 items,
                 order.getCreatedAt(),
                 order.getConfirmedAt(),
-                order.getCancelledAt(),
-                whatsappMessage);
+                order.getCancelledAt());
     }
 }
