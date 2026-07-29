@@ -1,5 +1,7 @@
 package com.frontpet.common;
 
+import com.frontpet.booking.ScheduleBlockNotFoundException;
+import com.frontpet.booking.ServiceOfferingNotFoundException;
 import com.frontpet.catalog.ProductNotFoundException;
 import com.frontpet.orders.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +43,20 @@ public class RestExceptionHandler {
                                                         HttpServletRequest request) {
         log.debug("Pedido não encontrado: {}", request.getRequestURI());
         return build(HttpStatus.NOT_FOUND, "Pedido não encontrado.", request);
+    }
+
+    @ExceptionHandler(ServiceOfferingNotFoundException.class)
+    public ResponseEntity<ApiError> handleServiceNotFound(ServiceOfferingNotFoundException ex,
+                                                           HttpServletRequest request) {
+        log.debug("Serviço não encontrado: {}", request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, "Serviço não encontrado.", request);
+    }
+
+    @ExceptionHandler(ScheduleBlockNotFoundException.class)
+    public ResponseEntity<ApiError> handleScheduleBlockNotFound(ScheduleBlockNotFoundException ex,
+                                                                 HttpServletRequest request) {
+        log.debug("Bloqueio não encontrado: {}", request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, "Bloqueio não encontrado.", request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
