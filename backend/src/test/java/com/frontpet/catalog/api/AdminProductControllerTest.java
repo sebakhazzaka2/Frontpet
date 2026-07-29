@@ -321,7 +321,10 @@ class AdminProductControllerTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PUT en producto con variantes rechaza precio a nivel producto")
-    void updateRejectsPriceOnVariantProduct() throws Exception {
+    void updateWithPriceConvertsVariantProductToSimple() throws Exception {
+        // Mode-switching variantes → simples (docs/pending-decisions.md §6):
+        // mandar un price no nulo en el PUT de un producto CON variantes ya
+        // no es rechazado — se interpreta como "volver a precio simple".
         String createBody = """
                 {
                   "nome": "Produto Variante Para Editar",
@@ -343,7 +346,9 @@ class AdminProductControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(put("/api/v1/admin/products/" + publicId)
                         .with(SecurityMockMvcRequestPostProcessors.user(admin))
                         .contentType("application/json").content(updateBody))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.price").value(99.00))
+                .andExpect(jsonPath("$.variants.length()").value(0));
     }
 
     @Test
@@ -376,7 +381,10 @@ class AdminProductControllerTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PUT /variants em produto sem variantes devuelve 400")
-    void replaceVariantsRejectsSimpleProduct() throws Exception {
+    void replaceVariantsConvertsSimpleProductToVariants() throws Exception {
+        // Mode-switching simples → variantes (docs/pending-decisions.md §6):
+        // PUT /variants sobre un producto SIN variantes ya no es rechazado —
+        // el precio pasa a vivir en la variante, price/stock del producto quedan null/0.
         String createResponse = mockMvc.perform(post("/api/v1/admin/products")
                         .with(SecurityMockMvcRequestPostProcessors.user(admin))
                         .contentType("application/json")
@@ -389,7 +397,10 @@ class AdminProductControllerTest extends AbstractIntegrationTest {
                         .with(SecurityMockMvcRequestPostProcessors.user(admin))
                         .contentType("application/json")
                         .content("[{\"nomeVariante\": \"Único\", \"price\": 10.00}]"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.price").doesNotExist())
+                .andExpect(jsonPath("$.variants.length()").value(1))
+                .andExpect(jsonPath("$.variants[0].nomeVariante").value("Único"));
     }
 
     @Test
@@ -482,6 +493,90 @@ class AdminProductControllerTest extends AbstractIntegrationTest {
                         .contentType("application/json").content("[]"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Produto precisa de ao menos uma variante ativa."));
+    }
+
+    @Test
+    @DisplayName("GET /admin/products sin cookie JWT devuelve 401")
+    void listRequiresAuth() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/products"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /admin/products oculta inativos por default, incluirInativos=true los trae")
+    void listHidesInactiveByDefault() throws Exception {
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"nome\": \"Produto Para Ocultar\", \"price\": 10.00}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+
+        mockMvc.perform(delete("/api/v1/admin/products/" + publicId)
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .param("busca", "Produto Para Ocultar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
+
+        mockMvc.perform(get("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .param("busca", "Produto Para Ocultar")
+                        .param("incluirInativos", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].active").value(false));
+    }
+
+    @Test
+    @DisplayName("PUT /active reativa um produto que estava desativado")
+    void setActiveReactivatesProduct() throws Exception {
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"nome\": \"Produto Para Reativar\", \"price\": 10.00}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+
+        mockMvc.perform(delete("/api/v1/admin/products/" + publicId)
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(put("/api/v1/admin/products/" + publicId + "/active")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json").content("{\"active\": true}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/admin/products/" + publicId)
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /admin/products/{id} devuelve un producto inativo (a diferença do endpoint público)")
+    void getForAdminReturnsInactiveProduct() throws Exception {
+        String createResponse = mockMvc.perform(post("/api/v1/admin/products")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"nome\": \"Produto Oculto Para Editar\", \"price\": 10.00}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID publicId = UUID.fromString(objectMapper.readTree(createResponse).get("publicId").asText());
+
+        mockMvc.perform(delete("/api/v1/admin/products/" + publicId)
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/admin/products/" + publicId)
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(false));
     }
 
     private static AdminUser adminFor(UUID tenantId) {
