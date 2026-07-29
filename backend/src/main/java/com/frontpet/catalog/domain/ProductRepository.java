@@ -1,5 +1,6 @@
 package com.frontpet.catalog.domain;
 
+import com.frontpet.catalog.dto.AdminProductSummary;
 import com.frontpet.catalog.dto.ProductSummary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,6 +84,65 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("categorySlug") String categorySlug,
             @Param("search") String search,
             @Param("onlyOnSale") boolean onlyOnSale,
+            Pageable pageable
+    );
+
+    /**
+     * Listado del admin (issue #33, Bloque E) — a diferencia de
+     * {@link #findSummaries}, no filtra {@code active} incondicionalmente: lo
+     * hace opcional vía {@code incluirInativos}, y expone {@code active} y
+     * {@code stock} directo (el admin necesita distinguir productos ocultos y
+     * ver el estoque, cosas que la grilla pública no muestra).
+     *
+     * @param incluirInativos false = solo activos (default del admin); true =
+     *                        activos + inactivos
+     */
+    @Query(value = """
+            SELECT new com.frontpet.catalog.dto.AdminProductSummary(
+                p.publicId,
+                p.slug,
+                p.nome,
+                p.mainImageUrl,
+                COALESCE(p.price, (
+                    SELECT MIN(v.price) FROM ProductVariant v
+                    WHERE v.product = p AND v.active = true
+                )),
+                p.priceOriginal,
+                b.nome,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM ProductVariant v2
+                    WHERE v2.product = p AND v2.active = true
+                ) THEN TRUE ELSE FALSE END,
+                p.active,
+                p.stock
+            )
+            FROM Product p
+            LEFT JOIN p.brand b
+            WHERE p.tenantId = :tenantId
+              AND (:incluirInativos = true OR p.active = true)
+              AND (CAST(:categorySlug AS String) IS NULL OR EXISTS (
+                    SELECT 1 FROM Product px JOIN px.categories c
+                    WHERE px = p AND c.slug = :categorySlug
+              ))
+              AND (CAST(:search AS String) IS NULL
+                   OR LOWER(p.nome) LIKE LOWER(CONCAT('%', CAST(:search AS String), '%')))
+            """,
+            countQuery = """
+            SELECT COUNT(p) FROM Product p
+            WHERE p.tenantId = :tenantId
+              AND (:incluirInativos = true OR p.active = true)
+              AND (CAST(:categorySlug AS String) IS NULL OR EXISTS (
+                    SELECT 1 FROM Product px JOIN px.categories c
+                    WHERE px = p AND c.slug = :categorySlug
+              ))
+              AND (CAST(:search AS String) IS NULL
+                   OR LOWER(p.nome) LIKE LOWER(CONCAT('%', CAST(:search AS String), '%')))
+            """)
+    Page<AdminProductSummary> findAdminSummaries(
+            @Param("tenantId") UUID tenantId,
+            @Param("categorySlug") String categorySlug,
+            @Param("search") String search,
+            @Param("incluirInativos") boolean incluirInativos,
             Pageable pageable
     );
 
