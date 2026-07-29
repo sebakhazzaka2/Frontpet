@@ -2,6 +2,7 @@ package com.frontpet.config;
 
 import com.frontpet.identity.JwtAuthFilter;
 import com.frontpet.identity.LoginRateLimitFilter;
+import com.frontpet.orders.OrderRateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -44,10 +45,13 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final LoginRateLimitFilter loginRateLimitFilter;
+    private final OrderRateLimitFilter orderRateLimitFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, LoginRateLimitFilter loginRateLimitFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, LoginRateLimitFilter loginRateLimitFilter,
+                          OrderRateLimitFilter orderRateLimitFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.loginRateLimitFilter = loginRateLimitFilter;
+        this.orderRateLimitFilter = orderRateLimitFilter;
     }
 
     @Bean
@@ -82,6 +86,11 @@ public class SecurityConfig {
                         // anyRequest().authenticated() de abajo sin el /**.
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
+                        // Checkout público y anónimo (tarea 4.8). POST-específico
+                        // y ruta exacta: /api/v1/admin/orders sigue cayendo en el
+                        // anyRequest().authenticated() de abajo. Protegido en
+                        // cambio por orderRateLimitFilter + honeypot (tarea 4.15).
+                        .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
                         // Todo lo demás (incluido /api/v1/admin/**) requiere la
                         // cookie de sesión validada por jwtAuthFilter.
                         .anyRequest().authenticated())
@@ -99,6 +108,7 @@ public class SecurityConfig {
                 // lo acota a POST /api/v1/auth/login, ruta disjunta de las que
                 // jwtAuthFilter le importan.
                 .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(orderRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

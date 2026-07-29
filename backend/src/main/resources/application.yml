@@ -67,6 +67,14 @@ frontpet:
     max-failures: 10
     window: 15m
 
+  order-rate-limit:
+    # Rate limit de POST /api/v1/orders por IP (tarea 4.15). A diferencia del
+    # login, cuenta TODAS las requests (no solo las fallidas) — ver
+    # OrderRateLimitService.
+    enabled: ${ORDER_RATE_LIMIT_ENABLED:true}
+    max-requests: 5
+    window: 10m
+
 jwt:
   secret: ${JWT_SECRET:dev-only-secret-nao-usar-em-producao-32chars}
   expiration: ${JWT_EXPIRATION:3600000}

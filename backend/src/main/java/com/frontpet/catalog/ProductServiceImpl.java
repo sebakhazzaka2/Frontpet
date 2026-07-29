@@ -9,6 +9,7 @@ import com.frontpet.catalog.domain.ProductVariant;
 import com.frontpet.catalog.domain.Species;
 import com.frontpet.catalog.domain.SpeciesRepository;
 import com.frontpet.catalog.dto.CreateProductRequest;
+import com.frontpet.catalog.dto.OrderLineSnapshot;
 import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
 import com.frontpet.catalog.dto.ProductVariantDto;
@@ -258,6 +259,48 @@ public class ProductServiceImpl implements ProductService {
 
         // Sin save() explícito: managed dentro de la transacción.
         return toDetail(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderLineSnapshot resolveOrderLine(UUID tenantId, UUID productPublicId, Long variantId) {
+        Product product = productRepository.findByTenantIdAndPublicId(tenantId, productPublicId)
+                .filter(Product::getActive)
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Produto não encontrado: " + productPublicId));
+
+        if (product.hasVariants()) {
+            if (variantId == null) {
+                throw new IllegalArgumentException(
+                        "Produto \"" + product.getNome() + "\" exige a escolha de uma variante.");
+            }
+            ProductVariant variant = product.getVariants().stream()
+                    .filter(v -> v.getId().equals(variantId) && v.getActive())
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Variante " + variantId + " não pertence ao produto \"" + product.getNome() + "\"."));
+            String nome = product.getNome() + " — " + variant.getNomeVariante();
+            return new OrderLineSnapshot(
+                    product.getId(),
+                    variant.getId(),
+                    nome.length() > 200 ? nome.substring(0, 200) : nome,
+                    variant.getPrice());
+        }
+
+        if (variantId != null) {
+            throw new IllegalArgumentException(
+                    "Produto \"" + product.getNome() + "\" não tem variantes.");
+        }
+        return new OrderLineSnapshot(product.getId(), null, product.getNome(), product.getPrice());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getPublicIdById(UUID tenantId, Long productId) {
+        Product product = productRepository.findById(productId)
+                .filter(p -> p.getTenantId().equals(tenantId))
+                .orElseThrow(() -> new ProductNotFoundException("Produto não encontrado: " + productId));
+        return product.getPublicId();
     }
 
     // ---- helpers de negocio --------------------------------------------
