@@ -359,21 +359,21 @@ en vivo y empezar a recibir feedback con tráfico real.
 | # | Tarea | Hs |
 |---|-------|----|
 | 4.1 | ~~Migración SQL: `orders`, `order_items`~~ — **ya hecha en `V4__orders.sql`** (sin tabla `customers`: el cliente va embebido en `orders`, ADR 013 §4) | ~~1~~ 0 |
-| 4.2 | Hook `useCart()` con sessionStorage: add, remove, update qty, clear | 3 |
-| 4.3 | `<CartButton>` flotante con contador animado | 1 |
-| 4.4 | `<CartDrawer>` o `/carrito` con lista editable | 3 |
-| 4.5 | Botón "Agregar al carrito" en `<ProductCard>` con feedback visual | 1 |
-| 4.6 | Página `/checkout` con formulario (nombre, WA, modalidad, dirección, notas) | 2 |
-| 4.7 | Validación con Zod + React Hook Form | 1 |
-| 4.8 | Endpoint `POST /api/v1/orders`: persiste pedido + items, retorna ID | 2 |
-| 4.9 | Generación del mensaje WhatsApp con loop sobre items | 2 |
-| 4.10 | Redirect a `wa.me/...?text=...` después del POST exitoso | 1 |
-| 4.11 | Admin: shell del panel (sidebar, layout, auth guard) | 3 |
-| 4.12 | Admin: CRUD de productos (tabla + form + upload imagen) | 4 |
-| 4.13 | Admin: CRUD de categorías (simple, inline) | 1 |
-| 4.14 | Admin: vista de pedidos con cambio de estado (`PENDING/CONFIRMED/CANCELLED`) | 2 |
-| 4.15 | **Rate limit + honeypot en `POST /api/v1/orders`**: es un endpoint público y anónimo. Sin esto, cualquiera con curl inunda la bandeja del cliente | 2 |
-| 4.16 | **Política de privacidad + aviso de tratamiento de datos en el checkout (LGPD)**: página `/privacidade` en PT-BR + checkbox de consentimiento. Sprint 4 es donde empieza a entrar dato personal real (nome, WhatsApp, endereço embebidos en `orders`, sin tabla `customers` — ADR 013 §4) | 2 |
+| 4.2 | Hook `useCart()` con sessionStorage: add, remove, update qty, clear | 3 | ✅ **hecha** (`d1b8d16`, PR #36) |
+| 4.3 | `<CartButton>` flotante con contador animado | 1 | ✅ **hecha**, junto con 4.5 (`07b0414`, PR #37) |
+| 4.4 | `<CartDrawer>` o `/carrito` con lista editable | 3 | ✅ **hecha** — fusionada con el checkout (4.6) en una sola vista `/carrinho` (`29b4e2e`, PR #38), sigue el mock de Stitch "Sua Sacola". No existe `/carrito` ni `/checkout` como rutas separadas — ver Piloto 2 en `docs/stitch-implementation-workflow.md` |
+| 4.5 | Botón "Agregar al carrito" en `<ProductCard>` con feedback visual | 1 | ✅ **hecha**, junto con 4.3 (`07b0414`, PR #37) |
+| 4.6 | Página `/checkout` con formulario (nombre, WA, modalidad, dirección, notas) | 2 | ✅ **hecha** — fusionada dentro de `/carrinho` (ver 4.4), no es ruta separada. Form real de 6 campos, no 3 (ADR 003 act. 2026-07-28) |
+| 4.7 | Validación con Zod + React Hook Form | 1 | ✅ **hecha**, parte del form de `/carrinho` (`29b4e2e`) |
+| 4.8 | Endpoint `POST /api/v1/orders`: persiste pedido + items, retorna ID | 2 | ✅ **hecha** (`230de00`, `a98f422`, `2cfdee5`, PR #40) |
+| 4.9 | Generación del mensaje WhatsApp con loop sobre items | 2 | ✅ **hecha** — en el frontend, no en el backend (`0bbdc46`, `frontend/lib/whatsapp/templates.ts`, ver ADR 010 act.) |
+| 4.10 | Redirect a `wa.me/...?text=...` después del POST exitoso | 1 | ✅ **hecha**, parte de `29b4e2e` |
+| 4.11 | Admin: shell del panel (sidebar, layout, auth guard) | 3 | ✅ **hecha** (`e7873a3`, PR #39) |
+| 4.12 | Admin: CRUD de productos (tabla + form + upload imagen) | 4 | ✅ **hecha** (`0b09411`, `995e111`, `989f858`, PR #41) |
+| 4.13 | Admin: CRUD de categorías (simple, inline) | 1 | ✅ **reinterpretada** — las categorías son lista cerrada sin CRUD de admin (CLAUDE.md §6, decidido 2026-07-25, previo a este sprint). Lo implementado es la asignación categoría/espécie (N:M) vía checkboxes dentro del form de producto (`989f858`), no un CRUD |
+| 4.14 | Admin: vista de pedidos con cambio de estado (`PENDING/CONFIRMED/CANCELLED`) | 2 | ✅ **hecha** (`2cfdee5`, `764c0cd`, `24f7d35`, PR #40/#42) |
+| 4.15 | **Rate limit + honeypot en `POST /api/v1/orders`**: es un endpoint público y anónimo. Sin esto, cualquiera con curl inunda la bandeja del cliente | 2 | ✅ **hecha** (`5478fe3`, `ff86cb7`) |
+| 4.16 | **Política de privacidad + aviso de tratamiento de datos en el checkout (LGPD)**: página `/privacidade` en PT-BR + checkbox de consentimiento. Sprint 4 es donde empieza a entrar dato personal real (nome, WhatsApp, endereço embebidos en `orders`, sin tabla `customers` — ADR 013 §4) | 2 | ✅ **hecha**, parte de `29b4e2e` |
 
 **Entregable**: **FrontPet puede vender por WhatsApp y gestionar su catálogo.**
 

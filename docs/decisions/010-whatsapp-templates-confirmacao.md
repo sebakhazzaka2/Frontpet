@@ -110,9 +110,11 @@ me avisar!
 
 **Implementado (Sprint 4)**: `frontend/lib/whatsapp/templates.ts`, `buildOrderMessage(order)` —
 en el frontend, no en el backend (la ambigüedad "o equivalente backend" de arriba se resolvió
-a favor del frontend, ver ADR sobre el contrato de `OrderDetail`). PENDING se agregó en el
-Bloque B (checkout), CONFIRMED/CANCELLED en el Bloque F (admin de pedidos) — recién con los
-3 casos reales se justificó la tabla de dispatch por status.
+a favor del frontend: el backend nunca tuvo templating de WhatsApp propio, se sacó en
+`0bbdc46` para alinear con el `OrderDetail` que ya devolvía el endpoint de pedidos, sin
+duplicar esa lógica en dos capas). PENDING se agregó en el Bloque B (checkout),
+CONFIRMED/CANCELLED en el Bloque F (admin de pedidos) — recién con los 3 casos reales se
+justificó la tabla de dispatch por status.
 
 ### Templates de agendamentos (3 por status)
 

@@ -77,13 +77,14 @@ frontpet/
 │   ├── common/          Auditable, UuidV7, Slugify, PageResponse, ApiError, RestExceptionHandler
 │   ├── config/          SecurityConfig, CorsConfig
 │   ├── tenant/          Tenant, CurrentTenant (hoy fijo, MVP1 single-tenant)
-│   ├── identity/        [.gitkeep]   ├── booking/  [.gitkeep]
+│   ├── identity/        api/ + domain/ + Auth/Jwt/LoginRateLimit services
 │   ├── catalog/         api/ + domain/ + dto/ (Product, Category, Brand, Species)
-│   ├── orders/          [.gitkeep]   ├── notifications/  [.gitkeep]
+│   ├── orders/          api/ + domain/ + dto/ + OrderRateLimit
+│   ├── booking/         [.gitkeep]   ├── notifications/  [.gitkeep]
 │   └── BackendApplication.java   (en la raíz a propósito: component scan)
 ├── backend/src/main/resources/db/migration/   Flyway
 ├── frontend/
-│   ├── app/(public)/  (admin)/  api/
+│   ├── app/(public)/  admin/(protected)/  admin/login/  api/   ((admin)/ es placeholder sin uso, ver ADR 006)
 │   ├── components/ui/  public/  admin/
 │   └── lib/            api client, hooks; datos en lib/data/
 ├── docs/               ADRs, design-system.md, db-model.png, next16-notes.md,
