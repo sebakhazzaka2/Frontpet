@@ -8,6 +8,7 @@ import com.frontpet.catalog.domain.ProductRepository;
 import com.frontpet.catalog.domain.ProductVariant;
 import com.frontpet.catalog.domain.Species;
 import com.frontpet.catalog.domain.SpeciesRepository;
+import com.frontpet.catalog.dto.AdminProductSummary;
 import com.frontpet.catalog.dto.CreateProductRequest;
 import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
@@ -63,6 +64,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<AdminProductSummary> listAdmin(UUID tenantId,
+                                               String categorySlug,
+                                               String search,
+                                               boolean incluirInativos,
+                                               Pageable pageable) {
+        String normalizedSearch = (search == null || search.isBlank()) ? null : search.trim();
+        String normalizedCategory = (categorySlug == null || categorySlug.isBlank()) ? null : categorySlug;
+
+        return productRepository.findAdminSummaries(
+                tenantId, normalizedCategory, normalizedSearch, incluirInativos, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProductDetail getBySlug(UUID tenantId, String slug) {
         Product product = productRepository.findByTenantIdAndSlug(tenantId, slug)
                 .filter(Product::getActive)
@@ -76,6 +91,15 @@ public class ProductServiceImpl implements ProductService {
     public ProductDetail getByPublicId(UUID tenantId, UUID publicId) {
         Product product = productRepository.findByTenantIdAndPublicId(tenantId, publicId)
                 .filter(Product::getActive)
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Produto não encontrado: " + publicId));
+        return toDetail(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductDetail getByPublicIdForAdmin(UUID tenantId, UUID publicId) {
+        Product product = productRepository.findByTenantIdAndPublicId(tenantId, publicId)
                 .orElseThrow(() -> new ProductNotFoundException(
                         "Produto não encontrado: " + publicId));
         return toDetail(product);
@@ -166,13 +190,25 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(
                         "Produto não encontrado: " + publicId));
 
-        validarPricingInvariant(product.hasVariants(), request.price(), request.priceOriginal());
+        // Mode-switching variantes → simples (docs/pending-decisions.md §6,
+        // issue #33): se o produto JÁ tem variantes e chega um price não nulo,
+        // interpreta como "voltar a preço simples" — soft-delete de todas as
+        // variantes ativas (nunca list.remove(), a FK de order_items exige).
+        boolean convertingToSimple = product.hasVariants() && request.price() != null;
+        if (convertingToSimple) {
+            for (ProductVariant variant : product.getVariants()) {
+                variant.setActive(false);
+            }
+        }
+        boolean hasVariantsNow = !convertingToSimple && product.hasVariants();
+
+        validarPricingInvariant(hasVariantsNow, request.price(), request.priceOriginal());
 
         product.setNome(request.nome());
         product.setDescricao(request.descricao());
         product.setMainImageUrl(request.mainImageUrl());
 
-        if (!product.hasVariants()) {
+        if (!hasVariantsNow) {
             product.setPrice(request.price());
             // null limpa a promoção — reemplazo completo, igual que el resto
             // del record (docs/pending-decisions.md §3: antes no existía
@@ -208,10 +244,13 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(
                         "Produto não encontrado: " + publicId));
 
-        if (!product.hasVariants()) {
-            throw new IllegalArgumentException(
-                    "Produto não tem variantes. Edite preço/estoque direto em PUT /admin/products/{id}.");
-        }
+        // Mode-switching simples → variantes (docs/pending-decisions.md §6,
+        // issue #33): antes esto rechazaba con 400 si el producto no tenía
+        // variantes todavía. Ahora se acepta — es la conversión inversa a la
+        // de update() — y al final, si el resultado queda con variantes
+        // activas, el precio pasa a vivir en cada variante (price=null,
+        // stock=0 en el producto).
+        boolean wasSimple = !product.hasVariants();
 
         Map<Long, ProductVariant> existingById = product.getVariants().stream()
                 .collect(Collectors.toMap(ProductVariant::getId, v -> v));
@@ -254,6 +293,12 @@ public class ProductServiceImpl implements ProductService {
         boolean anyActive = product.getVariants().stream().anyMatch(ProductVariant::getActive);
         if (!anyActive) {
             throw new IllegalArgumentException("Produto precisa de ao menos uma variante ativa.");
+        }
+
+        if (wasSimple) {
+            product.setPrice(null);
+            product.setPriceOriginal(null);
+            product.setStock(0);
         }
 
         // Sin save() explícito: managed dentro de la transacción.
@@ -385,6 +430,7 @@ public class ProductServiceImpl implements ProductService {
                 product.getBrand() == null ? null : product.getBrand().getNome(),
                 categories,
                 species,
-                variants);
+                variants,
+                product.getActive());
     }
 }

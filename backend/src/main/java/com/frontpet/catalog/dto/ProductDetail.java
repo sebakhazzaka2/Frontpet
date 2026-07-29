@@ -17,6 +17,11 @@ import java.util.UUID;
  *                 de un slug que el admin puede editar
  * @param price    null cuando el producto tiene variantes: ahí el precio vive
  *                 en cada una
+ * @param active   agregado en el issue #33 (Bloque E): el form de edición del
+ *                 admin necesita saber si el producto está oculto para poder
+ *                 mostrar el toggle. En {@code /produtos/{slug}} (público)
+ *                 siempre sale {@code true} — ese endpoint ya filtra inactivos
+ *                 antes de llegar acá
  */
 public record ProductDetail(
         UUID publicId,
@@ -30,7 +35,8 @@ public record ProductDetail(
         String brandNome,
         List<TaxonRef> categories,
         List<TaxonRef> species,
-        List<ProductVariantDto> variants
+        List<ProductVariantDto> variants,
+        boolean active
 ) {
     public boolean hasVariants() {
         return !variants.isEmpty();

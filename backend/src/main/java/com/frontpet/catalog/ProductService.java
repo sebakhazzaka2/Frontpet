@@ -1,5 +1,6 @@
 package com.frontpet.catalog;
 
+import com.frontpet.catalog.dto.AdminProductSummary;
 import com.frontpet.catalog.dto.CreateProductRequest;
 import com.frontpet.catalog.dto.ProductDetail;
 import com.frontpet.catalog.dto.ProductSummary;
@@ -37,11 +38,30 @@ public interface ProductService {
                               boolean onlyOnSale,
                               Pageable pageable);
 
+    /**
+     * Listado del admin (issue #33, Bloque E) — a diferencia de {@link #list},
+     * puede incluir productos inactivos y expone {@code active}/{@code stock}.
+     *
+     * @param incluirInativos false = solo activos (default); true = todos
+     */
+    Page<AdminProductSummary> listAdmin(UUID tenantId,
+                                        String categorySlug,
+                                        String search,
+                                        boolean incluirInativos,
+                                        Pageable pageable);
+
     /** Detalle para {@code /produtos/{slug}}. Lanza si no existe o está inactivo. */
     ProductDetail getBySlug(UUID tenantId, String slug);
 
     /** Detalle por identificador interno. Lo usan carrito y pedidos. */
     ProductDetail getByPublicId(UUID tenantId, UUID publicId);
+
+    /**
+     * Detalle para el admin (issue #33, Bloque E) — igual que
+     * {@link #getByPublicId}, pero SIN el filtro {@code active}: el admin
+     * necesita poder abrir el form de edición de un producto que ocultó.
+     */
+    ProductDetail getByPublicIdForAdmin(UUID tenantId, UUID publicId);
 
     /**
      * Muestra u oculta el producto del catálogo público.
