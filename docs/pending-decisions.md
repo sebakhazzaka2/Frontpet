@@ -144,54 +144,44 @@ ajeno, resultado sin variantes activas).
 
 ---
 
-## 6. Mode-switching precio simple ↔ variantes — no cubierto por 3.4b, sin tarea asignada
+## 6. Mode-switching precio simple ↔ variantes — RESUELTO (2026-07-29, Sprint 4 Bloque E)
 
-**Estado**: hueco identificado a propósito al acotar el alcance de 3.4b (2026-07-27), no
-implementado.
+**Estado**: implementado. Ya no bloquea nada — queda documentado como historial de por qué
+existía el hueco y qué se decidió.
 
-`PUT .../variants` (§5) solo funciona si el producto **ya** tiene variantes. Hoy no hay
+`PUT .../variants` (§5) solo funcionaba si el producto **ya** tenía variantes. No había
 forma de convertir un producto de precio simple a "viene en 3kg/10kg/15kg" (o al revés)
-desde el admin — meterlo en 3.4b hubiera repetido el mismo error que originó el hueco
-original: una transición de modo que toca el invariante precio/variantes (ADR 013 §2) no es
-un `if` que se cuela en un endpoint pensado para otra cosa.
+desde el admin.
 
-**Estimado** (para cuando se agende): ~3-4 hs.
-- Simple → con variantes: relajar el gate de `replaceVariants` para que también acepte un
-  producto sin variantes, y cuando el resultado tenga ≥1 variante activa, poner
-  `price = null` / `stock = 0` en el producto (~1h — la lógica de "crear variante nueva" ya
-  existe, es la parte fácil).
-- Con variantes → simple: enganchar la transición inversa en `PUT /admin/products/{id}`
-  (si el producto tiene variantes y llega un `price` no nulo, interpretarlo como "volver a
-  precio simple" y soft-deletear todas las variantes activas) + tests de la combinación
-  (~2-2.5h — la parte que realmente pesa).
+**Resolución**: ambas direcciones, en `ProductServiceImpl`:
+- **Simple → con variantes**: se relajó el gate de `replaceVariants` para aceptar también un
+  producto sin variantes. Si el resultado queda con ≥1 variante activa, el producto pasa a
+  `price = null` / `priceOriginal = null` / `stock = 0`.
+- **Con variantes → simple**: `PUT /admin/products/{id}` interpreta un `price` no nulo sobre
+  un producto que tiene variantes como "volver a precio simple" — soft-deletea todas las
+  variantes activas (nunca `list.remove()`, misma razón de siempre: la FK real de
+  `order_items`).
 
-**Dónde impacta**: candidato a Sprint 4 (admin productos) o Fase 2, a criterio de
-Sebastián — no bloquea nada de Sprint 3.
+Tests: `AdminProductControllerTest` — se reescribieron dos tests que afirmaban el rechazo
+viejo (`replaceVariantsRejectsSimpleProduct`, `updateRejectsPriceOnVariantProduct`) para
+afirmar la conversión nueva, no una regresión. UI en `<ProductFormDialog>` (toggle
+"Preço único"/"Com variantes"), issue #33.
 
 ---
 
-## 7. Optimización de imágenes de producto — sin tarea asignada
+## 7. Optimización de imágenes de producto — RESUELTO (2026-07-29, Sprint 4 Bloque E)
 
-**Estado**: hueco identificado al implementar 3.5/3.5b (2026-07-27), no implementado.
+**Estado**: implementado. Ya no bloquea nada.
 
-El upload de 3.5 va directo del browser a R2 vía URL firmada — el backend nunca ve los
-bytes de la imagen. Eso significa que **nada la redimensiona ni la reencodea**: si el admin
-sube una foto de celular sin comprimir, se guarda tal cual y se sirve tal cual a cualquiera
-que entre al catálogo. Contradice el spec recomendado del ROADMAP (WebP, máx 1200x1200,
-<200KB) — hoy ese spec depende 100% de la disciplina del admin, no hay nada en el código que
-lo garantice.
+El upload va directo del browser a R2 vía URL firmada — el backend nunca ve los bytes de la
+imagen, así que nada la redimensionaba ni la reencodeaba antes de este bloque.
 
-**Dirección recomendada**: resolverlo **client-side** (Canvas API nativa del browser,
-redimensionar + reencodear a WebP antes de subir), no server-side. El backend no participa
-del upload (va directo a R2), así que procesar server-side implicaría un viaje extra
-(bajar de R2 → procesar → volver a subir) en vez de resolverlo una vez, antes de que salga
-del browser. Esto la convierte en tarea de **frontend**, no de backend.
-
-**Estimado**: ~1.5-2 hs (incluye fallback para Safari, que no siempre soporta encode a WebP
-vía Canvas).
-
-**Dónde impacta**: candidato a sumarse al trabajo de 3.6+ (frontend) o Fase 2, a criterio de
-Sebastián.
+**Resolución**: `frontend/lib/images/compress.ts` — Canvas API, resize a máx 1200x1200 +
+reencode a WebP antes de pedir la URL firmada, bajando la calidad de encode hasta acercarse
+a <200KB (meta, no garantía dura: no hay forma de asegurar el tope con cualquier foto de
+origen). Fallback Safari: se detecta con un encode real de prueba (1x1 a WebP), no con user
+agent — funciona solo el día que Safari lo soporte, sin lista de versiones que mantener.
+Integrado en `<ProductImageUpload>`, issue #33.
 
 ---
 

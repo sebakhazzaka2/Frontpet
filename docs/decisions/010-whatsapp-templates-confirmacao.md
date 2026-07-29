@@ -48,7 +48,7 @@ Flujo:
 ```ts
 function buildPedidoMessage(order: Order): string {
   const templates = {
-    PENDING_WHATSAPP: pendingTemplate,
+    PENDING: pendingTemplate,
     CONFIRMED: confirmedTemplate,
     CANCELLED: cancelledTemplate,
   }
@@ -62,7 +62,7 @@ window.open(`https://wa.me/${order.customer.phone}?text=${text}`, '_blank')
 
 ### Templates de pedidos (3 por status)
 
-**1. Pedido PENDING_WHATSAPP — confirmação inicial:**
+**1. Pedido PENDING — confirmação inicial:**
 
 ```
 Olá {nome}! Aqui é da FrontPet 🐾
@@ -107,6 +107,12 @@ Infelizmente precisamos cancelar seu pedido #{id}.
 Se quiser, posso te sugerir alternativas ou refazer o pedido em outra data. É só
 me avisar!
 ```
+
+**Implementado (Sprint 4)**: `frontend/lib/whatsapp/templates.ts`, `buildOrderMessage(order)` —
+en el frontend, no en el backend (la ambigüedad "o equivalente backend" de arriba se resolvió
+a favor del frontend, ver ADR sobre el contrato de `OrderDetail`). PENDING se agregó en el
+Bloque B (checkout), CONFIRMED/CANCELLED en el Bloque F (admin de pedidos) — recién con los
+3 casos reales se justificó la tabla de dispatch por status.
 
 ### Templates de agendamentos (3 por status)
 
