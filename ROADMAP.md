@@ -46,10 +46,10 @@ apostando la entrega a que septiembre salga perfecto.
 | Bloque | Sprint | Foco | Hs | Estado |
 |---|--------|------|---:|--------|
 | | 0 | Pre-kickoff (GitHub Projects + modelo DB) | 3 | ✅ hecho |
-| **A** | 1 | Setup local: backend + frontend + auth + testing | 16 | 🔄 ~60% — falta completar entidades JPA de `identity`/`booking`/`orders`/`notifications` (1.1), Testcontainers (1.6), Logback JSON + actuator (1.7), rate limit login (1.8) |
+| **A** | 1 | Setup local: backend + frontend + auth + testing | 16 | ✅ **cerrado** — gap de 1.6/1.7/1.8 mergeado (PR #27) |
 | **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 ~94% — 2.0b-2.9 hechas (incluye perf/Lighthouse), falta confirmar 2.10 (responsive formal a 320/768/1024/1440) |
 | **A** | 3 | Catálogo + backend de productos | 24 | ✅ **cerrado (2026-07-27)** — 3.1-3.12 hechas, mergeado a `main` (PR #26) |
-| **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | 🔄 **arrancando** (branch `feat/cart-checkout`) — el más pesado |
+| **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | ✅ **cerrado (2026-07-29)** — Bloques 0/A/B/C/D/E/F mergeados a `main` (PRs #36-42) + G (este cierre documental), incluye §6/§7 de `pending-decisions.md`. Ver Registro de decisiones de plan |
 | **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ⏩ va justo después del 4, usando el slack del bloque A |
 | **A** | Despliegue | **Compra infra + despliegue inicial** — landing + catálogo + venta + booking backend en vivo | 10 | ⏸️ pospuesta otra vez: ahora va **después del Sprint 4 y 5**, no inmediatamente post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
 | | | 🎯 **05/09 — hito de cobro: la tienda vende** (requiere Sprint 4 + Despliegue cerrados; el orden 4→5→Despliegue debe dejar margen para que Despliegue cierre antes de esta fecha) | | |
@@ -58,7 +58,7 @@ apostando la entrega a que septiembre salga perfecto.
 | **B** | 8 | Capacitación + entrega formal | 14 | |
 | | | 🎯 **30/09 — entrega final** | | |
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
-| **Total** | | **~121,5 hs restantes** (Sprints 1-8: 1 al ~60%, 2 al ~94%, 3 cerrado) **+ 6,5 opcionales** | **~128** | |
+| **Total** | | **~85 hs restantes** (Sprints 1-8: 1, 3 y 4 cerrados —4 corrió por encima de su estimado, ver Registro de decisiones de plan—, 2 al ~94%) **+ 6,5 opcionales** | **~91,5** | |
 
 > 🔁 Despliegue movido después del Sprint 3 — ver Registro de decisiones de plan (2026-07-27).
 
@@ -358,22 +358,22 @@ en vivo y empezar a recibir feedback con tráfico real.
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 4.1 | ~~Migración SQL: `orders`, `order_items`, `customers`~~ — **ya hecha en `V4__orders.sql`** | ~~1~~ 0 |
-| 4.2 | Hook `useCart()` con sessionStorage: add, remove, update qty, clear | 3 |
-| 4.3 | `<CartButton>` flotante con contador animado | 1 |
-| 4.4 | `<CartDrawer>` o `/carrito` con lista editable | 3 |
-| 4.5 | Botón "Agregar al carrito" en `<ProductCard>` con feedback visual | 1 |
-| 4.6 | Página `/checkout` con formulario (nombre, WA, modalidad, dirección, notas) | 2 |
-| 4.7 | Validación con Zod + React Hook Form | 1 |
-| 4.8 | Endpoint `POST /api/v1/orders`: persiste pedido + items, retorna ID | 2 |
-| 4.9 | Generación del mensaje WhatsApp con loop sobre items | 2 |
-| 4.10 | Redirect a `wa.me/...?text=...` después del POST exitoso | 1 |
-| 4.11 | Admin: shell del panel (sidebar, layout, auth guard) | 3 |
-| 4.12 | Admin: CRUD de productos (tabla + form + upload imagen) | 4 |
-| 4.13 | Admin: CRUD de categorías (simple, inline) | 1 |
-| 4.14 | Admin: vista de pedidos con cambio de estado (`PENDING/CONFIRMED/CANCELLED`) | 2 |
-| 4.15 | **Rate limit + honeypot en `POST /api/v1/orders`**: es un endpoint público y anónimo. Sin esto, cualquiera con curl inunda la bandeja del cliente | 2 |
-| 4.16 | **Política de privacidad + aviso de tratamiento de datos en el checkout (LGPD)**: página `/privacidade` en PT-BR + checkbox de consentimiento. Sprint 4 es donde empieza a entrar dato personal real (`customers`: nome, WhatsApp, endereço) | 2 |
+| 4.1 | ~~Migración SQL: `orders`, `order_items`~~ — **ya hecha en `V4__orders.sql`** (sin tabla `customers`: el cliente va embebido en `orders`, ADR 013 §4) | ~~1~~ 0 |
+| 4.2 | Hook `useCart()` con sessionStorage: add, remove, update qty, clear | 3 | ✅ **hecha** (`d1b8d16`, PR #36) |
+| 4.3 | `<CartButton>` flotante con contador animado | 1 | ✅ **hecha**, junto con 4.5 (`07b0414`, PR #37) |
+| 4.4 | `<CartDrawer>` o `/carrito` con lista editable | 3 | ✅ **hecha** — fusionada con el checkout (4.6) en una sola vista `/carrinho` (`29b4e2e`, PR #38), sigue el mock de Stitch "Sua Sacola". No existe `/carrito` ni `/checkout` como rutas separadas — ver Piloto 2 en `docs/stitch-implementation-workflow.md` |
+| 4.5 | Botón "Agregar al carrito" en `<ProductCard>` con feedback visual | 1 | ✅ **hecha**, junto con 4.3 (`07b0414`, PR #37) |
+| 4.6 | Página `/checkout` con formulario (nombre, WA, modalidad, dirección, notas) | 2 | ✅ **hecha** — fusionada dentro de `/carrinho` (ver 4.4), no es ruta separada. Form real de 6 campos, no 3 (ADR 003 act. 2026-07-28) |
+| 4.7 | Validación con Zod + React Hook Form | 1 | ✅ **hecha**, parte del form de `/carrinho` (`29b4e2e`) |
+| 4.8 | Endpoint `POST /api/v1/orders`: persiste pedido + items, retorna ID | 2 | ✅ **hecha** (`230de00`, `a98f422`, `2cfdee5`, PR #40) |
+| 4.9 | Generación del mensaje WhatsApp con loop sobre items | 2 | ✅ **hecha** — en el frontend, no en el backend (`0bbdc46`, `frontend/lib/whatsapp/templates.ts`, ver ADR 010 act.) |
+| 4.10 | Redirect a `wa.me/...?text=...` después del POST exitoso | 1 | ✅ **hecha**, parte de `29b4e2e` |
+| 4.11 | Admin: shell del panel (sidebar, layout, auth guard) | 3 | ✅ **hecha** (`e7873a3`, PR #39) |
+| 4.12 | Admin: CRUD de productos (tabla + form + upload imagen) | 4 | ✅ **hecha** (`0b09411`, `995e111`, `989f858`, PR #41) |
+| 4.13 | Admin: CRUD de categorías (simple, inline) | 1 | ✅ **reinterpretada** — las categorías son lista cerrada sin CRUD de admin (CLAUDE.md §6, decidido 2026-07-25, previo a este sprint). Lo implementado es la asignación categoría/espécie (N:M) vía checkboxes dentro del form de producto (`989f858`), no un CRUD |
+| 4.14 | Admin: vista de pedidos con cambio de estado (`PENDING/CONFIRMED/CANCELLED`) | 2 | ✅ **hecha** (`2cfdee5`, `764c0cd`, `24f7d35`, PR #40/#42) |
+| 4.15 | **Rate limit + honeypot en `POST /api/v1/orders`**: es un endpoint público y anónimo. Sin esto, cualquiera con curl inunda la bandeja del cliente | 2 | ✅ **hecha** (`5478fe3`, `ff86cb7`) |
+| 4.16 | **Política de privacidad + aviso de tratamiento de datos en el checkout (LGPD)**: página `/privacidade` en PT-BR + checkbox de consentimiento. Sprint 4 es donde empieza a entrar dato personal real (nome, WhatsApp, endereço embebidos en `orders`, sin tabla `customers` — ADR 013 §4) | 2 | ✅ **hecha**, parte de `29b4e2e` |
 
 **Entregable**: **FrontPet puede vender por WhatsApp y gestionar su catálogo.**
 
@@ -561,6 +561,28 @@ el 2026-07-27, ver nota en "Resumen de fases"):
 Decisiones fechadas que cambiaron el plan (no son ADRs — son de planificación, no de
 arquitectura). El cuerpo del ROADMAP refleja solo el estado resultante; el porqué vive acá.
 
+**2026-07-29 — Cierre de Sprint 4.** Los 7 bloques (0, A-F ejecución, G este cierre)
+mergeados a `main`. Dos decisiones de ejecución quedan fijadas para consulta futura:
+
+- **Carrito y checkout se fusionaron en una sola vista `/carrinho`**, no las dos rutas
+  separadas que sugería la numeración original (4.4 carrito / 4.6 checkout). Sigue el mock
+  de Stitch ("Sua Sacola"), que ya dibuja lista + resumen + form + CTA como una sola
+  pantalla — desdoblarla en dos rutas habría sido inventar una separación que el diseño no
+  tiene. No existe `/checkout` en el código.
+- **Los dos huecos de `docs/pending-decisions.md` (§6 mode-switching, §7 compresión de
+  imagen) se incorporaron al Bloque E, no se cortaron.** Ver esa sección para el detalle de
+  qué se implementó.
+
+**Horas**: estimado originalmente en 30 hs, ajustado a ~35,5 hs al planificar cuando se
+decidió incorporar §6/§7. La implementación real encontró además varios huecos de backend
+no presupuestados ni en esa cifra ajustada — sin listado admin de productos, sin forma de
+reactivar uno oculto, sin detalle admin para productos inactivos, `ProductDetail` sin
+`active`, mismo patrón en orders (contadores por status, ver Bloque F) — todos chicos mirado
+uno por uno, pero sistemáticos: cada bloque destapó al menos un endpoint que hacía falta y
+nadie había notado hasta construir la pantalla real. No se llevó cronómetro exacto; la
+lectura razonable es que el sprint corrió por encima de los 35,5 hs ajustados, en línea con
+que el propio ROADMAP ya lo marcaba como "el más pesado del plan".
+
 **2026-07-27 — Cierre de Sprint 3, arranque de Sprint 4, Despliegue pospuesto otra vez
 (ahora después del Sprint 5).** Sprint 3 se da por cerrado: 3.1-3.12 completas, mergeadas
 a `main` (PR #26). El estado real (verificado contra `git log`, no solo contra las
@@ -603,5 +625,5 @@ meta-trabajo, no 45%. Se re-basea contra 22 hs/semana y entrega 30/09.
 
 ---
 
-**Última actualización**: 2026-07-27
-**Versión del documento**: 2.1
+**Última actualización**: 2026-07-29
+**Versión del documento**: 2.2

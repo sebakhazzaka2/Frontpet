@@ -122,6 +122,10 @@ existentes, no instalar dependencias) están en el comando mismo.
 | Vista | Rama | Resultado |
 |---|---|---|
 | Detalhe do Produto (tarea 3.9) | `feat/product-catalog` | en curso |
+| Sua Sacola (carrinho + checkout, tarea 4.4/4.6) | `feat/cart-checkout` | portado — fusionado en una sola vista `/carrinho`, ver Piloto 2 |
+| Login Administrativo (tarea 4.11) | `feat/admin-shell` | portado — única pantalla DESKTOP, ver Piloto 3 |
+| Gestão de Produtos (tarea 4.12) | `feat/admin-products` | portado — solo el contenido, sidebar ya existía (Bloque D), ver Piloto 4 |
+| Gestão de Pedidos (tarea 4.14) | `feat/admin-orders` | portado — sidebar ya existía, ver Piloto 4 |
 
 ### Piloto 1 — Detalhe do Produto (2026-07-27)
 
@@ -168,3 +172,53 @@ en sí.
 **Ícono nuevo agregado a la tabla canónica**: `chevron_right` → `ChevronRight` (breadcrumb).
 `star_half`/`remove`/`add`/`chat` de esta pantalla no se mapearon: no aplican (rating,
 cantidad y CTA de WhatsApp ya resueltos distinto).
+
+### Piloto 2 — Sua Sacola / carrinho + checkout (Sprint 4, Bloque B, 2026-07-28)
+
+HTML crudo descargado y leído directo (misma disciplina del Piloto 1). Decisiones:
+
+- **Carrinho y checkout se portaron como una sola vista `/carrinho`**, no dos rutas — el
+  mock ya dibuja lista + resumen + form + CTA en una sola pantalla ("Sua Sacola"), separarla
+  hubiera sido inventar una estructura que el diseño no tiene. No existe `/checkout`.
+- **"Sua Sacola Vazia" no es un piloto aparte**: es la variante de estado vacío del mismo
+  componente (Etapa 0 — agrupar variantes de una pantalla antes de portar).
+- **Form real: 6 campos, no 3**. Stitch dibuja nome/telefone/modalidade; se agregan
+  endereço, forma de pagamento y horário porque `V4__orders.sql` los exige `NOT NULL` y
+  `docs/preguntas-cliente.md` §4.2 los pidió explícitamente — ver ADR 003 (act. 2026-07-28)
+  para el detalle completo de esta divergencia y de cómo se resuelve "Retirada" (modalidad
+  sin columna propia en la migración).
+- **Sección "Você também pode gostar"**: se corta. Requeriría un endpoint de recomendados
+  que no existe — mismo criterio que "Produtos Relacionados" del Piloto 1.
+- **Toggle Grátis/R$0 de frete del mock**: no se porta tal cual. El sistema no calcula
+  distancia (ADR 003); el frete nace siempre `GRATIS` y el admin lo ajusta manualmente si
+  hace falta — mostrar un toggle interactivo acá sería fingir una lógica que no existe.
+
+Detalle completo (incluye dos bugs reales encontrados con Playwright): issue #30.
+
+### Piloto 3 — Login Administrativo (Sprint 4, Bloque D, 2026-07-28)
+
+Única pantalla DESKTOP del proyecto (las otras 18 son MOBILE 780px) — validada también a
+1440px, no solo a los tres breakpoints habituales. Decisiones:
+
+- **"Manter conectado" y "Esqueceu a senha" se cortan**: ninguno tiene backing real (sesión
+  de duración fija; reset de contraseña es la tarea 7.12, no existe todavía). Un control
+  inerte es peor que omitirlo.
+- Estructura de rutas: el guard vive en `app/admin/(protected)/layout.tsx`, no en un
+  `app/(admin)/layout.tsx` a secas — ese layout envolvería también `login/page.tsx` y
+  entraría en loop contra su propio redirect. Detalle completo: issue #32.
+
+### Piloto 4 — Gestão de Produtos y Gestão de Pedidos (Sprint 4, Bloques E/F, 2026-07-28/29)
+
+Ambas pantallas traen su propio sidebar/topbar en el mock de Stitch — se ignoró: el shell
+real ya existe desde el Bloque D (`<AdminShell>`), solo se portó el contenido de cada una.
+
+- **Gestão de Produtos**: SKU, Tags y "Destaque na home" del modal "Cadastrar Novo Produto"
+  se cortan — ningún DTO real los tiene, agregarlos sería inventar campos de backend.
+  Categoria/Espécie pasan de `<select>` de opción única a checkboxes (el modelo real es
+  N:M). Detalle completo, incluye un bug real de estado stale en el form de edición: issue
+  #33.
+- **Gestão de Pedidos**: se corta el botón de WhatsApp genérico junto al nombre del
+  cliente (el mock tiene dos entradas a WhatsApp con alcance ambiguo; el AC solo pide una,
+  la de confirmação). Los thumbnails de producto en los items del pedido tampoco se portan
+  — `OrderItemDetail` no tiene campo de imagen. Detalle completo, incluye un bug real de
+  overlay en desktop: issue #34.
