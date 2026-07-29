@@ -47,3 +47,13 @@ export async function listCategories() {
   }
   return response
 }
+
+// Cães, Gatos — usado por el filtro público y por el form de producto del
+// admin (issue #33) para asignar espécies.
+export async function listSpecies() {
+  const response = await apiFetch<TaxonRef[]>('/species', { revalidate: 60 })
+  if (!response) {
+    throw new Error('GET /species no debería devolver 404')
+  }
+  return response
+}
