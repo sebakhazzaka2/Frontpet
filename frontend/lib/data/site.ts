@@ -12,6 +12,24 @@ export function buildWhatsAppLink(message: string) {
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`
 }
 
+// Normaliza un teléfono ingresado a mano en el checkout (ej. "(55) 99876-5432")
+// al formato que wa.me espera: solo dígitos, con código de país. El schema del
+// checkout (lib/schemas/checkout.ts) no exige E.164 — solo dígitos/espacios/
+// símbolos —, así que puede faltar el "55". Heurística válida porque el
+// tenant es single-business en Brasil (ADR 007): si quedan 11 dígitos o menos
+// tras limpiar, se asume que falta el código de país local y se antepone.
+function normalizeBrazilPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length <= 11 ? `55${digits}` : digits
+}
+
+// Tarea 4.14 (issue #34) — link de WhatsApp HACIA el cliente (admin
+// confirmando/cancelando un pedido), no hacia el número fijo del negocio
+// como buildWhatsAppLink(). Mismo encoding, distinto destinatario.
+export function buildWhatsAppLinkTo(customerPhone: string, message: string) {
+  return `https://wa.me/${normalizeBrazilPhone(customerPhone)}?text=${encodeURIComponent(message)}`
+}
+
 export const INSTAGRAM_HANDLE = '@frontpet.br'
 export const INSTAGRAM_URL = 'https://instagram.com/frontpet.br'
 
