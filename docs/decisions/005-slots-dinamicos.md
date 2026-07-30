@@ -1,8 +1,48 @@
 # ADR 005 — Cálculo dinámico de slots de booking
 
 **Fecha**: 2026-05-17
-**Estado**: Aceptada
+**Estado**: Aceptada — modelo de datos y solución de race condition actualizados, ver Actualización 2026-07-30
 **Autor**: [tu nombre]
+
+---
+
+## Actualización 2026-07-30 (post-implementación, Sprint 5)
+
+Este ADR se escribió **antes** de implementar el módulo (Sprint 2), cuando el modelo de datos
+y la solución de concurrencia eran todavía hipótesis. Implementado en Sprint 5, dos partes
+quedaron desactualizadas — el resto sigue vigente tal como está.
+
+**Lo que SIGUE VIGENTE** (la decisión central de este ADR, sin cambios):
+- **Slots dinámicos, nunca materializados.** El algoritmo real vive en `SlotGrid` +
+  `AvailabilityServiceImpl`, documentado en detalle en **[ADR 020](./020-algoritmo-slots.md)**.
+- Los pasos 1-6 de la sección "Decisión" siguen siendo la forma correcta de pensar el problema;
+  solo cambian los nombres de tabla y algunos detalles (ver abajo).
+
+**Lo que quedó OBSOLETO**:
+
+1. **Modelo de datos** (líneas de la sección "Decisión" más abajo). El esquema real,
+   implementado en `V3__booking.sql` (ver **ADR 011** y **ADR 013**), difiere en tres puntos:
+   - No hay tablas `resources` ni `schedule_rules`. `resources` no existe — capacidade es un
+     número plano en `tenant.config` (ADR 009), no profissionais nominales. `schedule_rules` se
+     llama `business_hours` (una fila por `tenant_id + dia_semana`, con pausa opcional).
+   - `services` no tiene `duration_minutes` propio: la duración sale de `service_pricing`
+     (precio + duración por porte P/M/G/GG), y un turno es `1 base + N adicionais` (ADR 011)
+     — la duración total es una suma, no un campo.
+   - `appointments` no tiene `resource_id` ni `customer_id`: los datos del cliente van
+     directo en la fila (`cliente_nome`, `cliente_telefone`, etc., sin tabla de clientes —
+     MVP1 no tiene auth de clientes finales).
+
+2. **Paso 5 ("filtrar slots que se solapen con `appointments` ya confirmadas")**. La regla real
+   de ocupación es **`PENDING` y `CONFIRMED` ocupan cupo, `CANCELLED` lo libera** — no solo
+   "confirmadas" (corregido en **ADR 013 §9**; el repo consultorio del que se portó el algoritmo
+   era inconsistente en esto).
+
+3. **La solución de race condition** (sección "Casos borde explícitos a testear", último ítem).
+   Proponía `UNIQUE (resource_id, start_at)` — **incompatible con capacidad > 1**: esa constraint
+   solo sirve para capacidad 1 (un solo turno por slot). Con capacidade 2 (ADR 009), la solución
+   real es **`pg_advisory_xact_lock(tenant, día)`** dentro de la transacción de creación,
+   recontando los solapados antes de insertar. Detalle completo, incluyendo por qué se descartó
+   `SELECT FOR UPDATE` y `SERIALIZABLE`, en **ADR 020 §4**.
 
 ---
 
@@ -23,7 +63,8 @@ Hay dos formas estándar de modelar esto:
 
 **Slots dinámicos**. No se materializan en base de datos.
 
-Modelo de datos:
+Modelo de datos (⚠️ **hipótesis inicial, ver "Actualización 2026-07-30" arriba** — el esquema
+real difiere en nombres de tabla y en cómo se calcula la duración):
 
 ```
 services
@@ -113,8 +154,10 @@ Cuando se consulta `GET /api/v1/availability?service=X&date=Y`:
 - **Reserva existente que termina en medio de un slot candidato**: el slot no está disponible
 - **Bloqueo parcial del día** (ej: 14-15 hs feriado parcial): solo afecta slots dentro del rango
 - **Cambio de regla de horario**: las reservas existentes anteriores al cambio no se afectan
-- **Race condition**: dos clientes reservando el mismo slot simultáneamente — resolver con
-  constraint UNIQUE en `(resource_id, start_at)` + transacción con SELECT FOR UPDATE
+- **Race condition**: dos clientes reservando el mismo slot simultáneamente — ⚠️ la solución
+  propuesta acá (`UNIQUE (resource_id, start_at)` + `SELECT FOR UPDATE`) quedó **obsoleta**,
+  ver "Actualización 2026-07-30": incompatible con capacidad > 1. Solución real:
+  `pg_advisory_xact_lock` (ADR 020 §4)
 
 ## Notas para el futuro
 

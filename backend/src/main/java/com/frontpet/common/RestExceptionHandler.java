@@ -1,7 +1,9 @@
 package com.frontpet.common;
 
+import com.frontpet.booking.AppointmentNotFoundException;
 import com.frontpet.booking.ScheduleBlockNotFoundException;
 import com.frontpet.booking.ServiceOfferingNotFoundException;
+import com.frontpet.booking.SlotUnavailableException;
 import com.frontpet.catalog.ProductNotFoundException;
 import com.frontpet.orders.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,6 +59,22 @@ public class RestExceptionHandler {
                                                                  HttpServletRequest request) {
         log.debug("Bloqueio não encontrado: {}", request.getRequestURI());
         return build(HttpStatus.NOT_FOUND, "Bloqueio não encontrado.", request);
+    }
+
+    @ExceptionHandler(AppointmentNotFoundException.class)
+    public ResponseEntity<ApiError> handleAppointmentNotFound(AppointmentNotFoundException ex,
+                                                               HttpServletRequest request) {
+        log.debug("Turno não encontrado: {}", request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, "Turno não encontrado.", request);
+    }
+
+    @ExceptionHandler(SlotUnavailableException.class)
+    public ResponseEntity<ApiError> handleSlotUnavailable(SlotUnavailableException ex,
+                                                           HttpServletRequest request) {
+        // Debug, no error: perder la carrera por un cupo es tráfico normal
+        // en un slot popular, no un incidente.
+        log.debug("Cupo indisponível em {}: {}", request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

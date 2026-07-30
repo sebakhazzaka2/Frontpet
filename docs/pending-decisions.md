@@ -213,3 +213,56 @@ garantía dura sería un `HeadObject` post-upload (necesita un `S3Client` ademá
 "confirmar upload" que el frontend tendría que integrar, no está estimado.
 
 **Dónde impacta**: nada bloqueado hoy. Revisar si MVP1 deja de ser single-admin.
+
+---
+
+## 9. Tercera copia del rate limit (login/orders/appointments) sin unificar
+
+**Estado**: deuda aceptada a propósito, diferida a Sprint 7 (decisión tomada al planificar el
+Sprint 5, ver `docs/decisions/020-algoritmo-slots.md`).
+
+`AppointmentRateLimitService`/`Filter`/`Properties` (Sprint 5, Bloque E) son la **tercera**
+copia casi literal del mismo mecanismo (`identity.LoginAttemptService`, `orders.OrderRateLimitService`).
+Se aceptó duplicar en vez de extraer porque unificar 3 módulos dentro del sprint marcado como
+"el riesgo #1 de todo el plan" no es el momento — y porque las semánticas difieren un poco
+(login cuenta solo fallos, orders/appointments cuentan toda request).
+
+**Dónde impacta**: nada roto hoy, es puro mantenimiento futuro. Al tocar cualquiera de los 3
+para un cuarto caso de uso, es el momento de extraer un limitador genérico por clave opaca a
+`common/`.
+
+---
+
+## 10. `schedule_blocks` bloquea el día completo, no por rango horario
+
+**Estado**: limitación conocida y documentada desde el diseño del Sprint 5 (ADR 020, sección
+"Negativas / a vigilar"), mitigación real diferida a Sprint 6.
+
+El ADR 012 pedía poder bloquear *horarios* puntuales ocupados por otros canales (teléfono,
+local, ERP) mientras el negocio ya está operando en paralelo a la web. El esquema real
+(`V3__booking.sql`) solo permite bloquear el **día entero** (`data_desde`/`data_hasta`). La
+solución correcta —que el admin cargue un turno manual (`POST /admin/appointments`) que ocupe
+cupo real sin pasar por el wizard público— quedó diferida a Sprint 6 junto con la vista de
+turnos (tarea 6.6).
+
+**Dónde impacta**: si el cliente empieza a operar con reservas por teléfono antes de que
+Sprint 6 cierre, la disponibilidad web puede **sobre-ofertar** (mostrar libre un horario que
+en la realidad ya está ocupado por un turno tomado por otro canal). Avisar a Sebastián si eso
+pasa — el bloqueo de día completo es el único paliativo disponible mientras tanto.
+
+---
+
+## 11. `GET /api/v1/appointments/{publicId}` expone nombre y pet, sin teléfono
+
+**Estado**: decisión tomada al implementar el Bloque E (Sprint 5) — riesgo abierto, no bloqueante.
+
+La vista pública reducida (`AppointmentDetail`) no incluye `clienteTelefone` — el UUID v7 del
+link no es adivinable, pero por sí solo no es una garantía de que el link no se filtre (queda
+en el historial de WhatsApp del cliente, en logs de proxies, etc.). Se decidió qué SÍ exponer
+al implementar: `publicId`, `status`, servicio+adicionais, porte, horarios, precios y `petNome`
+— sin `clienteNome` completo tampoco sería útil para que el cliente confirme "sí, es mi
+reserva", así que quedó incluido.
+
+**Dónde impacta**: nada bloqueado. Si en el futuro se agrega auth de clientes finales (Fase 2,
+fuera de scope MVP1), este endpoint debería revalidar contra la sesión en vez de confiar solo
+en la opacidad del UUID.
