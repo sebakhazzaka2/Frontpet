@@ -436,9 +436,9 @@ segundo pago. Avisale al cliente y validá el modelo con tráfico real.
 | 6.2 | Paso 1: selector de servicio con cards | 1 |
 | 6.3 | Paso 2: selector de fecha (scroll horizontal) + selector de slot (grid 4 cols) | 3 |
 | 6.4 | Paso 3: formulario de datos del cliente y mascota | 2 |
-| 6.5 | Pantalla de confirmación con resumen + redirect a WhatsApp | 2 |
+| 6.5 | Pantalla `/agendamento/confirmacao`: código de reserva + resumen + status "Aguardando confirmação". Sin redirect a WhatsApp — el booking ya quedó persistido en `PENDING` al hacer submit del Paso 3 (ADR 008). Botón WhatsApp opcional solo como canal de ajuda/cancelamento | 2 |
 | 6.6 | Admin: vista de turnos del día + próximos 7 días | 2 |
-| 6.7 | Admin: botón "confirmar por WhatsApp" con mensaje pre-formateado | 1 |
+| 6.7 | Admin: acción "Confirmar" que cambia estado a `CONFIRMED` (y "Cancelar" a `CANCELLED`) desde el panel. El aviso al cliente por WhatsApp, si se hace, es manual desde el celular del admin — no es un botón del sistema (ADR 008) | 1 |
 
 **Entregable**: **FrontPet puede recibir reservas online.**
 
