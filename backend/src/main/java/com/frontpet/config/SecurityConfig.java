@@ -1,5 +1,6 @@
 package com.frontpet.config;
 
+import com.frontpet.booking.AppointmentRateLimitFilter;
 import com.frontpet.identity.JwtAuthFilter;
 import com.frontpet.identity.LoginRateLimitFilter;
 import com.frontpet.orders.OrderRateLimitFilter;
@@ -40,18 +41,24 @@ public class SecurityConfig {
             "/api/v1/products",
             "/api/v1/products/**",
             "/api/v1/categories",
-            "/api/v1/species"
+            "/api/v1/species",
+            "/api/v1/services",
+            "/api/v1/availability",
+            "/api/v1/appointments/**"
     };
 
     private final JwtAuthFilter jwtAuthFilter;
     private final LoginRateLimitFilter loginRateLimitFilter;
     private final OrderRateLimitFilter orderRateLimitFilter;
+    private final AppointmentRateLimitFilter appointmentRateLimitFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, LoginRateLimitFilter loginRateLimitFilter,
-                          OrderRateLimitFilter orderRateLimitFilter) {
+                          OrderRateLimitFilter orderRateLimitFilter,
+                          AppointmentRateLimitFilter appointmentRateLimitFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.loginRateLimitFilter = loginRateLimitFilter;
         this.orderRateLimitFilter = orderRateLimitFilter;
+        this.appointmentRateLimitFilter = appointmentRateLimitFilter;
     }
 
     @Bean
@@ -91,6 +98,10 @@ public class SecurityConfig {
                         // anyRequest().authenticated() de abajo. Protegido en
                         // cambio por orderRateLimitFilter + honeypot (tarea 4.15).
                         .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
+                        // Reserva pública y anónima (tarea 5.5), protegida en
+                        // cambio por appointmentRateLimitFilter + honeypot,
+                        // mismo criterio que /api/v1/orders.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/appointments").permitAll()
                         // Todo lo demás (incluido /api/v1/admin/**) requiere la
                         // cookie de sesión validada por jwtAuthFilter.
                         .anyRequest().authenticated())
@@ -109,6 +120,7 @@ public class SecurityConfig {
                 // jwtAuthFilter le importan.
                 .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(orderRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(appointmentRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
