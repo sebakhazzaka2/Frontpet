@@ -266,3 +266,27 @@ reserva", así que quedó incluido.
 **Dónde impacta**: nada bloqueado. Si en el futuro se agrega auth de clientes finales (Fase 2,
 fuera de scope MVP1), este endpoint debería revalidar contra la sesión en vez de confiar solo
 en la opacidad del UUID.
+
+---
+
+## 12. Hero del wizard de agendamento (Stitch) necesita estética propia
+
+**Estado**: pendiente de diseño — anotado 2026-07-30 al revisar el Passo 1 corregido en Stitch,
+no bloquea Sprint 6.
+
+El hero actual ("Agende o horário do seu pet") es el mismo header genérico repetido en los 4
+pasos del wizard (Passo 1, 2, 3, Confirmação) — texto plano, sin foto ni tratamiento visual
+propio. Sebastián quiere pensar una estética más profesional para ese elemento, no solo agregar
+una foto de stock. Como es el **mismo elemento repetido en los 4 pasos**, conviene resolverlo
+una sola vez y aplicarlo consistente, no pantalla por pantalla.
+
+Se decidió no resolverlo ahora junto con el fix de porte/adicionais (issue distinta, ADR 020)
+por dos motivos: las fotos reales del petshop siguen pendientes del cliente (§6.3 de
+`docs/preguntas-cliente.md`, "antes del Sprint Despliegue") — diseñar contra una foto de stock
+ahora probablemente se rehace cuando lleguen las reales — y es un cambio transversal a las 4
+pantallas, mejor decidirlo una vez con foto+copy+tratamiento definitivos que iterar sobre él
+varias veces.
+
+**Dónde impacta**: nada bloqueado. Retomar cuando (a) haya fotos reales del cliente, o (b)
+se defina la dirección estética antes de eso vía referencia visual (CLAUDE.md §8: UI siempre
+con referencia visual antes de codear/diseñar).
