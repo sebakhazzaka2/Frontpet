@@ -54,7 +54,7 @@ Crear un ADR cuando:
 | [009](./009-servicos-fixos-capacidade-simples.md) | Serviços fixos en DB seed + capacidade simples (no profissionais nominais) | Parcial. reemplazada por 011 | 2026-05-25 |
 | [010](./010-whatsapp-templates-confirmacao.md) | Templates de mensagem pré-formatada para confirmação por WhatsApp | Aceptada | 2026-05-25 |
 | [011](./011-modelo-servicos-banhos-adicionais.md) | Modelo de serviços: banhos base + adicionais, preço/duração por porte | Aceptada | 2026-07-09 |
-| [012](./012-booking-sin-integracion-erp.md) | Booking sin integración ERP: la web es la autoridad de disponibilidad | Aceptada | 2026-07-09 |
+| [012](./012-booking-sin-integracion-erp.md) | Booking sin integración ERP: la web es la autoridad de disponibilidad | Aceptada, mitigación acotada por 020 | 2026-07-09 |
 | [013](./013-modelo-datos-mvp1.md) | Modelo de datos MVP1: decisiones de esquema y reutilización | Aceptada | 2026-07-13 |
 | [014](./014-tailwind-v4-css-first.md) | Config de Tailwind CSS-first (`@theme` en `globals.css`) | Aceptada | 2026-07-16 |
 | [015](./015-toolchain-wsl-node-pnpm.md) | Toolchain de desarrollo: WSL, Node y pnpm | Aceptada | 2026-07-16 |

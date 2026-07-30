@@ -50,7 +50,7 @@ apostando la entrega a que septiembre salga perfecto.
 | **A** | 2 | Landing pública responsive (portada de Stitch) | 24.5 | 🔄 ~94% — 2.0b-2.9 hechas (incluye perf/Lighthouse), falta confirmar 2.10 (responsive formal a 320/768/1024/1440) |
 | **A** | 3 | Catálogo + backend de productos | 24 | ✅ **cerrado (2026-07-27)** — 3.1-3.12 hechas, mergeado a `main` (PR #26) |
 | **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | ✅ **cerrado (2026-07-29)** — Bloques 0/A/B/C/D/E/F mergeados a `main` (PRs #36-42) + G (este cierre documental), incluye §6/§7 de `pending-decisions.md`. Ver Registro de decisiones de plan |
-| **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ⏩ va justo después del 4, usando el slack del bloque A |
+| **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ✅ **cerrado (2026-07-30)** — Bloques 0/A/B/C/D/E/F/G mergeados a `main` (PRs #52-56), corrió ~26,5 hs vs 19 estimadas. Ver Registro de decisiones de plan |
 | **A** | Despliegue | **Compra infra + despliegue inicial** — landing + catálogo + venta + booking backend en vivo | 10 | ⏸️ pospuesta otra vez: ahora va **después del Sprint 4 y 5**, no inmediatamente post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
 | | | 🎯 **05/09 — hito de cobro: la tienda vende** (requiere Sprint 4 + Despliegue cerrados; el orden 4→5→Despliegue debe dejar margen para que Despliegue cierre antes de esta fecha) | | |
 | **B** | 6 | Booking frontend + Admin de turnos | 16 | |
@@ -58,7 +58,7 @@ apostando la entrega a que septiembre salga perfecto.
 | **B** | 8 | Capacitación + entrega formal | 14 | |
 | | | 🎯 **30/09 — entrega final** | | |
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
-| **Total** | | **~85 hs restantes** (Sprints 1-8: 1, 3 y 4 cerrados —4 corrió por encima de su estimado, ver Registro de decisiones de plan—, 2 al ~94%) **+ 6,5 opcionales** | **~91,5** | |
+| **Total** | | **~85 hs restantes** (Sprints 1-8: 1, 3, 4 y 5 cerrados —4 y 5 corrieron por encima de su estimado, ver Registro de decisiones de plan—, 2 al ~94%) **+ 6,5 opcionales** | **~91,5** | |
 
 > 🔁 Despliegue movido después del Sprint 3 — ver Registro de decisiones de plan (2026-07-27).
 
@@ -388,6 +388,10 @@ segundo pago. Avisale al cliente y validá el modelo con tráfico real.
 
 ## Sprint 5 — Booking backend (~19 hs) ⏩ adelantar al bloque A si hay slack
 
+> ✅ **Cerrado 2026-07-30.** Los 8 bloques (0, A-G) mergeados a `main` (PRs #52-56, issues
+> #44-51 cerradas). Corrió ~26,5 hs vs las 19 estimadas — detalle del desvío y de la decisión
+> de diferir el turno manual del admin a Sprint 6 en el Registro de decisiones de plan.
+
 **Objetivo**: modelar la agenda y resolver el query difícil de slots disponibles.
 
 > ♻️ **El algoritmo de slots (5.3) se traduce del repo consultorio** (agnóstico a la duración,
@@ -561,6 +565,30 @@ el 2026-07-27, ver nota en "Resumen de fases"):
 Decisiones fechadas que cambiaron el plan (no son ADRs — son de planificación, no de
 arquitectura). El cuerpo del ROADMAP refleja solo el estado resultante; el porqué vive acá.
 
+**2026-07-30 — Cierre de Sprint 5.** Los 8 bloques (0, A-G) mergeados a `main` (PRs #52-56).
+Dos decisiones quedan fijadas para consulta futura:
+
+- **El turno manual del admin (`POST /admin/appointments`) queda diferido a Sprint 6**, junto
+  con la vista de turnos (tarea 6.6) — decisión tomada al planificar el sprint, no un desvío
+  de ejecución. Consecuencia real mientras tanto: `schedule_blocks` solo bloquea el día
+  completo, no por rango horario (el ADR 012 pedía esto último); si el cliente empieza a
+  operar por teléfono antes de que Sprint 6 cierre, la disponibilidad web puede sobre-ofertar.
+  Detalle en `docs/pending-decisions.md` §10 y ADR 020.
+- **La unificación del rate limit (login/orders/appointments, ahora 3 copias casi idénticas)
+  se difiere a Sprint 7.** No tenía sentido tocar 3 módulos dentro del sprint marcado como
+  "el riesgo #1 de todo el plan". Ver `docs/pending-decisions.md` §9.
+
+**Horas**: estimado en 19 hs, corrió ~26,5 hs (+~40%). La diferencia se concentra en tres
+puntos: 5.7 (admin de serviços/horarios/bloqueios, 1h estimada → 3h reales — son 3
+controllers, 2 services y ~8 DTOs, no un simple CRUD), 5.6 (el test de concurrencia real sin
+`@Transactional` con limpieza manual, y los casos de borde que se sumaron al verificarlo por
+mutación), y 5.2 (2h → 3,5h con el lector de `tenant.config`). A esto se suman dos tareas que
+el ROADMAP nunca presupuestó pero el proceso de esta issue exige: el ADR 020 (plan en prosa
+antes de codear el query difícil) y el seed de adicionais provisorio — ambos en el Bloque 0.
+Mismo patrón que el Sprint 4: el sprint más riesgoso del plan volvió a correr por encima de
+su estimado, consistente con que "el riesgo #1" rara vez se subestima solo en la dirección
+optimista.
+
 **2026-07-29 — Cierre de Sprint 4.** Los 7 bloques (0, A-F ejecución, G este cierre)
 mergeados a `main`. Dos decisiones de ejecución quedan fijadas para consulta futura:
 
@@ -625,5 +653,5 @@ meta-trabajo, no 45%. Se re-basea contra 22 hs/semana y entrega 30/09.
 
 ---
 
-**Última actualización**: 2026-07-29
-**Versión del documento**: 2.2
+**Última actualización**: 2026-07-30
+**Versión del documento**: 2.3

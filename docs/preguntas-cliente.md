@@ -326,7 +326,7 @@ Pedir el Pixel ID cuando llegue ese sprint — no bloquea ahora.
 | 6.1 | Logo + paleta oficial (colores exactos) | Antes de cerrar design system |
 | 6.3 | Fotos y textos de productos | Antes del Sprint Despliegue |
 | 6.4 | Copy de la landing ("sobre nosotros", tagline) | Antes del Sprint Despliegue |
-| 2.1 | Duraciones de banhos (estimados en V5) + precios de add-ons | Antes del Sprint 5 |
+| 2.1 | Duraciones de banhos (estimados en V5) + precios de add-ons | ⚠️ **Venció sin respuesta** — Sprint 5 cerró (2026-07-30) con valores provisorios en `V10__seed_addons_dev.sql` (marcados como tales en su header). No bloqueó el código (ADR 011: el algoritmo es agnóstico a los valores), pero sigue bloqueando que el cliente pueda vender de verdad. Repreguntar ya — idealmente antes de cerrar Sprint 6, y obligatorio antes del hito de cobro del 05/09 |
 
 ### A confirmar antes del deploy
 | # | Pendiente |

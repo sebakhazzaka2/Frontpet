@@ -129,9 +129,15 @@ limit (5.8).
 
 ### `GET /api/v1/appointments/{publicId}` — vista pública reducida
 
-⚠️ Marcado en el plan como riesgo abierto: **sin teléfono ni nombre completo** en esta vista
-pública (solo el UUID v7 protege el link, no es suficiente por sí solo). Pendiente de decidir el
-shape final del recorte al codear el bloque D — no bloquea el bloque 0.
+Mismo shape que el `201` de arriba (`AppointmentDetail`): `publicId`, `status`, servicio +
+adicionais, porte, horarios, precios, `tempoExtra`, `clienteNome` y `petNome`.
+
+⚠️ **Sin `clienteTelefone`** — decidido al codear el Bloque E (Sprint 5): el UUID v7 del link
+no es adivinable, pero por sí solo no es garantía de que no se filtre (queda en el historial
+de WhatsApp del cliente, en logs de proxies). `clienteNome` sí se expone porque sin él el
+cliente no podría confirmar "sí, es mi reserva". Riesgo abierto documentado en
+`docs/pending-decisions.md` §11 — no bloqueante, revisar si MVP1 agrega auth de clientes
+finales (Fase 2).
 
 ---
 

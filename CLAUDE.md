@@ -80,7 +80,9 @@ frontpet/
 │   ├── identity/        api/ + domain/ + Auth/Jwt/LoginRateLimit services
 │   ├── catalog/         api/ + domain/ + dto/ (Product, Category, Brand, Species)
 │   ├── orders/          api/ + domain/ + dto/ + OrderRateLimit
-│   ├── booking/         [.gitkeep]   ├── notifications/  [.gitkeep]
+│   ├── booking/         api/ + domain/ + dto/ (ServiceOffering, BusinessHours, ScheduleBlock,
+│   │                    Appointment) + AvailabilityService/AppointmentService/ServiceCatalogService
+│   ├── notifications/   [.gitkeep]
 │   └── BackendApplication.java   (en la raíz a propósito: component scan)
 ├── backend/src/main/resources/db/migration/   Flyway
 ├── frontend/

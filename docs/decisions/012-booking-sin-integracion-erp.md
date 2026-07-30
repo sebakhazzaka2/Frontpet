@@ -1,8 +1,23 @@
 # ADR 012 — Booking sin integración con el ERP del cliente: la web es la autoridad de disponibilidad
 
-**Estado**: Aceptada
+**Estado**: Aceptada — mitigación acotada al implementar, ver Actualización 2026-07-30
 **Fecha**: 2026-07-09
 **Sprint**: 2
+
+---
+
+## Actualización 2026-07-30 (post-implementación, Sprint 5)
+
+La mitigación de la sección "Consecuencia clave" de abajo dice que el admin bloquea "los
+**horarios**" ocupados por otros canales — al implementar (`V3__booking.sql`), `schedule_blocks`
+solo soporta bloquear el **día completo** (`data_desde`/`data_hasta`), no un rango horario
+dentro del día. La mitigación real hoy es más gruesa de lo que este ADR asumía.
+
+El fix correcto —que el admin cargue un turno manual (`POST /admin/appointments`) que ocupe
+cupo real sin pasar por el wizard público, permitiendo bloquear una hora puntual— quedó
+diferido a **Sprint 6** (junto con la vista de turnos). Detalle en **ADR 020** ("Negativas / a
+vigilar") y `docs/pending-decisions.md` §10, incluyendo el riesgo de sobre-oferta mientras
+tanto si el cliente opera por teléfono antes de que Sprint 6 cierre.
 
 ---
 
