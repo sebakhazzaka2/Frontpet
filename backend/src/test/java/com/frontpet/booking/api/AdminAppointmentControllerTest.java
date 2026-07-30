@@ -15,6 +15,7 @@ import com.frontpet.common.UuidV7;
 import com.frontpet.identity.domain.AdminUser;
 import com.frontpet.tenant.domain.Tenant;
 import com.frontpet.tenant.domain.TenantRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -58,6 +61,7 @@ class AdminAppointmentControllerTest extends AbstractIntegrationTest {
     @Autowired ServiceOfferingRepository serviceOfferingRepository;
     @Autowired ServicePricingRepository servicePricingRepository;
     @Autowired AppointmentRepository appointmentRepository;
+    @Autowired EntityManager entityManager;
 
     private UUID tenantId;
     private AdminUser admin;
@@ -89,6 +93,14 @@ class AdminAppointmentControllerTest extends AbstractIntegrationTest {
         pricing.setPrice(new BigDecimal("59.00"));
         pricing.setDurationMinutes(60);
         servicePricingRepository.save(pricing);
+
+        // Porte G a 90 min: es el caso 90 → 108 que pide literalmente el AC 13.
+        ServicePricing pricingG = new ServicePricing();
+        pricingG.setService(banhoBase);
+        pricingG.setSize(Porte.G);
+        pricingG.setPrice(new BigDecimal("79.00"));
+        pricingG.setDurationMinutes(90);
+        servicePricingRepository.save(pricingG);
     }
 
     @Test
@@ -148,6 +160,49 @@ class AdminAppointmentControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("confirmar sella confirmed_at; repetir la confirmación no lo re-sella")
+    void confirmSealsTimestampOnceOnly() throws Exception {
+        Appointment appointment = turno(proximaQuarta(), LocalTime.of(10, 0), AppointmentStatus.PENDING);
+        assertThat(appointment.getConfirmedAt()).isNull();
+
+        patchStatus(appointment, AppointmentStatus.CONFIRMED);
+        Instant primeiroSelo = recarregar(appointment).getConfirmedAt();
+        assertThat(primeiroSelo).as("confirmed_at sellado al confirmar").isNotNull();
+
+        // Segunda confirmación: no-op idempotente. Si el service volviera a
+        // sellar, el timestamp cambiaría y perderíamos el registro de cuándo
+        // se confirmó realmente.
+        patchStatus(appointment, AppointmentStatus.CONFIRMED);
+        assertThat(recarregar(appointment).getConfirmedAt())
+                .as("confirmed_at no se re-sella en el no-op")
+                .isEqualTo(primeiroSelo);
+    }
+
+    @Test
+    @DisplayName("cancelar un turno CONFIRMED sella cancelled_at y deja confirmed_at intacto")
+    void cancelSealsCancelledAtKeepingConfirmedAt() throws Exception {
+        Appointment appointment = turno(proximaQuarta(), LocalTime.of(10, 0), AppointmentStatus.PENDING);
+
+        patchStatus(appointment, AppointmentStatus.CONFIRMED);
+        Instant confirmadoEm = recarregar(appointment).getConfirmedAt();
+
+        patchStatus(appointment, AppointmentStatus.CANCELLED);
+        Appointment cancelado = recarregar(appointment);
+
+        assertThat(cancelado.getStatus()).isEqualTo(AppointmentStatus.CANCELLED);
+        assertThat(cancelado.getCancelledAt()).isNotNull();
+        assertThat(cancelado.getConfirmedAt()).isEqualTo(confirmadoEm);
+    }
+
+    private void patchStatus(Appointment appointment, AppointmentStatus status) throws Exception {
+        mockMvc.perform(patch("/api/v1/admin/appointments/" + appointment.getPublicId() + "/status")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"status\": \"" + status + "\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("PATCH /tempo-extra recalcula duração (+20%) e fim, sem aviso quando não há solapamento")
     void appliesTempoExtraWithoutWarning() throws Exception {
         Appointment appointment = turno(proximaQuarta(), LocalTime.of(10, 0), AppointmentStatus.PENDING);
@@ -178,6 +233,72 @@ class AdminAppointmentControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalDurationMinutes").value(72))
                 .andExpect(jsonPath("$.aviso").isNotEmpty());
+
+        // El AC 13 dice "avisa, pero persiste igual": sin este assert, una
+        // implementación que arma bien el DTO y no escribe nada pasaría el
+        // test de arriba sin que nadie se entere.
+        assertThat(recarregar(appointment).getTotalDurationMinutes()).isEqualTo(72);
+    }
+
+    @Test
+    @DisplayName("PATCH /tempo-extra persiste duração e fim na DB, não só na resposta")
+    void tempoExtraIsPersisted() throws Exception {
+        Appointment appointment = turnoPorteG(proximaQuarta(), LocalTime.of(10, 0));
+        Instant inicio = appointment.getStartAt();
+
+        // 90 → 108, el caso literal del AC 13.
+        mockMvc.perform(patch("/api/v1/admin/appointments/" + appointment.getPublicId() + "/tempo-extra")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"tempoExtra\": true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalDurationMinutes").value(108));
+
+        Appointment persistido = recarregar(appointment);
+        assertThat(persistido.getTempoExtra()).isTrue();
+        assertThat(persistido.getTotalDurationMinutes()).isEqualTo(108);
+        assertThat(persistido.getEndAt()).isEqualTo(inicio.plus(108, ChronoUnit.MINUTES));
+        // El preço NUNCA cambia con tempo_extra (ADR 011).
+        assertThat(persistido.getTotalPriceSnapshot()).isEqualByComparingTo("79.00");
+    }
+
+    @Test
+    @DisplayName("aplicar tempo-extra dos veces no acumula: 90 → 108, no 108 → 130")
+    void tempoExtraIsIdempotentAndReversible() throws Exception {
+        Appointment appointment = turnoPorteG(proximaQuarta(), LocalTime.of(10, 0));
+
+        patchTempoExtra(appointment, true).andExpect(jsonPath("$.totalDurationMinutes").value(108));
+        // Segunda vez: si el recálculo partiera de total_duration_minutes ya
+        // guardado en vez del combo vigente, daría 108*1.2 = 130. Es el motivo
+        // por el que updateTempoExtra resuelve el combo de nuevo en cada llamada.
+        patchTempoExtra(appointment, true).andExpect(jsonPath("$.totalDurationMinutes").value(108));
+
+        // Y desactivar vuelve exactamente a la duración base, sin drift.
+        patchTempoExtra(appointment, false).andExpect(jsonPath("$.totalDurationMinutes").value(90));
+
+        Appointment persistido = recarregar(appointment);
+        assertThat(persistido.getTempoExtra()).isFalse();
+        assertThat(persistido.getTotalDurationMinutes()).isEqualTo(90);
+    }
+
+    private ResultActions patchTempoExtra(Appointment appointment, boolean tempoExtra) throws Exception {
+        return mockMvc.perform(patch("/api/v1/admin/appointments/" + appointment.getPublicId() + "/tempo-extra")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content("{\"tempoExtra\": " + tempoExtra + "}"))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Fuerza el UPDATE contra la DB y vacía la persistence context antes de
+     * releer. Sin el {@code flush}/{@code clear}, el {@code findBy...}
+     * devolvería la misma instancia managed que ya tiene los campos seteados en
+     * memoria — y el assert pasaría aunque el UPDATE nunca llegara a Postgres.
+     */
+    private Appointment recarregar(Appointment appointment) {
+        entityManager.flush();
+        entityManager.clear();
+        return appointmentRepository.findByTenantIdAndPublicId(tenantId, appointment.getPublicId()).orElseThrow();
     }
 
     private LocalDate proximaQuarta() {
@@ -189,23 +310,33 @@ class AdminAppointmentControllerTest extends AbstractIntegrationTest {
     }
 
     private Appointment turno(LocalDate data, LocalTime hora, AppointmentStatus status) {
+        return turno(data, hora, status, Porte.M, 60, "59.00");
+    }
+
+    /** Turno de porte G (90 min) — el caso 90 → 108 del AC 13. */
+    private Appointment turnoPorteG(LocalDate data, LocalTime hora) {
+        return turno(data, hora, AppointmentStatus.PENDING, Porte.G, 90, "79.00");
+    }
+
+    private Appointment turno(LocalDate data, LocalTime hora, AppointmentStatus status,
+                              Porte porte, int duracaoMinutes, String preco) {
         Instant inicio = ZonedDateTime.of(data, hora, SlotGrid.ZONE_ID).toInstant();
 
         Appointment appointment = new Appointment();
         appointment.setPublicId(UuidV7.generate());
         appointment.setTenantId(tenantId);
         appointment.setBaseService(banhoBase);
-        appointment.setSize(Porte.M);
+        appointment.setSize(porte);
         appointment.setStartAt(inicio);
-        appointment.setEndAt(inicio.plus(60, ChronoUnit.MINUTES));
+        appointment.setEndAt(inicio.plus(duracaoMinutes, ChronoUnit.MINUTES));
         appointment.setStatus(status);
         appointment.setClienteNome("Cliente de Teste");
         appointment.setClienteTelefone("+55 55 99123-4567");
         appointment.setClienteTelefoneNorm("5555991234567");
         appointment.setPetNome("Thor");
-        appointment.setBasePriceSnapshot(new BigDecimal("59.00"));
-        appointment.setTotalPriceSnapshot(new BigDecimal("59.00"));
-        appointment.setTotalDurationMinutes(60);
+        appointment.setBasePriceSnapshot(new BigDecimal(preco));
+        appointment.setTotalPriceSnapshot(new BigDecimal(preco));
+        appointment.setTotalDurationMinutes(duracaoMinutes);
         return appointmentRepository.save(appointment);
     }
 

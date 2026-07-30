@@ -173,6 +173,55 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("fecha más allá de anticipacao_max_dias devuelve 400")
+    void dateBeyondWindowReturnsBadRequest() throws Exception {
+        String body = bodyFor(LocalDate.now(SlotGrid.ZONE_ID).plusDays(61), "10:00");
+
+        mockMvc.perform(post("/api/v1/appointments").contentType("application/json").content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("domingo (dia inativo no seed V5) devuelve 400")
+    void inactiveDayReturnsBadRequest() throws Exception {
+        LocalDate domingo = proximaQuarta();
+        while (domingo.getDayOfWeek() != DayOfWeek.SUNDAY) {
+            domingo = domingo.plusDays(1);
+        }
+
+        mockMvc.perform(post("/api/v1/appointments")
+                        .contentType("application/json")
+                        .content(bodyFor(domingo, "10:00")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("preço e duração se recalculan server-side: los que mande el cliente se ignoran")
+    void clientSuppliedPricingIsIgnored() throws Exception {
+        // El DTO no tiene campos de preço — mandarlos igual no debe reventar
+        // (unknown fields ignorados) ni, sobre todo, terminar en la DB (AC 8).
+        String body = """
+                {
+                  "baseServiceId": %d,
+                  "porte": "M",
+                  "data": "%s",
+                  "horario": "10:00",
+                  "clienteNome": "Cliente Malicioso",
+                  "clienteTelefone": "(55) 99123-4567",
+                  "petNome": "Thor",
+                  "totalPriceSnapshot": 0.01,
+                  "basePriceSnapshot": 0.01,
+                  "totalDurationMinutes": 5
+                }
+                """.formatted(banhoBase.getId(), proximaQuarta());
+
+        mockMvc.perform(post("/api/v1/appointments").contentType("application/json").content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.totalPriceSnapshot").value(59.00))
+                .andExpect(jsonPath("$.totalDurationMinutes").value(60));
+    }
+
+    @Test
     @DisplayName("GET /appointments/{publicId} devuelve la vista reducida, sem telefone")
     void getPublicByPublicIdReturnsReducedView() throws Exception {
         Appointment appointment = turno(proximaQuarta(), LocalTime.of(11, 0), AppointmentStatus.PENDING);
@@ -189,6 +238,20 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
     void getUnknownPublicIdReturns404() throws Exception {
         mockMvc.perform(get("/api/v1/appointments/" + UUID.randomUUID()))
                 .andExpect(status().isNotFound());
+    }
+
+    private String bodyFor(LocalDate data, String horario) {
+        return """
+                {
+                  "baseServiceId": %d,
+                  "porte": "M",
+                  "data": "%s",
+                  "horario": "%s",
+                  "clienteNome": "Ana Souza",
+                  "clienteTelefone": "(55) 99123-4567",
+                  "petNome": "Thor"
+                }
+                """.formatted(banhoBase.getId(), data, horario);
     }
 
     private LocalDate proximaQuarta() {
