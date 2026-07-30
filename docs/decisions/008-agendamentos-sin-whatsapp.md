@@ -4,11 +4,18 @@
 **Fecha**: 2026-05-25
 **Sprint**: 2
 
+> **Nota 2026-07-30 (Sprint 6, Bloque 0)**: el diseño de Stitch del wizard, que originalmente
+> (pre-corrección) redirigía a WhatsApp en el submit — contra esta decisión —, fue corregido
+> por Sebastián directamente en Stitch antes de implementar. El "Passo 3 (Fluxo Interno)" y la
+> "Confirmação (Fluxo Interno)" verificados por MCP ya están alineados: submit interno directo,
+> sin ningún botón de WhatsApp. Solo se actualiza el naming stale de este documento (ver abajo),
+> la decisión de fondo no cambia.
+
 ---
 
 ## Contexto
 
-Cuando estábamos diseñando el flujo de agendamento (pantalla `/agendar`), llegamos al
+Cuando estábamos diseñando el flujo de agendamento (pantalla `/agendamento`), llegamos al
 final del Step 3 ("Seus dados") y la pregunta era qué hace el botón "Confirmar".
 
 El instinto inicial fue replicar el patrón del checkout de productos definido en
@@ -40,16 +47,20 @@ estado raro donde el booking existe pero parece "incompleto".
 
 Flujo concreto:
 
-1. Cliente completa los 3 pasos del wizard en `/agendar`.
-2. Frontend hace `POST /api/v1/bookings` con: `serviceId`, `date`, `time`, `tutorName`,
-   `tutorPhone`, `petName`, `petBreed`, `notes`.
+1. Cliente completa los 3 pasos del wizard en `/agendamento`.
+2. Frontend hace `POST /api/v1/appointments` con: `baseServiceId`, `addonIds`, `porte`,
+   `data`, `horario`, `clienteNome`, `clienteTelefone`, `petNome`, `petRaca`, `observacoes`
+   (naming real implementado en Sprint 5 — ver `docs/booking-api-contracts.md`, distinto de
+   los nombres provisorios de este ADR original).
 3. Backend:
    - Valida que el slot esté disponible (cálculo dinámico, ver ADR 005).
    - Persiste el booking con estado `PENDING`.
-   - Retorna `bookingId` (UUID v7) y resumen.
-4. Frontend redirige a `/agendamento/confirmacao` que muestra:
+   - Retorna `publicId` (UUID v7) y resumen (naming real: `AppointmentDetail`, no `bookingId`).
+4. Frontend redirige a `/agendamento/[publicId]` (naming real, no `/agendamento/confirmacao`)
+   que muestra:
    - Mensaje de éxito
-   - Código de reserva (`bookingId` truncado a algo legible, ej. `#FP-1024`)
+   - Código de reserva (últimos caracteres del `publicId`, ej. `#FP-1024` — sin contador
+     nuevo en DB)
    - Resumen del agendamento (servicio, fecha, hora, tutor, pet)
    - Status visible: "Aguardando confirmação"
    - Copy claro: "Nosso time vai entrar em contato pelo WhatsApp para confirmar
