@@ -63,3 +63,4 @@ Crear un ADR cuando:
 | [018](./018-r2-presigned-upload-flow.md) | Flujo de firmado para upload de imágenes a Cloudflare R2 | Aceptada | 2026-07-27 |
 | [019](./019-rate-limit-login-en-memoria.md) | Rate limit del login: en memoria, solo por IP | Aceptada | 2026-07-28 |
 | [020](./020-algoritmo-slots.md) | Algoritmo de cálculo de disponibilidad (Sprint 5) | Aceptada | 2026-07-29 |
+| [021](./021-turno-manual-admin.md) | Turno manual del admin: qué puede saltear (grilla/capacidad/horário) | Aceptada | 2026-07-30 |
