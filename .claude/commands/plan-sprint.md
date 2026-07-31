@@ -58,6 +58,17 @@ Analizá:
 - complejidad
 - impacto sobre otras tareas
 
+Para tareas no triviales (features de riesgo concentrado, no ajustes menores), definí
+además:
+
+- **Estados y transiciones** si la tarea toca algo con ciclo de vida (ej. reservas:
+  `PENDING → CONFIRMED → CANCELLED`, ya congelado por CLAUDE.md §6 — no inventar estados
+  nuevos, solo dejar explícitas las transiciones que la tarea habilita)
+- **Non-goals**: qué NO incluye esta tarea, para blindarla contra scope creep durante la
+  implementación (relevante en un fijo de USD 500 — ver §7 de CLAUDE.md)
+- **Preguntas abiertas que bloquean**: si depende de algo en `docs/pending-decisions.md`
+  o `docs/preguntas-cliente.md`, señalarlo con el nombre exacto del ítem
+
 Indicá si:
 
 ✅ independiente
@@ -150,6 +161,10 @@ Devolvé únicamente:
 ## Riesgos e Issues
 
 ## Documentación que probablemente cambie
+
+## Non-goals del sprint (qué queda explícitamente afuera)
+
+## Preguntas abiertas que bloquean (si las hay)
 
 ## Checklist antes de empezar
 
