@@ -148,8 +148,8 @@ frontpet/
 - **Spacing**: solo múltiplos de 4 (`4…80`). **Prohibidos los valores arbitrarios** (`mt-[13px]` no)
 - **Radius (canónico, definido en `@theme`)**: `sm` 4px badges · `md` 8px **botones/inputs/chips** ·
   `lg` 16px **cards** (cerrado 2026-07-17, ver ADR 014) · `xl` 24px modales · `full` pills.
-- Sombras suaves con nombre; detalle completo en `docs/design-system.md` (v2.0 —
-  ⚠️ sus secciones 6-7 y la referencia rápida tienen drift v1.0, verificar contra `globals.css`)
+- Sombras suaves con nombre; detalle completo en `docs/design-system.md` (v3.0 — guía de uso,
+  ya no duplica tablas de tokens; los valores mandan siempre desde `globals.css`)
 
 ### Idioma
 - **UI y copy en PT-BR** (ADR 007): mensajes de WhatsApp, validaciones, errores visibles.

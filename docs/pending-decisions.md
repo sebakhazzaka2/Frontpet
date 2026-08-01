@@ -8,16 +8,19 @@ Cuando una de estas se resuelve → sale de acá y entra como ADR o como tarea d
 
 ---
 
-## 1. Alta de marcas (`brands`)
+## 1. Alta de marcas (`brands`) — RESUELTO (Sprint 4)
 
-**Estado**: backend resuelto (2026-07-25). Falta la UI del admin (Sprint 4).
+**Estado**: implementado, backend y UI. Ya no bloquea nada — queda documentado como
+historial de la decisión.
 
 Las marcas no son lista cerrada como las categorías: llega una ração de una marca nueva y
 el admin tiene que poder cargarla. Pero un CRUD de marcas con pantalla propia es demasiado
 para lo que es.
 
 **Dirección elegida**: alta *inline* en el formulario de producto — el admin escribe la
-marca; si no existe, se crea sola. Sin pantalla dedicada.
+marca; si no existe, se crea sola. Sin pantalla dedicada. **UI**: campo de texto libre
+(`brandNome`) en `product-form-dialog.tsx` — no autocompletar sobre las existentes, se
+decidió el camino más simple ya que `findOrCreate` funciona igual con cualquiera de los dos.
 
 **Ya implementado**:
 - `BrandService.findOrCreate(tenantId, nome)` — busca sin distinguir mayúsculas y crea si
@@ -32,13 +35,12 @@ marca; si no existe, se crea sola. Sin pantalla dedicada.
   una carrera en un dato secundario.
 - 4 tests de integración (`BrandServiceIntegrationTest`): crea si falta, reutiliza
   ignorando mayúsculas, recorta espacios, rechaza nombre en blanco.
+- Campo de texto libre `brandNome` en `product-form-dialog.tsx` (Sprint 4).
 
-**Falta definir**: si el campo del form es autocompletar sobre las existentes o texto
-libre (el `findOrCreate` funciona con cualquiera de los dos; es una decisión de UI, no de
-backend), y qué pasa con marcas que quedan sin ningún producto (¿se borran solas? ¿quedan
-colgando?). Ninguna bloquea: son decisiones baratas de tomar cuando se construya el form.
+**Sigue sin resolver, pero no bloquea**: qué pasa con marcas que quedan sin ningún producto
+(¿se borran solas? ¿quedan colgando?) — barato de decidir si se vuelve un problema real.
 
-**Dónde impacta**: Sprint 4, formulario de producto del admin.
+**Dónde impacta**: nada bloqueado hoy.
 
 ---
 
@@ -235,20 +237,21 @@ para un cuarto caso de uso, es el momento de extraer un limitador genérico por 
 
 ## 10. `schedule_blocks` bloquea el día completo, no por rango horario
 
-**Estado**: limitación conocida y documentada desde el diseño del Sprint 5 (ADR 020, sección
-"Negativas / a vigilar"), mitigación real diferida a Sprint 6.
+**Estado**: limitación de schema sigue vigente (no se replanteó — ver ADR 021, alternativa
+descartada "extender `schedule_blocks` a rango horario"). La mitigación (turno manual del
+admin) tiene su **backend ya implementado** (2026-08-01, `POST /api/v1/admin/appointments`,
+ADR 021, commit `74abdd9`) pero **todavía no es usable**: no existe UI de admin para cargarlo
+(tareas 6.6/6.7 del ROADMAP, Sprint 6, pendientes).
 
 El ADR 012 pedía poder bloquear *horarios* puntuales ocupados por otros canales (teléfono,
 local, ERP) mientras el negocio ya está operando en paralelo a la web. El esquema real
-(`V3__booking.sql`) solo permite bloquear el **día entero** (`data_desde`/`data_hasta`). La
-solución correcta —que el admin cargue un turno manual (`POST /admin/appointments`) que ocupe
-cupo real sin pasar por el wizard público— quedó diferida a Sprint 6 junto con la vista de
-turnos (tarea 6.6).
+(`V3__booking.sql`) solo permite bloquear el **día entero** (`data_desde`/`data_hasta`).
 
-**Dónde impacta**: si el cliente empieza a operar con reservas por teléfono antes de que
-Sprint 6 cierre, la disponibilidad web puede **sobre-ofertar** (mostrar libre un horario que
-en la realidad ya está ocupado por un turno tomado por otro canal). Avisar a Sebastián si eso
-pasa — el bloqueo de día completo es el único paliativo disponible mientras tanto.
+**Dónde impacta**: hasta que la UI de Sprint 6 (6.6/6.7) cierre, si el cliente empieza a
+operar con reservas por teléfono la disponibilidad web puede **sobre-ofertar** (mostrar libre
+un horario que en la realidad ya está ocupado por un turno tomado por otro canal). Avisar a
+Sebastián si eso pasa — el bloqueo de día completo sigue siendo el único paliativo accesible
+desde el admin hoy.
 
 ---
 
