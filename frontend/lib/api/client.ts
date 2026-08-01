@@ -53,6 +53,11 @@ interface ApiFetchOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   body?: unknown
   headers?: Record<string, string>
+  // Cancelación de requests in-flight. Lo consume useAvailability (Sprint 6,
+  // Bloque C): TanStack Query pasa su AbortSignal al queryFn y así un combo
+  // que cambió a mitad de vuelo aborta el request viejo en vez de dejarlo
+  // llegar. Opcional — ningún caller anterior lo manda.
+  signal?: AbortSignal
 }
 
 // Wrapper de fetch para Server y Client Components (tarea 3.6a, extendido en
@@ -73,7 +78,7 @@ interface ApiFetchOptions {
 // afecta a los endpoints públicos, que no dependen de cookie.
 export async function apiFetch<T>(
   path: string,
-  { revalidate, method = 'GET', body, headers }: ApiFetchOptions = {}
+  { revalidate, method = 'GET', body, headers, signal }: ApiFetchOptions = {}
 ): Promise<T | undefined> {
   const res = await fetch(`${API_URL}/api/v1${path}`, {
     method,
@@ -81,6 +86,7 @@ export async function apiFetch<T>(
     headers: body !== undefined ? { 'Content-Type': 'application/json', ...headers } : headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
     next: revalidate !== undefined ? { revalidate } : undefined,
+    signal,
   })
 
   if (res.status === 404) {
