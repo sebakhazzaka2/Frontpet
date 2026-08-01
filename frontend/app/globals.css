@@ -62,6 +62,12 @@
   --color-foreground: var(--color-ink);
   --color-card: var(--color-surface-card);
   --color-card-foreground: var(--color-ink);
+  /* Faltaba: bg-popover de <Dialog> (components/ui/dialog.tsx) quedaba sin
+     resolver — dialog transparente, encontrado al armar <ManualAppointmentDialog>
+     (Bloque E). Mismo valor que card: un popover/dialog es una superficie
+     elevada, igual que una card. */
+  --color-popover: var(--color-surface-card);
+  --color-popover-foreground: var(--color-ink);
   --color-primary: var(--color-navy);
   --color-primary-foreground: #ffffff;
   --color-secondary: var(--color-orange);
