@@ -126,6 +126,7 @@ existentes, no instalar dependencias) están en el comando mismo.
 | Login Administrativo (tarea 4.11) | `feat/admin-shell` | portado — única pantalla DESKTOP, ver Piloto 3 |
 | Gestão de Produtos (tarea 4.12) | `feat/admin-products` | portado — solo el contenido, sidebar ya existía (Bloque D), ver Piloto 4 |
 | Gestão de Pedidos (tarea 4.14) | `feat/admin-orders` | portado — sidebar ya existía, ver Piloto 4 |
+| Agendamento Passos 1-2 (tareas 6.1-6.3) | `feat/agendamento-wizard` | portado — ver Piloto 5 |
 
 ### Piloto 1 — Detalhe do Produto (2026-07-27)
 
@@ -222,3 +223,29 @@ real ya existe desde el Bloque D (`<AdminShell>`), solo se portó el contenido d
   la de confirmação). Los thumbnails de producto en los items del pedido tampoco se portan
   — `OrderItemDetail` no tiene campo de imagen. Detalle completo, incluye un bug real de
   overlay en desktop: issue #34.
+
+### Piloto 5 — Agendamento, Passos 1-2 (Sprint 6, Bloque C, 2026-08-01)
+
+Las 4 pantallas del wizard ("Passo 1 Dinâmico", "Passo 2 Sincronizado", "Passo 3", 
+"Confirmação") son **un solo componente con variantes de estado**, no 4 ports: el mock las
+dibuja como `<div id="step-N">` con `display:none`, dentro de la misma card. Se portó como
+`<BookingWizard>` (client, dueño del estado) + un componente por paso.
+
+- **La tabla de precios del mock se descarta entera.** El `<script>` de Stitch hardcodea
+  `prices = { p: { essencial: 45, … } }`; el precio y la duración reales salen de
+  `ServicePricingDetail` por porte (`GET /services`), que trae los 4 portes de los 8
+  serviços del seed. El mock también inventa un "Banho Premium 79/75min" que no coincide con
+  el real (75/75min).
+- **Trust strip del mock** ("Profissionais Certificados", "Busca & Entrega Grátis"): se
+  corta. Son promesas operativas sin backing — mismo criterio que "Entrega em até 24h" del
+  Piloto 1. "Busca & Entrega" además no es un servicio que FrontPet ofrezca hoy.
+- **Header/footer/bottom-nav propios del mock**: ignorados, ya existen en `(public)/layout.tsx`.
+- **Cuarto estado vacío, que ni Stitch ni el AC contemplan**: `AvailabilityServiceImpl`
+  devuelve `indisponibilidade: null` con `slots: []` cuando el día está abierto y sin
+  bloquear pero ningún inicio entra (el combo no termina antes del cierre, o ya pasaron
+  todos los horarios de hoy). No es teórico: **hoy mismo, el primer chip de la tira cae en
+  ese caso**. Sin copy propio el usuario ve una grilla vacía muda en la interacción más
+  probable. Se le dio mensaje propio (`SEM_ENCAIXE_COPY` en `slot-grid.tsx`).
+- **Íconos nuevos que NO salen de Stitch** (`CalendarX2` en el estado vacío, `RefreshCw` en
+  el de error): son estados que el mock no dibuja, así que no van a la tabla de mapeo
+  Material Symbols → lucide. `check` → `Check` sí se agregó a esa tabla (lo usa el stepper).

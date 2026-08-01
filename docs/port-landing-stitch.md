@@ -160,6 +160,7 @@ las va portando (no se remapean de cero cada vez).
 | `arrow_forward` | `ArrowRight` | `call` | `Phone` |
 | `home` | `Home` | `help` | `HelpCircle` |
 | `content_cut` | `Scissors` | `chevron_right` | `ChevronRight` |
+| `check` | `Check` | | |
 
 Ninguno necesitó reemplazo aproximado — todos 1:1. WhatsApp es aparte
 (`components/shared/whatsapp-icon.tsx`): ícono de marca, no está en ninguna librería de
