@@ -5,11 +5,21 @@ import { ServiceOfferingCard } from '@/components/public/service-offering-card'
 import { FaqAccordion, type FaqItem } from '@/components/public/faq-accordion'
 import { BUSINESS_HOURS_DISPLAY, SITE_CITY } from '@/lib/data/site'
 
+// force-dynamic: diferente de produtos/page.tsx (que já é dinâmico por ler
+// searchParams, então nunca precisou disto). /servicos não tem nenhum sinal
+// dinâmico próprio — sem isso, Next tenta pré-renderizar a página no build
+// e faz fetch real a GET /services nesse momento. Funciona localmente (com o
+// backend rodando), mas quebra o job de frontend do CI (.github/workflows/ci.yml),
+// que builda sem backend ao lado — ECONNREFUSED. Custo aceito: perde-se o
+// cache ISR de 60s do fetch em listServices() (revalidate vira inerte com
+// force-dynamic — Next.js docs), cada visita bate no backend direto. Tráfego
+// de um petshop MVP1 não justifica levantar Postgres+Spring Boot só para
+// este build no CI.
+export const dynamic = 'force-dynamic'
+
 // Porteo de "Serviços (Imagens Sincronizadas)" (Stitch, issue #59, Bloque B
 // do Sprint 6). Server Component: catálogo real via GET /api/v1/services
-// (lib/api/services.ts, tipado no Bloque 0), sem force-dynamic — mesmo
-// critério de app/(public)/produtos/page.tsx (revalidate de listServices já
-// resolve o cache).
+// (lib/api/services.ts, tipado no Bloque 0).
 //
 // Desvios do mock, todos resolvidos (não ficam como pergunta aberta):
 // - Telefone "(55) 9999-9999" e "10+ anos exp." da info strip: cortados —
