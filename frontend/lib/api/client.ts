@@ -39,12 +39,21 @@ export interface ApiErrorBody {
 export class ApiFetchError extends Error {
   status: number
   fieldErrors?: Record<string, string>
+  // Solo poblado en 429 (AppointmentRateLimitFilter/OrderRateLimitFilter
+  // mandan el header Retry-After en segundos, Bloque D issue #61).
+  retryAfterSeconds?: number
 
-  constructor(message: string, status: number, fieldErrors?: Record<string, string>) {
+  constructor(
+    message: string,
+    status: number,
+    fieldErrors?: Record<string, string>,
+    retryAfterSeconds?: number
+  ) {
     super(message)
     this.name = 'ApiFetchError'
     this.status = status
     this.fieldErrors = fieldErrors
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
@@ -99,10 +108,12 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const apiError = (await res.json().catch(() => null)) as ApiErrorBody | null
+    const retryAfterHeader = res.headers.get('Retry-After')
     throw new ApiFetchError(
       apiError?.message ?? `API ${path} respondió ${res.status}`,
       res.status,
-      apiError?.fieldErrors
+      apiError?.fieldErrors,
+      retryAfterHeader ? Number(retryAfterHeader) : undefined
     )
   }
 

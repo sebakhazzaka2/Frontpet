@@ -1,5 +1,14 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { addDays, dayOfMonth, fullDate, nextDays, todayInSaoPaulo, weekdayShort } from '@/lib/booking-dates'
+import {
+  addDays,
+  appointmentDate,
+  appointmentTime,
+  dayOfMonth,
+  fullDate,
+  nextDays,
+  todayInSaoPaulo,
+  weekdayShort,
+} from '@/lib/booking-dates'
 
 // El riesgo real de este módulo no es el formateo, es el huso: el backend fija
 // la agenda en America/Sao_Paulo y nunca usa el del sistema (SlotGrid.ZONE_ID).
@@ -77,5 +86,26 @@ describe('display', () => {
 
   it('formatea la fecha completa en PT-BR', () => {
     expect(fullDate('2026-08-05')).toBe('quarta-feira, 5 de agosto')
+  })
+})
+
+describe('appointmentDate / appointmentTime', () => {
+  // Distinto de las funciones de arriba: acá la entrada es un instante con
+  // offset (AppointmentDetail.startAt), no una fecha calendario sin hora.
+
+  it('formatea la hora en el huso de São Paulo, no en UTC', () => {
+    // 12:30 UTC = 09:30 en São Paulo (UTC-3).
+    expect(appointmentTime('2026-08-05T12:30:00Z')).toBe('09:30')
+  })
+
+  it('respeta un offset -03:00 explícito en el string', () => {
+    expect(appointmentTime('2026-08-05T09:30:00-03:00')).toBe('09:30')
+  })
+
+  it('no corre el día al formatear cerca de medianoche UTC', () => {
+    // 23:30 São Paulo del día 5 = 02:30 UTC del día 6 — la fecha mostrada
+    // tiene que seguir siendo el 5, el día del turno real, no el de UTC.
+    expect(appointmentDate('2026-08-06T02:30:00Z')).toBe('quarta-feira, 5 de agosto')
+    expect(appointmentTime('2026-08-06T02:30:00Z')).toBe('23:30')
   })
 })

@@ -68,3 +68,32 @@ export function dayOfMonth(isoDate: string): string {
 export function fullDate(isoDate: string): string {
   return FULL_DATE.format(new Date(`${isoDate}T00:00:00Z`))
 }
+
+// ⚠️ Distinto de las funciones de arriba: acá la entrada es un instante
+// completo con offset (`AppointmentDetail.startAt`, ej.
+// "2026-08-05T09:30:00-03:00"), no una fecha calendario sin hora. El offset
+// ya viaja en el string — parsearlo es correcto en cualquier huso — pero
+// FORMATEARLO exige `timeZone: ZONE` explícito: sin eso, `Intl` usa el huso
+// del dispositivo que mira la pantalla de confirmação (Bloque D), y un
+// cliente en otro huso vería un horário distinto al que reservó.
+const APPOINTMENT_DATE = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: ZONE,
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+})
+const APPOINTMENT_TIME = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+/** "segunda-feira, 5 de agosto" desde un instante ISO com offset. */
+export function appointmentDate(iso: string): string {
+  return APPOINTMENT_DATE.format(new Date(iso))
+}
+
+/** "09:30" desde um instante ISO com offset. */
+export function appointmentTime(iso: string): string {
+  return APPOINTMENT_TIME.format(new Date(iso))
+}

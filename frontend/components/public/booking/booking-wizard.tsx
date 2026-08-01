@@ -12,6 +12,7 @@ import { Stepper } from './stepper'
 import { ServiceStep } from './service-step'
 import { DateStrip } from './date-strip'
 import { SlotGrid } from './slot-grid'
+import { BookingForm } from './booking-form'
 
 interface BookingWizardProps {
   services: ServiceOfferingDetail[]
@@ -169,7 +170,21 @@ export function BookingWizard({ services }: BookingWizardProps) {
         </div>
       )}
 
-      {/* Passo 3 (dados do cliente + submit) e confirmação: Bloque D (#61). */}
+      {step === 3 && baseServiceId !== null && selectedDate !== null && selectedSlot !== null && (
+        <BookingForm
+          baseServiceId={baseServiceId}
+          baseServiceNome={services.find((s) => s.id === baseServiceId)?.nome ?? ''}
+          addonIds={addonIds}
+          porte={porte}
+          data={selectedDate}
+          horario={selectedSlot}
+          onBack={() => setStep(2)}
+          onSlotUnavailable={() => {
+            resetSlot()
+            setStep(2)
+          }}
+        />
+      )}
     </div>
   )
 }
