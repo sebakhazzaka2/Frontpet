@@ -30,13 +30,15 @@ interface GetAvailabilityParams {
   porte: Porte
   addonIds?: number[]
   data: string
+  /** AbortSignal de TanStack Query — ver useAvailability (Bloque C). */
+  signal?: AbortSignal
 }
 
 // GET /api/v1/availability?baseServiceId=&porte=&addonIds=&data= — público,
 // sin auth. Se re-dispara ante cualquier cambio del combo (Bloque C) — sin
 // revalidate: el resultado depende de reservas concurrentes, no es cacheable
 // entre requests distintos de forma segura.
-export async function getAvailability({ baseServiceId, porte, addonIds, data }: GetAvailabilityParams) {
+export async function getAvailability({ baseServiceId, porte, addonIds, data, signal }: GetAvailabilityParams) {
   const params = new URLSearchParams({
     baseServiceId: String(baseServiceId),
     porte,
@@ -46,7 +48,7 @@ export async function getAvailability({ baseServiceId, porte, addonIds, data }: 
     params.set('addonIds', addonIds.join(','))
   }
 
-  const response = await apiFetch<AvailabilityResponse>(`/availability?${params}`)
+  const response = await apiFetch<AvailabilityResponse>(`/availability?${params}`, { signal })
   if (!response) {
     throw new Error('GET /availability no debería devolver 404')
   }

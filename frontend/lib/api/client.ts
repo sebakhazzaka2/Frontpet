@@ -39,12 +39,21 @@ export interface ApiErrorBody {
 export class ApiFetchError extends Error {
   status: number
   fieldErrors?: Record<string, string>
+  // Solo poblado en 429 (AppointmentRateLimitFilter/OrderRateLimitFilter
+  // mandan el header Retry-After en segundos, Bloque D issue #61).
+  retryAfterSeconds?: number
 
-  constructor(message: string, status: number, fieldErrors?: Record<string, string>) {
+  constructor(
+    message: string,
+    status: number,
+    fieldErrors?: Record<string, string>,
+    retryAfterSeconds?: number
+  ) {
     super(message)
     this.name = 'ApiFetchError'
     this.status = status
     this.fieldErrors = fieldErrors
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
@@ -53,6 +62,11 @@ interface ApiFetchOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   body?: unknown
   headers?: Record<string, string>
+  // Cancelación de requests in-flight. Lo consume useAvailability (Sprint 6,
+  // Bloque C): TanStack Query pasa su AbortSignal al queryFn y así un combo
+  // que cambió a mitad de vuelo aborta el request viejo en vez de dejarlo
+  // llegar. Opcional — ningún caller anterior lo manda.
+  signal?: AbortSignal
 }
 
 // Wrapper de fetch para Server y Client Components (tarea 3.6a, extendido en
@@ -73,7 +87,7 @@ interface ApiFetchOptions {
 // afecta a los endpoints públicos, que no dependen de cookie.
 export async function apiFetch<T>(
   path: string,
-  { revalidate, method = 'GET', body, headers }: ApiFetchOptions = {}
+  { revalidate, method = 'GET', body, headers, signal }: ApiFetchOptions = {}
 ): Promise<T | undefined> {
   const res = await fetch(`${API_URL}/api/v1${path}`, {
     method,
@@ -81,6 +95,7 @@ export async function apiFetch<T>(
     headers: body !== undefined ? { 'Content-Type': 'application/json', ...headers } : headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
     next: revalidate !== undefined ? { revalidate } : undefined,
+    signal,
   })
 
   if (res.status === 404) {
@@ -93,10 +108,12 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const apiError = (await res.json().catch(() => null)) as ApiErrorBody | null
+    const retryAfterHeader = res.headers.get('Retry-After')
     throw new ApiFetchError(
       apiError?.message ?? `API ${path} respondió ${res.status}`,
       res.status,
-      apiError?.fieldErrors
+      apiError?.fieldErrors,
+      retryAfterHeader ? Number(retryAfterHeader) : undefined
     )
   }
 
