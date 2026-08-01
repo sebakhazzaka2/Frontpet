@@ -293,3 +293,26 @@ varias veces.
 **Dónde impacta**: nada bloqueado. Retomar cuando (a) haya fotos reales del cliente, o (b)
 se defina la dirección estética antes de eso vía referencia visual (CLAUDE.md §8: UI siempre
 con referencia visual antes de codear/diseñar).
+
+---
+
+## 13. `<ManualAppointmentDialog>` usa inputs nativos `type="date"`/`type="time"`
+
+**Estado**: deuda anotada 2026-08-01 (feedback de Sebastián), no bloquea Bloque E.
+
+El form de "+ Novo agendamento" (Bloque E, issue #62) usa `<input type="date">` e
+`<input type="time">` nativos del browser para elegir fecha/horário — sin picker propio, sin
+integración visual con el resto del design system (el navegador dibuja su propio calendario/
+selector de hora, fuera de nuestro control de estilos). Funciona y no bloquea el flujo — la
+fecha además ya arranca en el día de hoy por default — pero el estilo queda inconsistente con
+el resto de la UI.
+
+**Por qué no se resolvió ahora**: no era parte del AC de la tarea 6.E, y construir un
+date/time picker propio (o instalar uno) es una decisión de diseño separada que merece su
+propia referencia visual (CLAUDE.md §8) — no algo para resolver de apuro dentro de este bloque.
+
+**Dónde impacta**: nada bloqueado, es solo estético. Retomar cuando haya una referencia de
+Stitch o una decisión de qué componente usar (¿extender algo de `components/ui/`? ¿instalar
+uno, revisando primero si vainilla alcanza, CLAUDE.md §6?). Candidato natural: reusar/adaptar
+el `date-strip` que el wizard público (Bloque C, `feat/agendamento-wizard`) esté construyendo,
+si termina siendo genérico.
