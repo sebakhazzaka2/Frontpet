@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
   // bootup-time en la auditoría mobile. Deshabilitado para producción.
   devIndicators: false,
 
+  // Next 15+ bloquea con 403 los chunks de `next dev` cuando el `Origin` no
+  // es localhost (protección CSRF contra sitios externos embebiendo el dev
+  // server). Sin esto, probar en celular real por la IP LAN sirve el HTML
+  // inicial pero nunca hidrata — confirmado con curl: `_buildManifest.js`
+  // devuelve 403 con `Origin: http://192.168.1.2:3001`. Solo afecta `next
+  // dev`; no aplica a `next build`/`next start` (producción).
+  allowedDevOrigins: ["192.168.1.2"],
+
   images: {
     // Bucket R2 de fotos de producto (ADR 018) — `images.domains` está
     // deprecado en Next 16, hay que usar remotePatterns. `**.r2.dev` cubre
