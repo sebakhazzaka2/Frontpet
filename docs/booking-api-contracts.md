@@ -143,7 +143,12 @@ finales (Fase 2).
 
 ## Admin (requiere cookie JWT, `401` sin ella)
 
-### `GET /admin/appointments?data=&status=`
+### `GET /admin/appointments?data=&status=` ou `?desde=&hasta=&status=`
+
+`data` (día único) e `desde`/`hasta` (rango, ambos obligatórios se algum vier) são mutuamente
+excludentes — se vier `data`, gana ese filtro. Sem nenhum dos dois, devuelve todo el histórico
+del tenant filtrado solo por `status` (agregado Bloque A, Sprint 6, para el listado de "próximos
+7 días" del admin).
 
 ```json
 [
@@ -162,6 +167,53 @@ finales (Fase 2).
   }
 ]
 ```
+
+### `POST /admin/appointments` — turno manual (ADR 021, Bloque A do Sprint 6)
+
+Mesmo body de `POST /appointments` (público), sem `honeypot` — não aplica atrás do login:
+
+```json
+{
+  "baseServiceId": 1,
+  "addonIds": [3],
+  "porte": "M",
+  "data": "2026-08-05",
+  "horario": "09:17",
+  "clienteNome": "Ana Souza",
+  "clienteTelefone": "+55 55 99123-4567",
+  "petNome": "Thor",
+  "petRaca": "Vira-lata",
+  "observacoes": null
+}
+```
+
+Relaxa 3 restrições do turno público (ADR 021): não precisa cair na grilha de 30 min, persiste
+mesmo superando a capacidade e mesmo em dia bloqueado/fora de horário — em vez de `409`/`400`,
+devuelve `201` com `avisos` preenchido. **Nunca** relaxa o cálculo de preço/duração — segue
+server-side, igual ao turno público.
+
+Response `201` — mesmo shape de `AdminAppointmentDetail` mais `avisos`:
+
+```json
+{
+  "publicId": "01924f10-...",
+  "status": "PENDING",
+  "startAt": "2026-08-05T09:17:00-03:00",
+  "endAt": "2026-08-05T10:17:00-03:00",
+  "clienteNome": "Ana Souza",
+  "clienteTelefone": "+55 55 99123-4567",
+  "petNome": "Thor",
+  "baseServiceNome": "Banho Essencial",
+  "addonsNomes": ["Tosa Higiênica"],
+  "totalPriceSnapshot": 79.00,
+  "totalDurationMinutes": 80,
+  "tempoExtra": false,
+  "avisos": ["Este horário supera a capacidade (2)."]
+}
+```
+
+`avisos: []` (nunca `null`) se nada disparar aviso. Continua só falhando `400` se o
+`baseServiceId`/`addonIds`/`porte` formarem um combo inválido — o admin nunca manda preço.
 
 ### `PATCH /admin/appointments/{publicId}/status`
 
