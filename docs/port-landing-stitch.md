@@ -161,12 +161,16 @@ las va portando (no se remapean de cero cada vez).
 | `home` | `Home` | `help` | `HelpCircle` |
 | `content_cut` | `Scissors` | `chevron_right` | `ChevronRight` |
 | `schedule` | `Clock` | `expand_more` | `ChevronDown` |
-| `check` | `Check` | | |
+| `check` | `Check` | `person` | `User` |
 
 Agregados al portar `/servicos` (issue #59, Bloque B Sprint 6): `schedule`/`Clock` (info
 strip de horário) y `expand_more`/`ChevronDown` (chevron del FAQ accordion, nativo con
-`<details>`, sin librería nueva). `check`/`Check` agregado al portar o wizard de
-agendamento (issue #60, Bloque C Sprint 6) — lo usa o stepper para o passo completado.
+`<details>`, sin librería nueva). `check`/`Check` e `person`/`User` agregados al portar
+o wizard de agendamento (issue #60/#61, Bloque C/D Sprint 6) — stepper (passo completado)
+e linha "Responsável" do resumo de confirmação, respectivamente. `spa` (ícone de serviço no
+mock da Confirmação) **não se mapeou** — reusa-se `Scissors` (já mapeado de `content_cut`),
+que já representa "serviço" no resto do repo; não faz sentido introduzir um segundo ícone
+para o mesmo conceito.
 
 Ninguno necesitó reemplazo aproximado — todos 1:1. WhatsApp es aparte
 (`components/shared/whatsapp-icon.tsx`): ícono de marca, no está en ninguna librería de
