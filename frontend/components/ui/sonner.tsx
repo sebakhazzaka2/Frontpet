@@ -30,9 +30,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
+          "--normal-bg": "var(--color-popover)",
+          "--normal-text": "var(--color-popover-foreground)",
+          "--normal-border": "var(--color-border)",
           // --radius (base) no existe en @theme, solo --radius-{sm,md,lg,xl}
           // (ADR 014 §6). El toast es una superficie flotante tipo card → lg.
           "--border-radius": "var(--radius-lg)",

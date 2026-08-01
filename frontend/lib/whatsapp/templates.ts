@@ -1,5 +1,7 @@
 import { formatPrice } from '@/lib/utils'
 import type { OrderDetail, OrderStatus } from '@/lib/api/orders'
+import type { AdminAppointmentDetail } from '@/lib/api/admin-appointments'
+import type { AppointmentStatus } from '@/lib/api/appointments'
 
 // Textos literales de ADR 010 (no inventados): tom cálido, PT-BR, 1-3 emojis,
 // primer nome do cliente. Ahora con los 3 templates reales (PENDING desde el
@@ -110,4 +112,74 @@ const templates: Record<OrderStatus, (order: OrderDetail) => string> = {
 // actualizado al momento de armar el mensaje.
 export function buildOrderMessage(order: OrderDetail): string {
   return templates[order.status](order)
+}
+
+// Código curto para referenciar o turno no chat — mesmo critério de
+// `orderCode`: os últimos 6 caracteres do `publicId` (UUID v7), não um
+// contador inventado (não existe no modelo real, AC do Bloque E/issue #62).
+export function appointmentCode(publicId: string): string {
+  return publicId.replace(/-/g, '').slice(-6).toUpperCase()
+}
+
+// "quarta-feira, 25 de maio às 10:00" — America/Sao_Paulo explícito, mesmo
+// fuso que o backend usa pra calcular os slots (SlotGrid.ZONE_ID, ADR 020).
+function formatDateTime(iso: string): string {
+  const formatted = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date(iso))
+  return formatted.replace(' às ', ', às ').replace(', às', ' às')
+}
+
+function servicoLabel(appointment: AdminAppointmentDetail): string {
+  return appointment.addonsNomes.length > 0
+    ? `${appointment.baseServiceNome} + ${appointment.addonsNomes.join(', ')}`
+    : appointment.baseServiceNome
+}
+
+function appointmentPendingTemplate(appointment: AdminAppointmentDetail): string {
+  return `Olá ${firstName(appointment.clienteNome)}! Aqui é da FrontPet 🐾
+
+Recebemos o agendamento #${appointmentCode(appointment.publicId)} do ${appointment.petNome}:
+${servicoLabel(appointment)}
+${formatDateTime(appointment.startAt)}
+
+Vamos confirmar direitinho e te avisamos por aqui. Qualquer dúvida, é só chamar!`
+}
+
+function appointmentConfirmedTemplate(appointment: AdminAppointmentDetail): string {
+  return `Olá ${firstName(appointment.clienteNome)}! 🐾
+
+Tudo certo com o agendamento #${appointmentCode(appointment.publicId)} do ${appointment.petNome}!
+
+${servicoLabel(appointment)}
+${formatDateTime(appointment.startAt)}
+Valor: ${formatPrice(appointment.totalPriceSnapshot)}
+
+Te esperamos! Qualquer imprevisto, nos avise com antecedência.`
+}
+
+function appointmentCancelledTemplate(appointment: AdminAppointmentDetail): string {
+  return `Olá ${firstName(appointment.clienteNome)},
+
+Infelizmente precisamos cancelar o agendamento #${appointmentCode(appointment.publicId)} do ${appointment.petNome}, marcado para ${formatDateTime(appointment.startAt)}.
+
+Se quiser, posso te ajudar a remarcar em outro horário. É só me avisar!`
+}
+
+const appointmentTemplates: Record<AppointmentStatus, (appointment: AdminAppointmentDetail) => string> = {
+  PENDING: appointmentPendingTemplate,
+  CONFIRMED: appointmentConfirmedTemplate,
+  CANCELLED: appointmentCancelledTemplate,
+}
+
+// Mesmo critério de `buildOrderMessage`: o template depende do
+// `appointment.status` já atualizado no momento do envio (o admin muda o
+// status antes de clicar "Enviar confirmação no WhatsApp").
+export function buildAppointmentMessage(appointment: AdminAppointmentDetail): string {
+  return appointmentTemplates[appointment.status](appointment)
 }
