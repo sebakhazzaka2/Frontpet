@@ -327,6 +327,7 @@ Pedir el Pixel ID cuando llegue ese sprint — no bloquea ahora.
 | 6.3 | Fotos y textos de productos | Antes del Sprint Despliegue |
 | 6.4 | Copy de la landing ("sobre nosotros", tagline) | Antes del Sprint Despliegue |
 | 2.1 | Duraciones de banhos (estimados en V5) + precios de add-ons | ⚠️ **Venció sin respuesta** — Sprint 5 cerró (2026-07-30) con valores provisorios en `V10__seed_addons_dev.sql` (marcados como tales en su header). No bloqueó el código (ADR 011: el algoritmo es agnóstico a los valores), pero sigue bloqueando que el cliente pueda vender de verdad. Repreguntar ya — idealmente antes de cerrar Sprint 6, y obligatorio antes del hito de cobro del 05/09 |
+| 8.1 | FAQ de `/servicos` (issue #59, Bloque B Sprint 6): 2 de las 5 preguntas del mock de Stitch no tenían contenido confirmable y quedaron fuera de la página — "¿Os produtos usados são seguros?" (marcas/hipoalergênico, sin fuente) y "¿Posso esperar pelo meu pet na loja?" (mencionaba "Wi-Fi e café", explícitamente cortado por el AC). También quedó afuera "formas de pagamento" (mencionaba parcelamento, no confirmado). Si el cliente confirma estos datos, se agregan a `FAQ_ITEMS` en `app/(public)/servicos/page.tsx` | Antes del Sprint Despliegue |
 
 ### A confirmar antes del deploy
 | # | Pendiente |

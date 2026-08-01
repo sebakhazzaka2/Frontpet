@@ -126,6 +126,7 @@ existentes, no instalar dependencias) están en el comando mismo.
 | Login Administrativo (tarea 4.11) | `feat/admin-shell` | portado — única pantalla DESKTOP, ver Piloto 3 |
 | Gestão de Produtos (tarea 4.12) | `feat/admin-products` | portado — solo el contenido, sidebar ya existía (Bloque D), ver Piloto 4 |
 | Gestão de Pedidos (tarea 4.14) | `feat/admin-orders` | portado — sidebar ya existía, ver Piloto 4 |
+| Serviços (Imagens Sincronizadas) (issue #59, Bloque B Sprint 6) | `feat/servicos-page` | portado — datos reales via GET /services, 3 desvios resueltos (WhatsApp CTA→/agendamento por ADR 008, FAQ reducido a 3/5 confirmables, info strip a 2 items), validación visual pendiente (sin extensión de Chrome disponible en la sesión) |
 | Agendamento Passos 1-2 (tareas 6.1-6.3) | `feat/agendamento-wizard` | portado — ver Piloto 5 |
 
 ### Piloto 1 — Detalhe do Produto (2026-07-27)
