@@ -62,8 +62,11 @@ export function ServiceStep({
                 porte === value ? 'border-navy bg-navy text-white' : 'border-outline hover:bg-hover',
               )}
             >
-              <PawPrint style={{ width: iconSize, height: iconSize }} aria-hidden />
-              <span className="text-label font-bold">{value}</span>
+              {/* pointer-events-none: sin esto, el SVG (no el <button>) puede
+                  quedar como target del tap en Safari/WebKit — un toque
+                  centrado en el ícono no dispara el onClick del padre. */}
+              <PawPrint className="pointer-events-none" style={{ width: iconSize, height: iconSize }} aria-hidden />
+              <span className="pointer-events-none text-label font-bold">{value}</span>
             </button>
           ))}
         </div>
