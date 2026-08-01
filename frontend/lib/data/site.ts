@@ -34,3 +34,9 @@ export const INSTAGRAM_HANDLE = '@frontpet.br'
 export const INSTAGRAM_URL = 'https://instagram.com/frontpet.br'
 
 export const SITE_CITY = 'Santana do Livramento, RS'
+
+// Confirmado con el cliente (docs/preguntas-cliente.md §3.1), sembrado en
+// business_hours (V5__seed_dev.sql). No hay endpoint público que exponga
+// business_hours (solo /admin/business-hours, con auth) — texto estático
+// hasta que exista uno, mismo criterio que SITE_CITY.
+export const BUSINESS_HOURS_DISPLAY = 'Seg-Sex: 09h-17h · Sáb: 09h-19h'
