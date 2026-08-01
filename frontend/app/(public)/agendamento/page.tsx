@@ -1,6 +1,14 @@
 import { listServices } from '@/lib/api/services'
 import { BookingWizard } from '@/components/public/booking/booking-wizard'
 
+// force-dynamic: mesmo critério de app/(public)/servicos/page.tsx (issue #59,
+// commit e0eaba9). Sem sinal dinâmico próprio (não lê searchParams/params),
+// Next tentaria pré-renderizar no build e faria fetch real a GET /services
+// nesse momento — quebra o job de frontend do CI, que builda sem backend ao
+// lado (ECONNREFUSED). Custo aceito: perde o cache ISR de 60s de
+// listServices(), cada visita bate no backend direto.
+export const dynamic = 'force-dynamic'
+
 // Passo 1-2 do wizard (Bloque C, issue #60). Server Component: busca o
 // catálogo de serviços (banhos base + adicionais) uma vez; o wizard em si é
 // client (estado de escolhas do usuário).
