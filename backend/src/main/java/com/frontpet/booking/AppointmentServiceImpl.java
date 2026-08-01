@@ -6,6 +6,7 @@ import com.frontpet.booking.domain.AppointmentRepository;
 import com.frontpet.booking.domain.AppointmentStatus;
 import com.frontpet.booking.domain.BusinessHours;
 import com.frontpet.booking.domain.BusinessHoursRepository;
+import com.frontpet.booking.domain.Porte;
 import com.frontpet.booking.domain.ScheduleBlockRepository;
 import com.frontpet.booking.domain.ServiceOffering;
 import com.frontpet.booking.domain.ServiceOfferingRepository;
@@ -15,6 +16,8 @@ import com.frontpet.booking.dto.AppointmentAddonDetail;
 import com.frontpet.booking.dto.AppointmentDetail;
 import com.frontpet.booking.dto.ComboPricing;
 import com.frontpet.booking.dto.CreateAppointmentRequest;
+import com.frontpet.booking.dto.CreateManualAppointmentRequest;
+import com.frontpet.booking.dto.ManualAppointmentResult;
 import com.frontpet.booking.dto.TempoExtraResult;
 import com.frontpet.common.PhoneNormalizer;
 import com.frontpet.common.UuidV7;
@@ -133,31 +136,77 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .findByIdAndTenantIdAndType(request.baseServiceId(), tenantId, ServiceType.BASE)
                 .orElseThrow(() -> new IllegalArgumentException("Serviço base inválido."));
 
-        Appointment appointment = new Appointment();
-        appointment.setPublicId(UuidV7.generate());
-        appointment.setTenantId(tenantId);
-        appointment.setBaseService(baseService);
-        appointment.setSize(request.porte());
-        appointment.setStartAt(slotStart);
-        appointment.setEndAt(slotEnd);
-        appointment.setStatus(AppointmentStatus.PENDING);
-        appointment.setClienteNome(request.clienteNome());
-        appointment.setClienteTelefone(request.clienteTelefone());
-        appointment.setClienteTelefoneNorm(PhoneNormalizer.normalizeBr(request.clienteTelefone()));
-        appointment.setPetNome(request.petNome());
-        appointment.setPetRaca(request.petRaca());
-        appointment.setBasePriceSnapshot(combo.basePrice());
-        appointment.setTotalPriceSnapshot(combo.totalPrice());
-        appointment.setTempoExtra(false);
-        appointment.setTotalDurationMinutes(combo.totalDurationMinutes());
-        appointment.setObservacoes(request.observacoes());
-        for (ComboPricing.Line line : combo.addons()) {
-            appointment.getAddons().add(
-                    new AppointmentAddonLine(line.serviceId(), line.price(), line.durationMinutes()));
-        }
+        Appointment appointment = buildAppointment(
+                tenantId, combo, baseService, request.porte(), slotStart, slotEnd,
+                request.clienteNome(), request.clienteTelefone(), request.petNome(),
+                request.petRaca(), request.observacoes());
 
         Appointment saved = appointmentRepository.save(appointment);
         return toDetail(saved);
+    }
+
+    /**
+     * Turno manual do admin (ADR 021). Reusa {@code resolveCombo} — precio e
+     * duração seguem calculados server-side, nunca confiando no request —
+     * mas relaxa 3 restrições de {@link #create}, cada uma virando um aviso
+     * em vez de uma exceção: grilla de candidatos (nem se calcula), dia
+     * bloqueado/fora de horário e capacidade excedida.
+     */
+    @Override
+    @Transactional
+    public ManualAppointmentResult createManual(UUID tenantId, CreateManualAppointmentRequest request) {
+        ComboPricing combo = availabilityService.resolveCombo(
+                tenantId, request.baseServiceId(), request.addonIds(), request.porte());
+
+        BookingSettings settings = tenantSettingsService.booking(tenantId);
+        LocalDate data = request.data();
+        List<String> avisos = new ArrayList<>();
+
+        short diaSemana = (short) data.getDayOfWeek().getValue();
+        boolean diaAtivo = businessHoursRepository.findByTenantIdAndDiaSemana(tenantId, diaSemana)
+                .map(BusinessHours::getActivo)
+                .orElse(false);
+        if (!diaAtivo) {
+            avisos.add("Este dia está fora do horário de funcionamento normal.");
+        }
+
+        if (scheduleBlockRepository
+                .findFirstByTenantIdAndDataDesdeLessThanEqualAndDataHastaGreaterThanEqual(tenantId, data, data)
+                .isPresent()) {
+            avisos.add("Esta data está bloqueada para agendamento online.");
+        }
+
+        // Sem SlotGrid.candidateStarts: o turno manual não precisa cair na
+        // grilha de 30 min — captura um horário já combinado por telefone.
+        Instant slotStart = ZonedDateTime.of(data, request.horario(), SlotGrid.ZONE_ID).toInstant();
+        Instant slotEnd = slotStart.plus(combo.totalDurationMinutes(), ChronoUnit.MINUTES);
+
+        lockTenantDay(tenantId, data);
+
+        Instant lowerGuard = slotStart.minus(1, ChronoUnit.DAYS);
+        long solapados = appointmentRepository
+                .findOccupiedIntervals(tenantId, lowerGuard, slotStart, slotEnd, AppointmentStatus.CANCELLED)
+                .size();
+        if (solapados >= settings.capacidadeAtendimento()) {
+            avisos.add("Este horário supera a capacidade (" + settings.capacidadeAtendimento() + ").");
+        }
+
+        ServiceOffering baseService = serviceOfferingRepository
+                .findByIdAndTenantIdAndType(request.baseServiceId(), tenantId, ServiceType.BASE)
+                .orElseThrow(() -> new IllegalArgumentException("Serviço base inválido."));
+
+        Appointment appointment = buildAppointment(
+                tenantId, combo, baseService, request.porte(), slotStart, slotEnd,
+                request.clienteNome(), request.clienteTelefone(), request.petNome(),
+                request.petRaca(), request.observacoes());
+
+        Appointment saved = appointmentRepository.save(appointment);
+        AdminAppointmentDetail detail = toAdminDetails(List.of(saved)).get(0);
+        return new ManualAppointmentResult(
+                detail.publicId(), detail.status(), detail.startAt(), detail.endAt(),
+                detail.clienteNome(), detail.clienteTelefone(), detail.petNome(),
+                detail.baseServiceNome(), detail.addonsNomes(), detail.totalPriceSnapshot(),
+                detail.totalDurationMinutes(), detail.tempoExtra(), avisos);
     }
 
     @Override
@@ -170,12 +219,19 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdminAppointmentDetail> listForAdmin(UUID tenantId, LocalDate data, AppointmentStatus status) {
+    public List<AdminAppointmentDetail> listForAdmin(
+            UUID tenantId, LocalDate data, LocalDate desde, LocalDate hasta, AppointmentStatus status) {
         List<Appointment> appointments;
         if (data != null) {
             Instant windowStart = ZonedDateTime.of(data, LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
             Instant windowEnd = ZonedDateTime.of(data.plusDays(1), LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
             appointments = appointmentRepository.findForAdminInWindow(tenantId, status, windowStart, windowEnd);
+        } else if (desde != null && hasta != null) {
+            Instant windowStart = ZonedDateTime.of(desde, LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
+            Instant windowEnd = ZonedDateTime.of(hasta.plusDays(1), LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
+            appointments = appointmentRepository.findForAdminInWindow(tenantId, status, windowStart, windowEnd);
+        } else if (desde != null || hasta != null) {
+            throw new IllegalArgumentException("Informe desde e hasta juntos, ou nenhum dos dois.");
         } else {
             appointments = appointmentRepository.findForAdmin(tenantId, status);
         }
@@ -245,6 +301,38 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setEndAt(newEnd);
 
         return new TempoExtraResult(appointment.getPublicId(), newDuration, newEnd, aviso);
+    }
+
+    // ---- construção da entidade --------------------------------------------
+
+    /** Campos comuns entre {@link #create} e {@link #createManual} — a única diferença é o que valida antes. */
+    private Appointment buildAppointment(
+            UUID tenantId, ComboPricing combo, ServiceOffering baseService, Porte porte,
+            Instant slotStart, Instant slotEnd, String clienteNome, String clienteTelefone,
+            String petNome, String petRaca, String observacoes) {
+        Appointment appointment = new Appointment();
+        appointment.setPublicId(UuidV7.generate());
+        appointment.setTenantId(tenantId);
+        appointment.setBaseService(baseService);
+        appointment.setSize(porte);
+        appointment.setStartAt(slotStart);
+        appointment.setEndAt(slotEnd);
+        appointment.setStatus(AppointmentStatus.PENDING);
+        appointment.setClienteNome(clienteNome);
+        appointment.setClienteTelefone(clienteTelefone);
+        appointment.setClienteTelefoneNorm(PhoneNormalizer.normalizeBr(clienteTelefone));
+        appointment.setPetNome(petNome);
+        appointment.setPetRaca(petRaca);
+        appointment.setBasePriceSnapshot(combo.basePrice());
+        appointment.setTotalPriceSnapshot(combo.totalPrice());
+        appointment.setTempoExtra(false);
+        appointment.setTotalDurationMinutes(combo.totalDurationMinutes());
+        appointment.setObservacoes(observacoes);
+        for (ComboPricing.Line line : combo.addons()) {
+            appointment.getAddons().add(
+                    new AppointmentAddonLine(line.serviceId(), line.price(), line.durationMinutes()));
+        }
+        return appointment;
     }
 
     // ---- concurrencia -----------------------------------------------------

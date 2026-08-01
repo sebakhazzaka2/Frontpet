@@ -4,6 +4,8 @@ import com.frontpet.booking.domain.AppointmentStatus;
 import com.frontpet.booking.dto.AdminAppointmentDetail;
 import com.frontpet.booking.dto.AppointmentDetail;
 import com.frontpet.booking.dto.CreateAppointmentRequest;
+import com.frontpet.booking.dto.CreateManualAppointmentRequest;
+import com.frontpet.booking.dto.ManualAppointmentResult;
 import com.frontpet.booking.dto.TempoExtraResult;
 
 import java.time.LocalDate;
@@ -25,11 +27,26 @@ public interface AppointmentService {
      */
     AppointmentDetail create(UUID tenantId, CreateAppointmentRequest request);
 
+    /**
+     * Turno manual do admin (ADR 021, Bloque A do Sprint 6). Reusa o mesmo
+     * {@code resolveCombo} de {@link #create}, mas relaxa 3 restrições —
+     * grilla de candidatos, capacidade e dia bloqueado/fora de horário —
+     * avisando em vez de bloquear. Nunca lança {@link SlotUnavailableException}:
+     * o único jeito de falhar é combo/serviço inválido (400).
+     */
+    ManualAppointmentResult createManual(UUID tenantId, CreateManualAppointmentRequest request);
+
     /** Vista pública reducida — sem telefone completo. */
     AppointmentDetail getPublicByPublicId(UUID tenantId, UUID publicId);
 
-    /** Listado admin, ambos filtros opcionales (tarea 5.5/5.6). */
-    List<AdminAppointmentDetail> listForAdmin(UUID tenantId, LocalDate data, AppointmentStatus status);
+    /**
+     * Listado admin. {@code data} (día único), {@code desde}/{@code hasta}
+     * (rango) e {@code status} são todos opcionais; {@code data} tem
+     * prioridade se vier junto com {@code desde}/{@code hasta} (tarea 5.5/5.6,
+     * Bloque A do Sprint 6).
+     */
+    List<AdminAppointmentDetail> listForAdmin(
+            UUID tenantId, LocalDate data, LocalDate desde, LocalDate hasta, AppointmentStatus status);
 
     /**
      * Transições {@code PENDING → CONFIRMED|CANCELLED}, {@code CONFIRMED → CANCELLED}.
