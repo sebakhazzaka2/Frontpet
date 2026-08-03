@@ -426,28 +426,30 @@ segundo pago. Avisale al cliente y validá el modelo con tráfico real.
 
 ---
 
-## Sprint 6 — Booking frontend + Admin de agendamentos (semanas 13-14, ~16 hs)
+## Sprint 6 — Booking frontend + Admin de agendamentos (semanas 13-14, ~16 hs estimadas → ~27-30 hs reales)
 
 **Objetivo**: cierre del flujo de reservas end-to-end.
 
-> 🔄 **En curso.** Ya hecho: capa de contrato `frontend/lib/api/*` tipada (PR #65), ADR 021
-> (turno manual admin) y su backend — `POST /api/v1/admin/appointments` + listado admin por
-> rango `desde`/`hasta` (PR #67, commit `74abdd9`) — prerequisito backend de 6.6/6.7. Falta
-> toda la UI: 6.1-6.7 siguen sin pantallas.
+> ✅ **Cerrado 2026-08-03.** La estimación original de 16 hs / 7 tareas (6.1-6.7) resultó
+> incompleta: el ROADMAP no listaba el admin de serviços/horários, la página pública
+> `/servicos` ni el turno manual del admin. El plan de ejecución completo (auditado contra
+> Stitch, ADRs y código real) vive en `C:\Users\admin\.claude\plans\glimmering-wandering-tide.md`
+> y reemplazó la tabla 6.1-6.7 original por 8 bloques (0/A-G). Ver Registro de decisiones de
+> plan.
 
-| # | Tarea | Hs |
-|---|-------|----|
-| 6.1 | Página `/agendamento` con wizard de 3 pasos | 5 |
-| 6.2 | Paso 1: selector de servicio con cards | 1 |
-| 6.3 | Paso 2: selector de fecha (scroll horizontal) + selector de slot (grid 4 cols) | 3 |
-| 6.4 | Paso 3: formulario de datos del cliente y mascota | 2 |
-| 6.5 | Pantalla `/agendamento/confirmacao`: código de reserva + resumen + status "Aguardando confirmação". Sin redirect a WhatsApp — el booking ya quedó persistido en `PENDING` al hacer submit del Paso 3 (ADR 008). Botón WhatsApp opcional solo como canal de ajuda/cancelamento | 2 |
-| 6.6 | Admin: vista de turnos del día + próximos 7 días. Backend (listado por rango `desde`/`hasta`) ✅ hecho (PR #67); falta la UI | 2 |
-| 6.7 | Admin: acción "Confirmar" que cambia estado a `CONFIRMED` (y "Cancelar" a `CANCELLED`) desde el panel. El aviso al cliente por WhatsApp, si se hace, es manual desde el celular del admin — no es un botón del sistema (ADR 008) | 1 |
+| Bloque | Contenido | Hs estimadas | Estado |
+|---|---|---:|---|
+| 0 | Contrato tipado (`lib/api/*`) + ADR 021 (turno manual) + ADR 008 (naming) | 2,5 | ✅ cerrado (PR #65) |
+| A | Backend: turno manual admin + listado por rango + huecos de lectura de horários/bloqueios | 5,5 | ✅ cerrado (PR #67, commit `74abdd9`) |
+| B | `/servicos` público | 3 | ✅ cerrado (PR #68) |
+| C+D | Wizard `/agendamento`: passos 1-2 (serviço/porte/adicionais/data/slot) + passo 3 (form) + confirmação | 9,5 | ✅ cerrado (PRs #68, #69) |
+| E | Admin `/admin/agendamentos`: vista semanal, turno manual, cambio de status, tempo-extra | 6 | ✅ cerrado (PR #70) |
+| F | Admin `/admin/servicos`: tabs Serviços (CRUD de preço/duração por porte) y Horário (7 días + bloqueios). Incluyó cerrar un hueco de backend no listado (3 GETs admin que el contrato de Bloque 0 ya exigía) | 5 | ✅ cerrado (PR #71, issue #63) |
+| G | Cierre: checklist Stitch, pilotos 5-8 documentados, DoD, doc sync | 2 | ✅ cerrado (issue #64) — **validación visual 320/768/1024px y prueba en celular real de `/admin/servicos` diferidas explícitamente a un pase de polish de UI posterior** (decisión de Sebastián, 2026-08-03); el resto de las 8 pantallas del sprint ya está validado |
 
 **Entregable**: **FrontPet puede recibir reservas online.**
 
-**Hito** 🎯: **primera reserva online posible** (semana 14).
+**Hito** 🎯: **primera reserva online posible** (semana 14) — ✅ alcanzado.
 
 ---
 
@@ -569,6 +571,22 @@ el 2026-07-27, ver nota en "Resumen de fases"):
 
 Decisiones fechadas que cambiaron el plan (no son ADRs — son de planificación, no de
 arquitectura). El cuerpo del ROADMAP refleja solo el estado resultante; el porqué vive acá.
+
+**2026-08-03 — Re-scoping de Sprint 6 (en cierre, Bloque G).** La estimación original del
+ROADMAP (16 hs / 7 tareas, 6.1-6.7) se auditó contra Stitch, los ADRs y el código real antes
+de codear (plan completo en `C:\Users\admin\.claude\plans\glimmering-wandering-tide.md`) y
+resultó **~2x subestimada**: faltaban 3 piezas enteras que ningún sprint tenía asignadas —
+`/servicos` público, el admin de serviços/horários/bloqueios, y el turno manual del admin (este
+último ya señalado como diferido en el cierre de Sprint 5). Se repartió en 8 bloques (0, A-G,
+ver tabla del sprint) en vez de las 7 tareas originales. Mismo patrón que Sprints 4 y 5: el
+ROADMAP subestima consistentemente los sprints con más superficie nueva de UI/admin.
+
+Un hueco de backend no anticipado ni por el ROADMAP ni por el plan de Sprint 6 apareció recién
+al ejecutar el Bloque F: `GET /admin/services`, `GET /admin/business-hours` y
+`GET /admin/schedule-blocks` no existían, aunque el contrato tipado del Bloque 0
+(`lib/api/admin-schedule.ts`) ya los llamaba — se cerró dentro del mismo bloque (repo→service→
+controller, sin lógica nueva, con tests). Detalle: `docs/stitch-implementation-workflow.md`,
+Piloto 8.
 
 **2026-07-30 — Cierre de Sprint 5.** Los 8 bloques (0, A-G) mergeados a `main` (PRs #52-56).
 Dos decisiones quedan fijadas para consulta futura:

@@ -87,7 +87,9 @@ frontpet/
 ├── backend/src/main/resources/db/migration/   Flyway
 ├── frontend/
 │   ├── app/(public)/  admin/(protected)/  admin/login/  api/   ((admin)/ es placeholder sin uso, ver ADR 006)
-│   ├── components/ui/  public/  admin/
+│   │                  Rutas de booking (Sprint 6): /servicos, /agendamento, /agendamento/[publicId],
+│   │                  /admin/agendamentos, /admin/servicos
+│   ├── components/ui/  public/  public/booking/ (wizard, Sprint 6)  admin/
 │   └── lib/            api client, hooks; datos en lib/data/
 ├── docs/               ADRs, design-system.md, db-model.png, next16-notes.md,
 │                       stitch-implementation-workflow.md, port-landing-stitch.md,

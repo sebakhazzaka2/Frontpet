@@ -4,48 +4,70 @@
 > (permanente) ni ROADMAP.md (planificado). Si algo de acá deja de cambiar, se promueve
 > a uno de esos dos o a un ADR; si es una decisión sin tomar, va a `pending-decisions.md`.
 
-**Última actualización**: 2026-08-01
+**Última actualización**: 2026-08-03
 
 ---
 
 ## Verdad actual
 
-- Branch activa: `main` (`feat/sprint6-contract` y `feat/booking-admin-manual` ya mergeadas,
-  PRs #65 y #67)
-- Sprint 5 (booking backend) **cerrado** 2026-07-30 — corrió ~26,5 hs vs 19 estimadas (ver
-  Registro de decisiones de plan en ROADMAP.md)
-- Sprint 6 (booking frontend + admin de agendamentos, ~16 hs) **en curso**:
-  - ✅ Capa de contrato `frontend/lib/api/{admin-appointments,admin-schedule,appointments,availability,services}.ts`
-    tipada contra los DTOs reales (ADR 013)
-  - ✅ ADR 021 (turno manual admin) y ajuste de ADR 008
-  - ✅ Backend del turno manual admin: `POST /api/v1/admin/appointments` (política de ADR 021 —
-    salta la grilla de slots, avisa en vez de bloquear por capacidad/día bloqueado) + listado
-    admin por rango `desde`/`hasta` (commit `74abdd9`, PR #67). Cierra `pending-decisions.md` §10
-  - ⏳ Falta todo lo de UI: wizard `/agendamento` (6.1-6.4), pantalla de confirmación (6.5),
-    vista de turnos del día/7 días y acciones Confirmar/Cancelar en admin (6.6-6.7) — no hay
-    rutas `/agendamento` ni de turnos en `frontend/app/admin` todavía, solo el backend y la
-    capa de contrato están listos
-- Migración de DB recién reparada: `tempo_extra` en `appointments` (drift entre V3 y un
-  volumen local desactualizado) — resuelto en el commit `7128ba0`, no debería volver a
-  aparecer salvo que alguien reviva un volumen Docker viejo
+- Branch activa: `main`, todo mergeado — `feat/admin-services` (PR #71) fue la última rama
+  de código del sprint.
+- **Sprint 6 (booking frontend + admin de agendamentos) cerrado 2026-08-03.** Los 8 bloques
+  (0, A-G) mergeados a `main` (PRs #65-#71 + este cierre documental). Corrió ~27-30 hs vs las
+  16 hs que estimaba el ROADMAP original (~2x) — ver Registro de decisiones de plan en
+  ROADMAP.md. **Hito alcanzado: primera reserva online posible.**
+  - Único pendiente explícito del sprint: validación visual real a 320/768/1024px y prueba
+    en celular de `/admin/servicos` — Sebastián decidió diferirla a un pase de polish de UI
+    posterior, no perderla. El resto de las 8 pantallas (`/servicos`, wizard completo,
+    `/admin/agendamentos`) ya está validado.
+  - Durante el Bloque F apareció y se cerró un hueco de backend no anticipado: `GET
+    /admin/services`, `GET /admin/business-hours` y `GET /admin/schedule-blocks` no
+    existían pese a que el contrato tipado del Bloque 0 ya los llamaba.
+- `pending-decisions.md` §10 (bloqueo de día vs. rango horario) quedó **resuelto
+  parcialmente**: la mitigación (turno manual + bloqueo de día) ya es usable end-to-end
+  desde el admin, verificado por API. La limitación de schema en sí (solo día completo, no
+  rango horario) sigue vigente y no está en el alcance de ningún sprint actual.
+- `docs/stitch-implementation-workflow.md` tiene los 8 pilotos documentados (1-8) — todas
+  las pantallas de Sprint 2-6 portadas hoy están registradas ahí con sus desvíos.
 
 ## Restricciones vigentes (no permanentes — revisar cada sprint)
 
-- Todo corre en localhost; sin infra comprada (gateado a Sprint Despliegue, post Sprint 4+5)
-- Bloque B del roadmap tiene solo ~3,5 hs de slack — cualquier desborde en Sprint 6/7/8 le
-  pega directo a la entrega del 30/09
+- Todo corre en localhost; sin infra comprada (gateado a Sprint Despliegue).
+- **Sprint Despliegue sigue sin ejecutarse** y tiene que cerrar antes del 05/09 con hasta
+  48 hs de propagación DNS — la ventana se está achicando. La conversación de pago con el
+  cliente (necesaria para autorizar la compra de infra) tiene que salir ya, no a fin de
+  agosto.
+- Presupuesto de horas restante según ROADMAP: Sprints 4, 5 y 6 corrieron todos por encima
+  de su estimado (+18%, +40%, ~+2x respectivamente) — el patrón es consistente: los sprints
+  con más superficie nueva de UI/admin se subestiman. Vale aplicar el mismo criterio de
+  auditoría previa (como se hizo con el plan de Sprint 6) antes de arrancar Sprint 7.
 
-## Deuda documental conocida
+## Deuda técnica y documental conocida
 
-- Paleta de colores en `globals.css` (`@theme`) son placeholders — pendiente confirmación
-  del cliente (no bloquea desarrollo, cambiarla es tocar 1 archivo)
-- `docs/ui/` es un export de Stitch viejo y stale — no portar desde ahí, solo mirar `screen.png` offline
-- `docs/learnings.md` está gitignored — no es fuente de verdad compartida, vive solo local
+- **`V5__seed_dev.sql` dice "não executar em produção" pero nada lo impide de verdad**
+  (`pending-decisions.md` §4) — detectada en Sprint 3, **sigue sin resolver 4 sprints
+  después** y impacta directo al Sprint Despliegue. Candidata real a resolverse antes de
+  ese sprint, no después.
+- Tercera copia del rate limit (login/orders/appointments) sin unificar
+  (`pending-decisions.md` §9) — diferida a propósito a Sprint 7, que es el próximo. Vale
+  confirmar que entra en su alcance real y no se vuelve a diferir.
+- `SERVICES_PREVIEW` (landing) es estático y no refleja cambios hechos vía
+  `/admin/servicos` (`pending-decisions.md` §14, nueva esta sesión) — deuda baja, candidata
+  para cuando se generalice el swap estático→API de la home.
+- `<ManualAppointmentDialog>` usa inputs nativos `type="date"`/`type="time"` sin picker
+  propio (`pending-decisions.md` §13) — estético, no bloqueante.
+- Hero del wizard de agendamento necesita estética propia, no genérica
+  (`pending-decisions.md` §12) — pendiente de referencia de diseño.
+- Paleta de colores en `globals.css` (`@theme`) siguen siendo placeholders — pendiente
+  confirmación del cliente.
+- `docs/ui/` es un export de Stitch viejo y stale — no portar desde ahí.
+- `docs/learnings.md` está gitignored — no es fuente de verdad compartida.
 
 ## Cola activa / bloqueado por
 
-- Nada bloqueado hoy. Próximo punto de decisión externa: acuerdo por escrito del cliente
-  para el hito de cobro del 05/09 (necesario a mediados de agosto, ver ROADMAP.md)
+- Nada bloqueado técnicamente hoy. Punto de decisión externa más urgente: acuerdo por
+  escrito del cliente para el hito de cobro del 05/09 — necesario ya, no a mediados de
+  agosto (esa ventana ya pasó).
 - Ver `docs/pending-decisions.md` para el detalle completo de lo que sigue sin resolver.
 
 ## Regla de actualización

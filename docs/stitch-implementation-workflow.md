@@ -1,7 +1,7 @@
 # Pipeline Stitch → Implementación
 
-**Fecha**: 2026-07-27
-**Estado**: en validación — piloto: Detalhe do Produto (tarea 3.9)
+**Fecha**: 2026-07-27 (última actualización: 2026-08-03, Piloto 8)
+**Estado**: validado — 8 pilotos portados, ver §4 Historial de pilotos
 
 Este documento es el pipeline reusable para portar una pantalla de Stitch a un componente
 real del repo. Nace después de portar la Landing (Sprint 2: Hero, TrustBar, ServiceCard,
@@ -128,6 +128,9 @@ existentes, no instalar dependencias) están en el comando mismo.
 | Gestão de Pedidos (tarea 4.14) | `feat/admin-orders` | portado — sidebar ya existía, ver Piloto 4 |
 | Serviços (Imagens Sincronizadas) (issue #59, Bloque B Sprint 6) | `feat/servicos-page` | portado — datos reales via GET /services, 3 desvios resueltos (WhatsApp CTA→/agendamento por ADR 008, FAQ reducido a 3/5 confirmables, info strip a 2 items), validación visual pendiente (sin extensión de Chrome disponible en la sesión) |
 | Agendamento Passos 1-2 (tareas 6.1-6.3) | `feat/agendamento-wizard` | portado — ver Piloto 5 |
+| Agendamento Passo 3 + Confirmação (issue #61, Bloque D Sprint 6) | `feat/agendamento-wizard` | portado — ver Piloto 6 |
+| Gestão de Agendamentos, Vista Semanal (issue #62, Bloque E Sprint 6) | `feat/admin-agendamentos` | portado — ver Piloto 7 |
+| Gestão de Serviços, Admin Interativo (issue #63, Bloque F Sprint 6) | `feat/admin-services` | portado — ver Piloto 8 |
 
 ### Piloto 1 — Detalhe do Produto (2026-07-27)
 
@@ -250,3 +253,87 @@ dibuja como `<div id="step-N">` con `display:none`, dentro de la misma card. Se 
 - **Íconos nuevos que NO salen de Stitch** (`CalendarX2` en el estado vacío, `RefreshCw` en
   el de error): son estados que el mock no dibuja, así que no van a la tabla de mapeo
   Material Symbols → lucide. `check` → `Check` sí se agregó a esa tabla (lo usa el stepper).
+
+### Piloto 6 — Agendamento, Passo 3 + Confirmação (Sprint 6, Bloque D, 2026-08-01)
+
+Continuación del Piloto 5: "Passo 3 (Fluxo Interno)" y "Confirmação (Fluxo Interno)" son
+variantes de estado del mismo `<BookingWizard>`, no ports aparte — mismo criterio de Etapa 0.
+
+- **Submit interno directo, sin WhatsApp** (D2 del plan de Sprint 6, ya resuelto en Stitch
+  antes de codear): `<BookingForm>` es RHF + `zodResolver`, mismo patrón de
+  `checkout-form.tsx` — el botón "Confirmar agendamento" llama `POST /appointments`, ningún
+  `wa.me` en el flujo (ADR 008).
+- **`409` (cupo agotado) vuelve al Passo 2**, no deja al usuario en un form muerto: otro
+  cliente puede haber reservado el mismo horário mientras este completaba el form — el
+  wizard recarga la grilla y vuelve un paso (AC de la issue #61).
+- **`429`** muestra el tiempo de espera (`Retry-After` del rate limit, 5.8) en vez de un
+  error genérico.
+- **Código de reserva legible**: `bookingCode()` toma los **últimos 6** caracteres del
+  `publicId` (UUID v7) en mayúscula — no un contador secuencial nuevo, no hay campo para eso
+  en el DTO real.
+- **Sin botón de soporte por WhatsApp en la confirmação**: verificado contra el diseño real
+  de Stitch (nota de D2 del plan) — Sebastián confirmó portar tal cual, sin agregar UI que
+  el mock no dibuja.
+- `GET /appointments/{publicId}` es público y puede devolver `404` real (`publicId`
+  inexistente) — a diferencia de `createAppointment`, que nunca da 404. La page es Server
+  Component por eso (`notFound()` de Next).
+
+### Piloto 7 — Gestão de Agendamentos, Vista Semanal (Sprint 6, Bloque E, 2026-08-01)
+
+Port de `<AppointmentList>` + `<AppointmentDetailPanel>` + `<ManualAppointmentDialog>`
+(issue #62). Mismo esqueleto que `<OrderList>` (Piloto 4): TanStack Query, split 60/40
+desktop, `<Sheet>` en mobile — pero agrupado por día en vez de lista plana, siguiendo el mock.
+
+- **Un solo fetch de la ventana de 7 días sin filtro de status**: el filtro de las tabs
+  (Pendentes/Confirmados/Cancelados) y el toggle "Hoje/Próximos 7 dias" se aplican
+  client-side sobre los mismos datos — evita 4 round-trips por cambio de tab.
+- **Sin el estado "FECHADO" que el mock dibuja para domingo**: al portar no existía un
+  endpoint que expusiera `business_hours` al admin — gap real, cerrado recién en el Bloque F
+  (`GET /admin/business-hours`). Queda como deuda de UI menor, no bloqueante: el admin igual
+  ve los agendamentos reales de cada día, solo no distingue visualmente "domingo cerrado".
+- **"+ Novo agendamento" (`<ManualAppointmentDialog>`)**: no valida contra la grilla de
+  slots ni llama a `/availability` antes del submit — el admin puede tipear cualquier
+  horário (ADR 021); el backend resuelve preço/duração server-side y devuelve `avisos` si
+  supera capacidad/grilla/día bloqueado, sin bloquear la creación.
+- **Inputs nativos `type="date"`/`type="time"`** en el form manual, sin picker propio —
+  deuda anotada en `pending-decisions.md` §13, no bloqueante.
+- Botão verde de WhatsApp usa los templates de `lib/whatsapp/templates.ts` (ADR 010),
+  ya versionados por status — no texto hardcodeado en el componente.
+
+### Piloto 8 — Gestão de Serviços, Admin Interativo (Sprint 6, Bloque F, 2026-08-03)
+
+HTML crudo descargado y leído directo (misma disciplina de los pilotos anteriores). Port de
+`<ServicesManager>` con dos tabs, `<ServiceEditDialog>`, `<BusinessHoursForm>` y
+`<ScheduleBlocksPanel>` (issue #63).
+
+- **Contadores "32 esta semana" por serviço**: se cortan enteros. Son métrica analítica,
+  prohibida en el admin de MVP1 (ADR 003/008, decisión D5 del plan de Sprint 6).
+- **Nome SÍ editable**, al revés de lo que dibuja el mock (`disabled`, con nota "fale com o
+  suporte técnico" para cambiarlo): el DTO real (`UpdateServiceRequest`) acepta `nome` y el
+  AC de la issue #63 pide explícitamente poder editarlo. Se sigue el DTO/AC, no el mock.
+- **"Categoria" y "O que inclui" del modal**: se cortan. Ningún DTO real tiene esos campos
+  — agregarlos sería inventar estructura de backend (mismo criterio del Piloto 4 con
+  SKU/Tags en Gestão de Produtos).
+- **Grilla de 4 portes reemplaza los inputs únicos "Duração"/"Preço Base" del mock**: el
+  modelo real tiene preço y duração por porte P/M/G/GG (ADR 011), no un valor único por
+  serviço — la estructura del form tiene que reflejar eso, no lo que Stitch dibuja para un
+  modelo de precio simple.
+- **Una sola pausa opcional por día** ("Intervalo de almoço"), no el "+ Adicionar intervalo"
+  (N ilimitado) que dibuja Stitch (decisión D6 del plan) — el schema de `business_hours`
+  solo soporta `pausaInicio`/`pausaFin`, un cambio a N intervalos exigiría migración +
+  rehacer el cálculo de slots del ADR 020, fuera de escopo.
+- **Sin foto real en los cards**: `ServiceOfferingDetail` no tiene campo de imagen —
+  patrón `Scissors` sobre `bg-surface`, mismo criterio que `product-card`/`service-card`
+  sin foto.
+- **Toggle activo/inactivo en el card** llama `PUT` directo (reenviando el pricing actual
+  sin cambios), sin abrir el modal — atajo que el propio mock dibuja.
+- **Hueco de backend encontrado y cerrado en este bloque**: `GET /admin/services`,
+  `GET /admin/business-hours` y `GET /admin/schedule-blocks` no existían — el frontend
+  (`lib/api/admin-schedule.ts`, escrito en el Bloque 0) ya los llamaba, pero el backend
+  solo tenía PUT/POST/DELETE. Agregados repo→service→controller, sin lógica nueva, con
+  tests de integración (auth/happy-path/tenant-scoping).
+- **Verificación end-to-end vía API** (backend real, sin extensión de Chrome disponible al
+  momento del port): cambiar el preço de un porte se reflejó al instante en `GET /services`
+  público y en `GET /availability`; crear un bloqueio de día devolvió
+  `indisponibilidade: BLOQUEADO` para esa fecha en el wizard. Validación visual a
+  320/768/1024px y prueba en celular real diferidas al Bloque G (cierre del sprint).

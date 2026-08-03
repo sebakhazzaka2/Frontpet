@@ -24,6 +24,7 @@ Catálogo de banhos base + adicionais, con tarifa por porte. Sin autenticación.
     "type": "BASE",
     "nome": "Banho Essencial",
     "descricao": "Limpeza completa, secagem profissional e perfume.",
+    "active": true,
     "pricing": [
       { "size": "P", "price": 49.00, "durationMinutes": 45 },
       { "size": "M", "price": 59.00, "durationMinutes": 60 },
@@ -36,6 +37,7 @@ Catálogo de banhos base + adicionais, con tarifa por porte. Sin autenticación.
     "type": "ADDON",
     "nome": "Tosa Higiênica",
     "descricao": "Aparação das áreas íntimas, patas e focinho.",
+    "active": true,
     "pricing": [
       { "size": "P", "price": 15.00, "durationMinutes": 15 }
     ]
@@ -43,7 +45,7 @@ Catálogo de banhos base + adicionais, con tarifa por porte. Sin autenticación.
 ]
 ```
 
-Solo `active = true`. El admin edita estos valores (5.7); nunca crea/borra (ADR 009).
+Solo `active = true`. El admin edita estos valores (Bloque F, Sprint 6); nunca crea/borra (ADR 009).
 
 ### `GET /api/v1/availability?baseServiceId=&porte=&addonIds=&data=`
 
@@ -243,6 +245,11 @@ Response — recalcula duración (nunca precio, ADR 011), avisa sin bloquear si 
 
 `aviso: null` si no hay solapamiento nuevo.
 
+### `GET /admin/services` — todos, incluidos los inativos (Bloque F, Sprint 6)
+
+Mismo shape que el `GET /api/v1/services` público, pero sin filtrar `active` — el admin
+necesita poder ver y reactivar los serviços desativados.
+
 ### `PUT /admin/services/{id}` — solo edición (405 en POST/DELETE, ADR 009)
 
 ```json
@@ -259,6 +266,11 @@ Response — recalcula duración (nunca precio, ADR 011), avisa sin bloquear si 
 }
 ```
 
+### `GET /admin/business-hours` — los 7 días existentes (Bloque F, Sprint 6)
+
+Mismo shape del array que devuelve el `PUT` de abajo, ordenado por `diaSemana` — necesario
+para prellenar el form de horários del admin.
+
 ### `PUT /admin/business-hours` — upsert de los 7 días
 
 ```json
@@ -270,6 +282,14 @@ Response — recalcula duración (nunca precio, ADR 011), avisa sin bloquear si 
 
 Validación server-side en PT-BR: `abertura < fechamento`, pausa coherente si viene.
 
+### `GET /admin/schedule-blocks` — bloqueios existentes, ordenados por `dataDesde` (Bloque F, Sprint 6)
+
+```json
+[{ "id": 1, "dataDesde": "2026-09-07", "dataHasta": "2026-09-07", "motivo": "Feriado — Independência" }]
+```
+
+Necesario para listar los bloqueios en el admin y poder borrarlos por `id`.
+
 ### `POST /admin/schedule-blocks` / `DELETE /admin/schedule-blocks/{id}`
 
 ```json
@@ -277,7 +297,7 @@ Validación server-side en PT-BR: `abertura < fechamento`, pausa coherente si vi
 ```
 
 ⚠️ Bloqueo por **día completo**, no por rango horario (ADR 020 — limitación conocida, mitigación
-real es el turno manual del admin, diferido a Sprint 6).
+real es el turno manual del admin, implementado en Sprint 6 — ver `pending-decisions.md` §10).
 
 ---
 

@@ -235,23 +235,27 @@ para un cuarto caso de uso, es el momento de extraer un limitador genérico por 
 
 ---
 
-## 10. `schedule_blocks` bloquea el día completo, no por rango horario
+## 10. `schedule_blocks` bloquea el día completo, no por rango horario — RESUELTO parcialmente (2026-08-03, Bloques E/F, Sprint 6)
 
-**Estado**: limitación de schema sigue vigente (no se replanteó — ver ADR 021, alternativa
-descartada "extender `schedule_blocks` a rango horario"). La mitigación (turno manual del
-admin) tiene su **backend ya implementado** (2026-08-01, `POST /api/v1/admin/appointments`,
-ADR 021, commit `74abdd9`) pero **todavía no es usable**: no existe UI de admin para cargarlo
-(tareas 6.6/6.7 del ROADMAP, Sprint 6, pendientes).
+**Estado**: la limitación de schema **sigue vigente** (no se replanteó — ver ADR 021,
+alternativa descartada "extender `schedule_blocks` a rango horario"), pero la mitigación **ya
+es usable end-to-end**: turno manual (`POST /api/v1/admin/appointments`, backend desde
+2026-08-01, ADR 021, commit `74abdd9`; UI desde Bloque E, `<ManualAppointmentDialog>`) y
+bloqueo de día completo desde el admin (`<ScheduleBlocksPanel>`, Bloque F, issue #63) ya están
+ambos accesibles desde `/admin/agendamentos` y `/admin/servicos` respectivamente. Verificado
+end-to-end el 2026-08-03: crear un bloqueo de día en el admin → el wizard público devuelve
+`indisponibilidade: BLOQUEADO` para esa fecha.
 
 El ADR 012 pedía poder bloquear *horarios* puntuales ocupados por otros canales (teléfono,
 local, ERP) mientras el negocio ya está operando en paralelo a la web. El esquema real
 (`V3__booking.sql`) solo permite bloquear el **día entero** (`data_desde`/`data_hasta`).
 
-**Dónde impacta**: hasta que la UI de Sprint 6 (6.6/6.7) cierre, si el cliente empieza a
-operar con reservas por teléfono la disponibilidad web puede **sobre-ofertar** (mostrar libre
-un horario que en la realidad ya está ocupado por un turno tomado por otro canal). Avisar a
-Sebastián si eso pasa — el bloqueo de día completo sigue siendo el único paliativo accesible
-desde el admin hoy.
+**Dónde impacta hoy**: si el cliente toma una reserva puntual por teléfono para un horario
+suelto (no el día entero), la disponibilidad web puede **sobre-ofertar** ese horario — el
+paliativo real para ese caso puntual es el turno manual (ocupa el cupo real), no el bloqueo de
+día. El bloqueo de día completo sigue siendo la única herramienta para "no tomamos reservas
+este día" (feriado, cierre excepcional). Replantear el schema a rango horario sigue siendo
+trabajo de un sprint futuro si el negocio real lo necesita.
 
 ---
 
