@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,6 +32,16 @@ import java.util.List;
 public class AdminScheduleController {
 
     private final ScheduleService scheduleService;
+
+    @GetMapping("/business-hours")
+    public List<BusinessHoursDetail> listBusinessHours(@AuthenticationPrincipal AdminUser admin) {
+        return scheduleService.listBusinessHours(admin.getTenantId());
+    }
+
+    @GetMapping("/schedule-blocks")
+    public List<ScheduleBlockDetail> listScheduleBlocks(@AuthenticationPrincipal AdminUser admin) {
+        return scheduleService.listScheduleBlocks(admin.getTenantId());
+    }
 
     @PutMapping("/business-hours")
     public List<BusinessHoursDetail> upsertBusinessHours(@AuthenticationPrincipal AdminUser admin,

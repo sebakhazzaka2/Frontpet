@@ -7,11 +7,14 @@ import com.frontpet.identity.domain.AdminUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Admin de serviços (tarea 5.7, Bloque G). Protegido por
@@ -30,6 +33,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminServiceController {
 
     private final ServiceCatalogService serviceCatalogService;
+
+    @GetMapping
+    public List<ServiceOfferingDetail> list(@AuthenticationPrincipal AdminUser admin) {
+        return serviceCatalogService.listAll(admin.getTenantId());
+    }
 
     @PutMapping("/{id}")
     public ServiceOfferingDetail update(@AuthenticationPrincipal AdminUser admin,

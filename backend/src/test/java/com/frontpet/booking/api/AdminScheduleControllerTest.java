@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,6 +68,49 @@ class AdminScheduleControllerTest extends AbstractIntegrationTest {
                         .contentType("application/json")
                         .content(validBusinessHoursBody()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /business-hours sin cookie JWT devuelve 401")
+    void listBusinessHoursRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/business-hours"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /business-hours devuelve lo que persistió el PUT, ordenado por diaSemana")
+    void listsBusinessHoursAfterUpsert() throws Exception {
+        mockMvc.perform(put("/api/v1/admin/business-hours")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content(validBusinessHoursBody()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/admin/business-hours")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[0].diaSemana").value(1))
+                .andExpect(jsonPath("$[1].diaSemana").value(7));
+    }
+
+    @Test
+    @DisplayName("GET /schedule-blocks lista los bloqueios creados, ordenados por dataDesde")
+    void listsScheduleBlocks() throws Exception {
+        String createBody = """
+                { "dataDesde": "2026-09-07", "dataHasta": "2026-09-07", "motivo": "Feriado — Independência" }
+                """;
+        mockMvc.perform(post("/api/v1/admin/schedule-blocks")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin))
+                        .contentType("application/json")
+                        .content(createBody))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/admin/schedule-blocks")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].motivo").value("Feriado — Independência"));
     }
 
     @Test

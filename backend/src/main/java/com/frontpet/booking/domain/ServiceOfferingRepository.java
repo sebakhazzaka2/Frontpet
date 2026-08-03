@@ -10,6 +10,8 @@ public interface ServiceOfferingRepository extends JpaRepository<ServiceOffering
 
     List<ServiceOffering> findByTenantIdAndActiveTrue(UUID tenantId);
 
+    List<ServiceOffering> findByTenantIdOrderByTypeAscNomeAsc(UUID tenantId);
+
     Optional<ServiceOffering> findByIdAndTenantId(Long id, UUID tenantId);
 
     Optional<ServiceOffering> findByIdAndTenantIdAndType(Long id, UUID tenantId, ServiceType type);

@@ -85,6 +85,22 @@ public class ScheduleServiceImpl implements ScheduleService {
         scheduleBlockRepository.delete(block);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<BusinessHoursDetail> listBusinessHours(UUID tenantId) {
+        return businessHoursRepository.findByTenantIdOrderByDiaSemana(tenantId).stream()
+                .map(this::toDetail)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ScheduleBlockDetail> listScheduleBlocks(UUID tenantId) {
+        return scheduleBlockRepository.findByTenantIdOrderByDataDesde(tenantId).stream()
+                .map(this::toDetail)
+                .toList();
+    }
+
     private void validateNoDuplicateDias(List<UpsertBusinessHoursRequest> requests) {
         Set<Short> seen = new HashSet<>();
         for (UpsertBusinessHoursRequest request : requests) {
