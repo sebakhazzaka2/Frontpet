@@ -19,6 +19,17 @@ export interface UpdateServiceRequest {
   pricing: ServicePricingRequest[]
 }
 
+// GET /admin/services — todos os serviços, incluídos os inativos (o admin
+// precisa poder reativá-los). Distinto de `listServices` de `./services.ts`,
+// que é o catálogo público (`active=true` apenas).
+export async function listAdminServices() {
+  const response = await apiFetch<ServiceOfferingDetail[]>('/admin/services')
+  if (!response) {
+    throw new Error('GET /admin/services no debería devolver 404')
+  }
+  return response
+}
+
 export async function updateService(id: number, request: UpdateServiceRequest) {
   const response = await apiFetch<ServiceOfferingDetail>(`/admin/services/${id}`, {
     method: 'PUT',

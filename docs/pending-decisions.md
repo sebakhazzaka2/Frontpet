@@ -316,3 +316,25 @@ Stitch o una decisión de qué componente usar (¿extender algo de `components/u
 uno, revisando primero si vainilla alcanza, CLAUDE.md §6?). Candidato natural: reusar/adaptar
 el `date-strip` que el wizard público (Bloque C, `feat/agendamento-wizard`) esté construyendo,
 si termina siendo genérico.
+
+## 14. `SERVICES_PREVIEW` (home) no se entera si el admin edita serviços
+
+**Estado**: deuda baja anotada 2026-08-03 (Bloque F, issue #63), no bloquea el sprint.
+
+`frontend/lib/data/services.ts` (`SERVICES_PREVIEW`) es dato estático de la landing (Sprint 2,
+ADR 017 — home frontend-first) con nome/preço/duração de "Banho Essencial"/"Banho Premium"
+copiados a mano del seed de julio. Con el Bloque F, `/admin/servicos` ya permite editar nome
+y preço de esos mismos serviços vía `PUT /admin/services/{id}` — pero ese cambio solo se
+refleja en `/servicos` (público), el wizard de agendamento y el propio admin, que leen
+`GET /api/v1/services` en vivo. La home sigue mostrando el valor hardcodeado hasta que alguien
+edite `services.ts` a mano.
+
+**Por qué no se resolvió ahora**: no es parte del AC del Bloque F (que es CRUD de admin, no la
+home) y conectar la home a datos reales es una decisión de scope aparte (¿Server Component con
+`GET /services` en vivo? ¿revalidate?), no algo para resolver de apuro acá.
+
+**Dónde impacta**: si el admin renombra o cambia el precio base de un banho, la sección
+"Serviços" de la home (`/`, 3 cards) puede quedar desactualizada respecto al resto del sitio
+hasta que se actualice `services.ts` a mano. Candidato natural para cuando se generalice el
+swap estático→API de la home (mismo criterio que ya se usó para `/servicos` y el catálogo de
+produtos).
