@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -91,6 +92,31 @@ class AdminServiceControllerTest extends AbstractIntegrationTest {
                         .contentType("application/json")
                         .content(validUpdateBody()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET sin cookie JWT devuelve 401")
+    void listRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/services"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET devuelve todos los serviços, incluidos los inactivos")
+    void listsAllServicesIncludingInactive() throws Exception {
+        ServiceOffering inactiveService = new ServiceOffering();
+        inactiveService.setTenantId(tenantId);
+        inactiveService.setType(ServiceType.ADDON);
+        inactiveService.setNome("Hidratação");
+        inactiveService.setDescricao("Descrição.");
+        inactiveService.setActive(false);
+        serviceOfferingRepository.save(inactiveService);
+
+        mockMvc.perform(get("/api/v1/admin/services")
+                        .with(SecurityMockMvcRequestPostProcessors.user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[?(@.active == false)]", org.hamcrest.Matchers.hasSize(1)));
     }
 
     @Test

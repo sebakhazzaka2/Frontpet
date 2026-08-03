@@ -37,4 +37,10 @@ public interface ScheduleService {
 
     /** @throws ScheduleBlockNotFoundException se o bloqueio não existe ou não pertence ao tenant */
     void deleteScheduleBlock(UUID tenantId, Long id);
+
+    /** Los 7 días existentes, ordenados por {@code diaSemana} ISO (1=Lun..7=Dom). */
+    List<BusinessHoursDetail> listBusinessHours(UUID tenantId);
+
+    /** Bloqueios ordenados por {@code dataDesde}, para poder listarlos y borrarlos. */
+    List<ScheduleBlockDetail> listScheduleBlocks(UUID tenantId);
 }

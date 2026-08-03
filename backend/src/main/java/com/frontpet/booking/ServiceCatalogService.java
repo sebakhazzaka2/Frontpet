@@ -29,4 +29,10 @@ public interface ServiceCatalogService {
      * {@code docs/booking-api-contracts.md}, sección {@code GET /api/v1/services}).
      */
     List<ServiceOfferingDetail> listActive(UUID tenantId);
+
+    /**
+     * Catálogo admin — todos los serviços, incluidos {@code active = false}
+     * (el admin necesita poder reactivarlos, ADR 009).
+     */
+    List<ServiceOfferingDetail> listAll(UUID tenantId);
 }

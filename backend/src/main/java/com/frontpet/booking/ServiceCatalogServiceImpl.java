@@ -59,6 +59,14 @@ public class ServiceCatalogServiceImpl implements ServiceCatalogService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ServiceOfferingDetail> listAll(UUID tenantId) {
+        return serviceOfferingRepository.findByTenantIdOrderByTypeAscNomeAsc(tenantId).stream()
+                .map(this::toDetail)
+                .toList();
+    }
+
     private ServiceOfferingDetail toDetail(ServiceOffering service) {
         List<ServicePricingDetail> pricing = service.getPricing().stream()
                 .map(p -> new ServicePricingDetail(p.getSize(), p.getPrice(), p.getDurationMinutes()))

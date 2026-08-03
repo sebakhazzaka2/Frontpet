@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface BusinessHoursRepository extends JpaRepository<BusinessHours, Long> {
 
-    List<BusinessHours> findByTenantId(UUID tenantId);
+    List<BusinessHours> findByTenantIdOrderByDiaSemana(UUID tenantId);
 
     Optional<BusinessHours> findByTenantIdAndDiaSemana(UUID tenantId, Short diaSemana);
 }
