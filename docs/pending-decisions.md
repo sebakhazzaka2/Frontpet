@@ -342,3 +342,116 @@ home) y conectar la home a datos reales es una decisión de scope aparte (¿Serv
 hasta que se actualice `services.ts` a mano. Candidato natural para cuando se generalice el
 swap estático→API de la home (mismo criterio que ya se usó para `/servicos` y el catálogo de
 produtos).
+
+---
+
+## 15. `REVIEWS` y `TrustBar` muestran contenido inventado como si fuera real
+
+**Estado**: detectado 2026-08-03 en auditoría de release (`/release-check`). **Es el único
+hallazgo abierto con consecuencia externa al repo — hay que decidirlo antes del Sprint
+Despliegue, no después.**
+
+`frontend/lib/data/reviews.ts` tiene 3 testimonios con **personas que no existen** ("Mariana
+L., Tutora do Thor", "Ricardo S., Tutor do Duke", "Fabiana M., Tutora da Mel") y textos de
+elogio atribuidos a ellas. `frontend/components/public/trust-bar.tsx` afirma **"4.9 Avaliação
+Média"** y **"500+ Pets Atendidos"** — dos métricas que no salen de ninguna fuente: no hay
+tabla de reviews (ADR 013 no la define) ni conteo real de atendimentos.
+
+Los comentarios del código documentan bien que son datos **estáticos** y por qué (ADR 017,
+home frontend-first; reviews dinámicas son Fase 2). Lo que **ningún doc registraba** es que
+además son **falsos**, y que eso deja de ser un detalle de implementación en el momento en
+que el sitio es público y comercial.
+
+**Por qué importa acá y no es purismo**: el sitio va a producción a nombre de un negocio real
+en Brasil. Testimonios inventados y métricas infladas son publicidade enganosa (CDC art. 37) —
+el expuesto es FrontPet, no el dev. Y a diferencia de las fotos placeholder (que se ven como
+placeholder), esto es indistinguible de contenido genuino para quien lo lee.
+
+**Opciones**:
+1. **Pedirle testimonios reales al cliente** (tiene Instagram con comentarios de clientes —
+   fuente natural, con permiso). Ver `preguntas-cliente.md` §6.5. Es la opción que conserva
+   la sección.
+2. **Sacar la sección** `<Reviews>` y las dos métricas numéricas de `<TrustBar>`, dejando solo
+   claims verificables ("Atenção personalizada" ya lo es). Reversible: cuando lleguen
+   testimonios reales, la sección vuelve.
+
+**Recomendación**: pedir los reales (opción 1) y tener la 2 como fallback si no llegan antes
+del deploy — el deploy no debería esperar por esto, pero tampoco salir con lo inventado.
+
+**Dónde impacta**: bloquea el Sprint Despliegue (checklist D.10 del ROADMAP), no el desarrollo.
+
+---
+
+## 16. La modalidade Entrega/Retirada se reconstruye por string mágico en el frontend
+
+**Estado**: detectado 2026-08-03 en auditoría de release. Fix chico y cerrado, sin decisión
+de diseño pendiente — está acá para que no se pierda, no porque haya que debatirlo.
+
+ADR 003 (act. 2026-07-28) decidió que `modalidade` **no tiene columna propia**: vive en el DTO
+de entrada y `OrderServiceImpl` la mapea al persistir (`RETIRADA` → `enderecoEntrega =
+"Retirada na loja"`). Esa decisión está bien y no se discute acá.
+
+Lo que no se documentó es su **consecuencia del lado de la lectura**: `OrderDetail` tampoco
+expone `modalidade`, así que el frontend la **revierte comparando contra el literal**, en 4
+lugares:
+
+- `frontend/lib/whatsapp/templates.ts:48` (`modalidadeLabel`), `:57` (línea de endereço del
+  template PENDING), `:72` (previsão del template CONFIRMED)
+- `frontend/components/admin/order-detail-panel.tsx:63`
+
+El literal vive en `OrderServiceImpl.java:40` (`RETIRADA_ENDERECO`). Dos problemas concretos:
+
+1. **Falso positivo**: un cliente que elige ENTREGA y escribe exactamente "Retirada na loja"
+   en el campo de endereço queda etiquetado como retirada en el admin y en el WhatsApp que se
+   le manda. Improbable, pero el sistema no tiene forma de distinguirlo.
+2. **Acoplamiento silencioso**: cambiar ese literal en Java (o traducirlo, o corregirle un
+   acento) rompe los 4 puntos del frontend sin que falle ningún test — `OrderServiceIntegrationTest:80`
+   afirma el literal del lado backend, y del lado frontend nadie lo verifica.
+
+**Fix propuesto** (~30 min): agregar `modalidade` (`ModalidadeEntrega`) a `OrderDetail` — el
+dato ya existe en `CreateOrderRequest` y solo se pierde en la respuesta — y consumir ese campo
+en los 4 lugares en vez del string. No requiere migración: se deriva de `enderecoEntrega` en el
+mapeo a DTO, pero queda derivado **una sola vez y del lado que es dueño del literal**.
+
+**Dónde impacta**: nada bloqueado. Candidato a Sprint 7 junto con la unificación del rate
+limit (§9), o a cualquier hueco chico antes.
+
+---
+
+## 17. Valores arbitrarios de Tailwind en el código portado, y la tensión con shadcn
+
+**Estado**: detectado 2026-08-03 en auditoría de release. **La parte que necesita decisión es
+la excepción para shadcn**; el resto es limpieza mecánica.
+
+`CLAUDE.md` §5 y `design-system.md` §4 prohíben valores arbitrarios y exigen spacing en
+múltiplos de 4. `port-landing-stitch.md` §3 ya documentó los 65 arbitrarios **del mock de
+Stitch** (pre-porteo). Lo que no estaba medido es el **drift en el código ya portado**:
+
+- **51 ocurrencias** de arbitrarios tipo `h-[...]`, `text-[...]`, `shadow-[...]`, `max-w-[...]`,
+  concentradas en `components/public/hero.tsx` (10 — `h-[560px]`, `text-[15px]`, `h-[52px]`,
+  `shadow-[0_8px_20px_rgba(...)]`) y `components/public/hero-floating-cards.tsx` (6). El hero
+  es el peor caso del repo y el más visible.
+- **~20 spacings fuera de la escala de 4**: `py-1.5` (6px), `py-2.5` (10px), `py-0.5` (2px),
+  `pl-9` (36px) en `admin-sidebar.tsx:63-79`, `product-form-dialog.tsx`, `category-filter.tsx:23`,
+  `appointment-list.tsx:221`, `bottom-nav.tsx:47`.
+
+**La tensión real**: `py-1.5` / `px-2.5` son el idiom de **shadcn** — vienen así en los
+componentes generados y en los patrones que la comunidad copia. La regla de "solo múltiplos de
+4" choca de frente con eso cada vez que se instala o adapta un componente de `components/ui/`.
+Hoy se está resolviendo caso por caso y sin criterio explícito, que es exactamente cómo una
+regla se erosiona sin que nadie la derogue.
+
+**Opciones**:
+1. **Excepción documentada**: la escala de 4 aplica al código propio; los componentes de
+   `components/ui/*` (shadcn) conservan su spacing nativo. Se escribe en `design-system.md` §4
+   y deja de ser una violación cada vez.
+2. **Normalizar shadcn al instalarlo**: bajar `py-1.5` → `py-1`/`py-2` como ya se hace con los
+   radios (`design-system.md` §5 ya tiene ese precedente: "bajar sus radios un paso al
+   instalarlos"). Coherente con lo que el repo ya hace, pero es trabajo en cada instalación.
+
+**Recomendación**: opción 1 para spacing (el precedente del radius existe porque el radius es
+visible en la identidad de marca; 2px de padding no lo es), y limpiar aparte los arbitrarios de
+`hero.tsx`, que no tienen excusa de shadcn — son porteo directo de Stitch sin traducir.
+
+**Dónde impacta**: nada bloqueado. La limpieza del hero es candidata natural al pase de polish
+de UI ya diferido en `WORKING-CONTEXT.md`.

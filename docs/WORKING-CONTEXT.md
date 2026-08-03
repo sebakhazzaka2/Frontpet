@@ -44,6 +44,18 @@
 
 ## Deuda técnica y documental conocida
 
+- 🔴 **La landing publica testimonios inventados y métricas sin fuente** (`pending-decisions.md`
+  §15, detectado 2026-08-03 en `/release-check`) — nombres ficticios en `lib/data/reviews.ts`,
+  "4.9 Avaliação Média" y "500+ Pets Atendidos" en `<TrustBar>`. **Es el único hallazgo abierto
+  con consecuencia legal/reputacional para el cliente, y bloquea el Sprint Despliegue** (no el
+  desarrollo). Acción: pedir depoimentos reales (`preguntas-cliente.md` §6.5) o sacar las
+  piezas antes de exponer la URL. Está en el checklist D.10 del ROADMAP.
+- La modalidade Entrega/Retirada se reconstruye comparando contra el literal "Retirada na loja"
+  en 4 puntos del frontend (`pending-decisions.md` §16) — fix cerrado de ~30 min (exponer
+  `modalidade` en `OrderDetail`), candidato a Sprint 7.
+- 51 valores arbitrarios de Tailwind en código portado (peor caso: `hero.tsx`) y ~20 spacings
+  fuera de la escala de 4 (`pending-decisions.md` §17). La parte que **necesita decisión** es si
+  los componentes shadcn quedan exentos de la escala de 4 — hoy se resuelve caso por caso.
 - **`V5__seed_dev.sql` dice "não executar em produção" pero nada lo impide de verdad**
   (`pending-decisions.md` §4) — detectada en Sprint 3, **sigue sin resolver 4 sprints
   después** y impacta directo al Sprint Despliegue. Candidata real a resolverse antes de

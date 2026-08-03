@@ -266,6 +266,24 @@ _Bloquea_: copy de la landing (sección "Sobre nosotros", tagline, etc.).
 
 ---
 
+**6.5 — Depoimentos reais de clientes** ❌ PENDIENTE (agregada 2026-08-03)
+> No preguntada todavía.
+
+**Qué pedir**: 3 depoimentos reales, con nome (o inicial del apellido) y **permiso explícito
+para publicarlos en el sitio**. El Instagram del cliente ya tiene comentarios de tutores —
+esa es la fuente natural; alcanza con que confirme cuáles se pueden usar y cómo firmarlos.
+
+**Además**: ¿hay un número real de pets atendidos que se pueda afirmar? ¿Y una avaliação
+promedio con fuente verificable (Google, Instagram)?
+
+_Bloquea_: la sección `<Reviews>` y las métricas de `<TrustBar>` de la landing salen hoy con
+**contenido inventado** (nombres ficticios, "4.9 Avaliação Média", "500+ Pets Atendidos") —
+ver `pending-decisions.md` §15. Si no llegan datos reales antes del Sprint Despliegue, esas
+piezas se sacan del sitio en vez de salir en vivo con contenido falso. **No bloquea
+desarrollo, sí bloquea el deploy público.**
+
+---
+
 ## 7. Técnico y operativo
 
 **7.1 — Exportación de productos** ✅
@@ -327,6 +345,7 @@ Pedir el Pixel ID cuando llegue ese sprint — no bloquea ahora.
 | 6.3 | Fotos y textos de productos | Antes del Sprint Despliegue |
 | 6.4 | Copy de la landing ("sobre nosotros", tagline) | Antes del Sprint Despliegue |
 | 2.1 | Duraciones de banhos (estimados en V5) + precios de add-ons | ⚠️ **Venció sin respuesta** — Sprint 5 cerró (2026-07-30) con valores provisorios en `V10__seed_addons_dev.sql` (marcados como tales en su header). No bloqueó el código (ADR 011: el algoritmo es agnóstico a los valores), pero sigue bloqueando que el cliente pueda vender de verdad. Repreguntar ya — idealmente antes de cerrar Sprint 6, y obligatorio antes del hito de cobro del 05/09 |
+| 6.5 | **Depoimentos reales + permiso de publicación** (y números verificables para `<TrustBar>`) | ⚠️ **Antes del Sprint Despliegue, sin excepción** — hoy la landing publica testimonios inventados y métricas sin fuente (`pending-decisions.md` §15). Si no llegan, se sacan esas piezas antes de exponer la URL pública |
 | 8.1 | FAQ de `/servicos` (issue #59, Bloque B Sprint 6): 2 de las 5 preguntas del mock de Stitch no tenían contenido confirmable y quedaron fuera de la página — "¿Os produtos usados são seguros?" (marcas/hipoalergênico, sin fuente) y "¿Posso esperar pelo meu pet na loja?" (mencionaba "Wi-Fi e café", explícitamente cortado por el AC). También quedó afuera "formas de pagamento" (mencionaba parcelamento, no confirmado). Si el cliente confirma estos datos, se agregan a `FAQ_ITEMS` en `app/(public)/servicos/page.tsx` | Antes del Sprint Despliegue |
 
 ### A confirmar antes del deploy

@@ -294,7 +294,7 @@ Sigue corriendo en local — el despliegue es la siguiente etapa.
 
 ---
 
-## Sprint Despliegue (~10 hs, fecha flexible)
+## Sprint Despliegue (~10,5 hs, fecha flexible)
 
 **Objetivo**: comprar la infraestructura, configurar todo, **dejar lo construido hasta
 ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 semana sola.
@@ -315,7 +315,7 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 | D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
 | D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
 
-### Configuración y deploy (~7 hs)
+### Configuración y deploy (~7,5 hs)
 
 | # | Tarea | Hs |
 |---|-------|----|
@@ -324,6 +324,29 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 | D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
 | D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
 | D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 |
+| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 |
+
+#### D.10 — Checklist de contenido pre-público
+
+Cosas que hoy son placeholders inofensivos en `localhost` y dejan de serlo con una URL
+pública. Ninguna se detecta con `/security-review` ni con el DoD, por eso van listadas:
+
+- [ ] **Depoimentos y métricas reales o fuera** — `lib/data/reviews.ts` y `<TrustBar>` publican
+      hoy testimonios de personas inexistentes y "4.9 Avaliação Média" / "500+ Pets Atendidos"
+      sin fuente. Con datos reales del cliente (`preguntas-cliente.md` §6.5) se reemplazan; sin
+      ellos **se sacan**. Detalle y rationale: `pending-decisions.md` §15
+- [ ] **`metadataBase` / dominio real** en `app/layout.tsx:93` — hoy TODO con dominio
+      placeholder; afecta a todas las URLs absolutas de OG y canonical
+- [ ] **`/public/og-image.jpg` real** (1200x630) — `app/layout.tsx:63`, hoy sin imagen: los
+      links compartidos por WhatsApp salen sin preview
+- [ ] **Código de verificación de search console** — `app/layout.tsx:99`, hoy placeholder
+- [ ] **`themeColor` de `app/layout.tsx:117`** — hex hardcodeado (`#F8F9FF`) que la API
+      `Viewport` de Next no deja leer de `@theme`; si el cliente confirmó paleta (§6.1),
+      sincronizarlo a mano acá
+- [ ] **Número de WhatsApp definitivo** en el seed (`preguntas-cliente.md` §7.3) y en
+      `lib/data/site.ts` (hoy TODO)
+- [ ] **Fotos reales** de productos, serviços y hero (`preguntas-cliente.md` §6.3) — o asumir
+      explícitamente que se sale con los gradientes placeholder
 
 **Entregable**:
 - `https://frontpet.com` con landing + catálogo en vivo

@@ -108,6 +108,14 @@ En componentes propios usar los nombres FrontPet (`bg-navy`, no `bg-primary`).
 por eso mismo, jamás hardcodear un hex en un componente: el día que se confirme la
 paleta, el cambio es solo en `@theme`.
 
+**La única excepción del repo** (verificada 2026-08-03): `themeColor: '#F8F9FF'` en
+`app/layout.tsx`. La API `Viewport` de Next serializa a un `<meta>` antes de que exista
+CSS, así que no puede leer una var de `@theme` — el hex tiene que estar literal. Es
+entonces el único lugar donde la paleta está **duplicada**, y va a driftear en silencio
+el día que el cliente confirme los colores. Está en el checklist D.10 del ROADMAP para
+sincronizarlo a mano en ese momento. Si aparece un segundo caso así, listarlo acá: la
+regla es "cero hex hardcodeados salvo los que estén en esta lista".
+
 ---
 
 ## 4. Espaciado
