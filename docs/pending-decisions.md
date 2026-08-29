@@ -218,20 +218,24 @@ garantía dura sería un `HeadObject` post-upload (necesita un `S3Client` ademá
 
 ---
 
-## 9. Tercera copia del rate limit (login/orders/appointments) sin unificar
+## 9. Tercera copia del rate limit (login/orders/appointments) sin unificar — RESUELTO (2026-08-29)
 
-**Estado**: deuda aceptada a propósito, diferida a Sprint 7 (decisión tomada al planificar el
-Sprint 5, ver `docs/decisions/020-algoritmo-slots.md`).
+**Estado**: resuelto. Se extrajo `common.SlidingWindowLimiter` (ventana deslizante, mapa
+`ConcurrentHashMap` con barrido perezoso, `MAX_TRACKED_KEYS`) como núcleo compartido. Los 3
+`*RateLimitService` (`identity.LoginAttemptService`, `orders.OrderRateLimitService`,
+`booking.AppointmentRateLimitService`) quedaron como wrappers finos que instancian su propio
+`SlidingWindowLimiter` desde su propia `@ConfigurationProperties` y le agregan la semántica que
+sí difiere entre ellos (login cuenta solo fallos y resetea en éxito; orders/appointments cuentan
+toda request y no resetean).
 
-`AppointmentRateLimitService`/`Filter`/`Properties` (Sprint 5, Bloque E) son la **tercera**
-copia casi literal del mismo mecanismo (`identity.LoginAttemptService`, `orders.OrderRateLimitService`).
-Se aceptó duplicar en vez de extraer porque unificar 3 módulos dentro del sprint marcado como
-"el riesgo #1 de todo el plan" no es el momento — y porque las semánticas difieren un poco
-(login cuenta solo fallos, orders/appointments cuentan toda request).
+Sin cambios de comportamiento observable: los 3 `*RateLimitFilter`, las 3 `*RateLimitProperties`
+(mismos prefijos/env vars en `application.yml`) y `SecurityConfig` quedaron intactos — mismos
+límites, mismos mensajes, mismo lugar en la cadena de filtros. La clave (`"ip:" + remoteAddr`)
+ya era idéntica en los 3 antes de unificar, no fue algo que hubiera que resolver.
 
-**Dónde impacta**: nada roto hoy, es puro mantenimiento futuro. Al tocar cualquiera de los 3
-para un cuarto caso de uso, es el momento de extraer un limitador genérico por clave opaca a
-`common/`.
+**Dónde impacta**: nada roto. `common.SlidingWindowLimiterTest` cubre la lógica de ventana ahora
+centralizada; los 3 integration tests existentes (uno por endpoint protegido) siguen verificando
+el comportamiento HTTP end-to-end sin modificaciones.
 
 ---
 
