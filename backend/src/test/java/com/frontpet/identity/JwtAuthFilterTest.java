@@ -71,10 +71,30 @@ class JwtAuthFilterTest {
     @Test
     @DisplayName("token emitido antes de un reset de contraseña posterior no autentica (sesión revocada)")
     void tokenIssuedBeforePasswordChangeIsRejected() throws Exception {
-        // passwordChangedAt claramente después del iat del token (no es el
-        // caso límite del mismo segundo, que se documenta en
-        // PasswordResetControllerIntegrationTest con un Clock mockeado).
+        // passwordChangedAt claramente después del iat del token — separación
+        // de una hora, sin ambigüedad de redondeo. El caso límite del mismo
+        // segundo está en tokenIssuedWithinSameSecondAsPasswordChangeIsRejected.
         AdminUser admin = adminWithPasswordChangedAt(Instant.now().plusSeconds(3600));
+        when(userDetailsService.loadUserByUsername(admin.getEmail())).thenReturn(admin);
+        String token = jwtService.generateToken(admin);
+
+        runFilter(token);
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
+    @DisplayName("token emitido dentro del mismo segundo del reset también se rechaza (falla del lado de invalidar)")
+    void tokenIssuedWithinSameSecondAsPasswordChangeIsRejected() throws Exception {
+        // jjwt trunca iat a NumericDate (granularidad de segundo). Acá
+        // passwordChangedAt y el iat real del token caen, con altísima
+        // probabilidad, dentro del mismo segundo de wall-clock — el caso
+        // donde la información de orden ya se perdió al firmar. La decisión
+        // documentada en JwtAuthFilter es fallar del lado de invalidar: se
+        // rechaza igual, aunque en la realidad el token pueda haberse emitido
+        // unos milisegundos DESPUÉS del reset.
+        Instant passwordChangedAt = Instant.now();
+        AdminUser admin = adminWithPasswordChangedAt(passwordChangedAt);
         when(userDetailsService.loadUserByUsername(admin.getEmail())).thenReturn(admin);
         String token = jwtService.generateToken(admin);
 
