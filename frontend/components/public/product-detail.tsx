@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { CheckCircle2, ChevronRight, PawPrint, Truck } from 'lucide-react'
 import { ProductVariantPicker } from '@/components/public/product-variant-picker'
 import { SimpleProductActions } from '@/components/public/simple-product-actions'
+import { ProductViewTracker } from '@/components/public/product-view-tracker'
 import type { ProductDetail } from '@/lib/data/product-detail'
 import { formatPrice } from '@/lib/utils'
 
@@ -28,6 +29,13 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
   return (
     <div className="mx-auto max-w-content px-6 py-8 lg:px-8 lg:py-12">
+      <ProductViewTracker
+        publicId={product.publicId}
+        nome={product.nome}
+        categoria={categoria?.nome}
+        price={product.price}
+      />
+
       <nav className="mb-4 flex items-center gap-1 overflow-x-auto whitespace-nowrap text-caption text-ink-muted">
         <Link href="/" className="hover:text-ink">
           Início

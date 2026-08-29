@@ -1,17 +1,20 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ApiFetchError } from '@/lib/api/client'
 import { createAppointment, type CreateAppointmentRequest } from '@/lib/api/appointments'
 import { bookingDetailsSchema, type BookingDetailsFormValues } from '@/lib/schemas/booking'
 import type { Porte } from '@/lib/api/services'
 import { fullDate } from '@/lib/booking-dates'
+import { trackSchedule } from '@/lib/analytics/pixel'
 
 interface BookingFormProps {
   baseServiceId: number
@@ -49,6 +52,7 @@ export function BookingForm({
 
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -60,6 +64,7 @@ export function BookingForm({
       petNome: '',
       petRaca: '',
       observacoes: '',
+      consentimentoLgpd: false,
       honeypot: '',
     },
   })
@@ -79,11 +84,18 @@ export function BookingForm({
       petNome: values.petNome,
       petRaca: values.petRaca || undefined,
       observacoes: values.observacoes || undefined,
+      consentimentoLgpd: values.consentimentoLgpd,
       honeypot: values.honeypot ?? '',
     }
 
     try {
       const appointment = await createAppointment(request)
+      // router.push é navegação client-side (sem risco de perder o beacon,
+      // ao contrário do Purchase do checkout que usa location.assign).
+      trackSchedule({
+        servicoNome: appointment.baseServiceNome,
+        value: appointment.totalPriceSnapshot,
+      })
       router.push(`/agendamento/${appointment.publicId}`)
     } catch (err) {
       if (!(err instanceof ApiFetchError)) {
@@ -171,6 +183,23 @@ export function BookingForm({
           />
           <FieldError errors={[errors.observacoes]} />
         </Field>
+
+        <Field orientation="horizontal" data-invalid={!!errors.consentimentoLgpd}>
+          <Controller
+            control={control}
+            name="consentimentoLgpd"
+            render={({ field }) => (
+              <Checkbox id="consentimentoLgpd" checked={field.value} onCheckedChange={field.onChange} />
+            )}
+          />
+          <FieldLabel htmlFor="consentimentoLgpd" className="text-sm font-normal">
+            Li e aceito a{' '}
+            <Link href="/privacidade" target="_blank" className="underline hover:text-navy">
+              política de privacidade
+            </Link>
+          </FieldLabel>
+        </Field>
+        <FieldError errors={[errors.consentimentoLgpd]} />
 
         {/* Honeypot: invisible para humanos, sin label — mismo patrón anti-bot
             de checkout-form.tsx (tarea 4.15/5.8). */}

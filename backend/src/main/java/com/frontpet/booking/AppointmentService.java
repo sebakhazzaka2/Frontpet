@@ -69,4 +69,22 @@ public interface AppointmentService {
      * pero persiste igual.
      */
     TempoExtraResult updateTempoExtra(UUID tenantId, UUID publicId, boolean tempoExtra);
+
+    /**
+     * Direito de eliminação LGPD (ADR 023) — {@code com.frontpet.privacy}
+     * consome isto, nunca {@code AppointmentRepository} direto (CLAUDE.md §5).
+     *
+     * @param clienteTelefoneNorm já normalizado (ver {@code PhoneNormalizer})
+     */
+    List<UUID> findPublicIdsByPhone(UUID tenantId, String clienteTelefoneNorm);
+
+    /**
+     * Anonimiza (não apaga) todo turno do tenant com este telefone: dados
+     * pessoais (incluindo do pet) viram marcadores, snapshot de preço/duração
+     * fica intacto (ADR 023). Idempotente, mesmo critério de
+     * {@code orders.OrderService#anonymizeByPhone}.
+     *
+     * @return quantos turnos foram anonimizados
+     */
+    int anonymizeByPhone(UUID tenantId, String clienteTelefoneNorm);
 }

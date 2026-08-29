@@ -9,6 +9,7 @@ const LINKS_UTEIS = [
   { href: '/', label: 'Início' },
   { href: '/produtos', label: 'Produtos' },
   { href: '/agendamento', label: 'Agendar horário' },
+  { href: '/privacidade', label: 'Política de Privacidade' },
 ] as const
 
 // "Rodapé Sincronizado" de Stitch (issue #10). La columna "Serviços" del mock

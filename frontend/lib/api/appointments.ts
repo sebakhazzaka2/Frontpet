@@ -20,6 +20,8 @@ export interface CreateAppointmentRequest {
   petNome: string
   petRaca?: string
   observacoes?: string
+  // ADR 024 — mismo consentimento explícito que CreateOrderRequest já tinha.
+  consentimentoLgpd: boolean
   honeypot: string
 }
 

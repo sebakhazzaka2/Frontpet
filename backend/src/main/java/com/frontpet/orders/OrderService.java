@@ -8,6 +8,7 @@ import com.frontpet.orders.dto.OrderSummary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,4 +50,22 @@ public interface OrderService {
      * @throws IllegalArgumentException se a transição não é permitida
      */
     OrderDetail updateStatus(UUID tenantId, UUID publicId, OrderStatus newStatus);
+
+    /**
+     * Direito de eliminação LGPD (ADR 023) — {@code com.frontpet.privacy}
+     * consome isto, nunca {@code OrderRepository} direto (CLAUDE.md §5).
+     *
+     * @param clienteTelefoneNorm já normalizado (ver {@code PhoneNormalizer})
+     */
+    List<UUID> findPublicIdsByPhone(UUID tenantId, String clienteTelefoneNorm);
+
+    /**
+     * Anonimiza (não apaga) todo pedido do tenant com este telefone: dados
+     * pessoais viram marcadores, snapshot de itens/preço fica intacto (ADR
+     * 023). Idempotente — rodar de novo com o mesmo telefone não encontra
+     * mais nada, porque {@code cliente_telefone_norm} já é {@code NULL}.
+     *
+     * @return quantos pedidos foram anonimizados
+     */
+    int anonymizeByPhone(UUID tenantId, String clienteTelefoneNorm);
 }

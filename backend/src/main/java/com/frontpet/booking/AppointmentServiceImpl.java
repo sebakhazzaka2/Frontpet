@@ -59,6 +59,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             AppointmentStatus.CONFIRMED, Set.of(AppointmentStatus.CANCELLED),
             AppointmentStatus.CANCELLED, Set.of()));
 
+    /** Marcadores da anonimização LGPD (ADR 023) — nunca NULL em colunas NOT NULL. */
+    private static final String ANONYMIZED_NOME = "Titular removido";
+    private static final String ANONYMIZED_MARKER = "—";
+
     private final AvailabilityService availabilityService;
     private final TenantSettingsService tenantSettingsService;
     private final ServiceOfferingRepository serviceOfferingRepository;
@@ -321,6 +325,35 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setEndAt(newEnd);
 
         return new TempoExtraResult(appointment.getPublicId(), newDuration, newEnd, aviso);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UUID> findPublicIdsByPhone(UUID tenantId, String clienteTelefoneNorm) {
+        return appointmentRepository.findByTenantIdAndClienteTelefoneNorm(tenantId, clienteTelefoneNorm).stream()
+                .map(Appointment::getPublicId)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public int anonymizeByPhone(UUID tenantId, String clienteTelefoneNorm) {
+        List<Appointment> appointments =
+                appointmentRepository.findByTenantIdAndClienteTelefoneNorm(tenantId, clienteTelefoneNorm);
+        Instant now = Instant.now();
+        for (Appointment appointment : appointments) {
+            appointment.setClienteNome(ANONYMIZED_NOME);
+            appointment.setClienteTelefone(ANONYMIZED_MARKER);
+            appointment.setClienteTelefoneNorm(null);
+            appointment.setPetNome(ANONYMIZED_MARKER);
+            appointment.setPetRaca(null);
+            appointment.setObservacoes(null);
+            appointment.setAnonymizedAt(now);
+            // Sin save() explícito: managed dentro de la transacción. Preço,
+            // duração e horários ficam intactos — são dado operacional, não
+            // pessoal (ADR 023).
+        }
+        return appointments.size();
     }
 
     // ---- construção da entidade --------------------------------------------

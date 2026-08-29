@@ -64,3 +64,5 @@ Crear un ADR cuando:
 | [019](./019-rate-limit-login-en-memoria.md) | Rate limit del login: en memoria, solo por IP | Aceptada | 2026-07-28 |
 | [020](./020-algoritmo-slots.md) | Algoritmo de cálculo de disponibilidad (Sprint 5) | Aceptada | 2026-07-29 |
 | [021](./021-turno-manual-admin.md) | Turno manual del admin: qué puede saltear (grilla/capacidad/horário) | Aceptada | 2026-07-30 |
+| [024](./024-tracking-consentimento-lgpd.md) | Tracking de terceiros y consentimiento LGPD: Meta Pixel gateado, Plausible no | Aceptada | 2026-08-29 |
+| [023](./023-anonimizacao-eliminacao-lgpd.md) | Anonimização (no borrado) para el direito de eliminación LGPD | Aceptada | 2026-08-29 |

@@ -39,6 +39,10 @@ public class OrderServiceImpl implements OrderService {
     /** {@code RETIRADA} sempre cai aqui — não há coluna própria para essa modalidade (drift #1). */
     private static final String RETIRADA_ENDERECO = "Retirada na loja";
 
+    /** Marcadores da anonimização LGPD (ADR 023) — nunca NULL em colunas NOT NULL. */
+    private static final String ANONYMIZED_NOME = "Titular removido";
+    private static final String ANONYMIZED_MARKER = "—";
+
     /**
      * Transições de status permitidas (CLAUDE.md §6: só PENDING/CONFIRMED/
      * CANCELLED, nunca se volta a PENDING). Mesmo status→mesmo status é
@@ -150,6 +154,33 @@ public class OrderServiceImpl implements OrderService {
         }
         // Sin save() explícito: managed dentro de la transacción.
         return toDetail(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UUID> findPublicIdsByPhone(UUID tenantId, String clienteTelefoneNorm) {
+        return orderRepository.findByTenantIdAndClienteTelefoneNorm(tenantId, clienteTelefoneNorm).stream()
+                .map(Order::getPublicId)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public int anonymizeByPhone(UUID tenantId, String clienteTelefoneNorm) {
+        List<Order> orders = orderRepository.findByTenantIdAndClienteTelefoneNorm(tenantId, clienteTelefoneNorm);
+        Instant now = Instant.now();
+        for (Order order : orders) {
+            order.setClienteNome(ANONYMIZED_NOME);
+            order.setClienteTelefone(ANONYMIZED_MARKER);
+            order.setClienteTelefoneNorm(null);
+            order.setEnderecoEntrega(ANONYMIZED_MARKER);
+            order.setHorarioEntrega(null);
+            order.setAnonymizedAt(now);
+            // Sin save() explícito: managed dentro de la transacción, igual
+            // que updateStatus. subtotalSnapshot e items ficam intactos —
+            // são dado contábil, não pessoal (ADR 023).
+        }
+        return orders.size();
     }
 
     // ---- helpers de negocio --------------------------------------------

@@ -6,6 +6,7 @@ import com.frontpet.booking.ServiceOfferingNotFoundException;
 import com.frontpet.booking.SlotUnavailableException;
 import com.frontpet.catalog.ProductNotFoundException;
 import com.frontpet.orders.OrderNotFoundException;
+import com.frontpet.privacy.PrivacyRecordNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,13 @@ public class RestExceptionHandler {
                                                                HttpServletRequest request) {
         log.debug("Turno não encontrado: {}", request.getRequestURI());
         return build(HttpStatus.NOT_FOUND, "Turno não encontrado.", request);
+    }
+
+    @ExceptionHandler(PrivacyRecordNotFoundException.class)
+    public ResponseEntity<ApiError> handlePrivacyRecordNotFound(PrivacyRecordNotFoundException ex,
+                                                                 HttpServletRequest request) {
+        log.debug("Registro de privacidade não encontrado: {}", request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(SlotUnavailableException.class)

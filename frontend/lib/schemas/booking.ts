@@ -26,6 +26,12 @@ export const bookingDetailsSchema = z.object({
     .max(80, 'Nome muito longo.'),
   petRaca: z.string().trim().max(80).optional(),
   observacoes: z.string().trim().max(500).optional(),
+  // Checkbox LGPD (ADR 024) — o booking captura nome, telefone, pet e
+  // observações desde o Sprint 5/6, mas nunca ganhou o mesmo consentimento
+  // explícito que checkout.ts já tem desde a tarea 4.16.
+  consentimentoLgpd: z.boolean().refine((value) => value === true, {
+    message: 'É necessário aceitar a política de privacidade.',
+  }),
   // Honeypot (mismo patrón anti-bot de checkout.ts / CreateOrderRequest,
   // tarea 4.15/5.8) — sin .default(), el default real lo provee
   // defaultValues de react-hook-form.

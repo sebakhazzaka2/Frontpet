@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Fredoka, Plus_Jakarta_Sans } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
+import { ConsentGate } from '@/components/consent/consent-gate'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -32,6 +33,11 @@ const fredoka = Fredoka({
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://frontpet.com'
+
+// Plausible es cookieless y no recolecta dados pessoais (plausible.io/data-policy)
+// — no pasa por el gate de consentimiento de <ConsentGate>. Sin fallback: un
+// domínio errado suja a conta do Plausible, então preferimos não renderizar nada.
+const ANALYTICS_DOMAIN = process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN
 
 export const metadata: Metadata = {
   // metadataBase le dice a Next.js cómo construir URLs absolutas
@@ -139,36 +145,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
     >
       <head>
         {/*
-          Meta Pixel de Meta Ads
-          Descomentarlo y reemplazar TU_PIXEL_ID cuando FrontPet lo provea.
-          Se configura en Sprint 7 (tarea 7.4).
-
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
-                n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
-                s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-                (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', 'TU_PIXEL_ID');
-                fbq('track', 'PageView');
-              `,
-            }}
-          />
+          Plausible Analytics — cookieless, sin dados pessoais, engancha solo
+          las navegações client-side do App Router via History API
+          (plausible.io/docs/spa-support). Sem gate de consentimento: ver
+          ADR 024. O Meta Pixel (tarea 7.4) é carregado por <MetaPixel/> dentro
+          de <ConsentGate/>, condicionado ao consentimento — não pode viver
+          aqui porque este é um Server Component e o gate precisa de estado.
         */}
-
-        {/*
-          Plausible Analytics — lightweight, sin cookies, GDPR compliant.
-          Descomentarlo cuando el dominio esté configurado (Sprint 7, tarea 7.6).
-
-          <script
-            defer
-            data-domain="frontpet.com"
-            src="https://plausible.io/js/script.js"
-          />
-        */}
+        {ANALYTICS_DOMAIN && (
+          <script defer data-domain={ANALYTICS_DOMAIN} src="https://plausible.io/js/script.js" />
+        )}
       </head>
 
       <body
@@ -195,6 +181,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
             style: { fontFamily: 'var(--font-sans)' },
           }}
         />
+
+        {/*
+          Banner LGPD + Meta Pixel gateado + trackers de PageView/Contact.
+          Vive en el root (no en (public)/layout.tsx) para cubrir también
+          /admin/** — ver ADR 024.
+        */}
+        <ConsentGate />
       </body>
     </html>
   )

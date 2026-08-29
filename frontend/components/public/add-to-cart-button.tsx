@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useCart } from '@/hooks/use-cart'
 import type { CartItem } from '@/lib/cart/types'
 import { cn } from '@/lib/utils'
+import { trackAddToCart } from '@/lib/analytics/pixel'
 
 interface AddToCartButtonProps {
   item: Omit<CartItem, 'quantidade'>
@@ -32,6 +33,11 @@ export function AddToCartButton({
   function handleClick() {
     addItem({ ...item, quantidade })
     toast.success(`${item.productNome} adicionado à sacola`)
+    trackAddToCart({
+      productPublicId: item.productPublicId,
+      productNome: item.productNome,
+      value: item.unitPrice * quantidade,
+    })
   }
 
   return (

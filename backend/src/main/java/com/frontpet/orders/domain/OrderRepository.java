@@ -73,4 +73,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             GROUP BY o.status
             """)
     List<Object[]> countGroupedByStatus(@Param("tenantId") UUID tenantId);
+
+    /**
+     * Direito de eliminação LGPD (V13, ADR 023). Pedidos já anonimizados têm
+     * {@code cliente_telefone_norm = NULL} e nunca dão match aqui — a mesma
+     * query serve tanto para o preview quanto, implicitamente, para tornar a
+     * anonimização idempotente (rodar de novo não encontra mais nada).
+     */
+    List<Order> findByTenantIdAndClienteTelefoneNorm(UUID tenantId, String clienteTelefoneNorm);
 }

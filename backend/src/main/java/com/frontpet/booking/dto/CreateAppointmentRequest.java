@@ -1,6 +1,7 @@
 package com.frontpet.booking.dto;
 
 import com.frontpet.booking.domain.Porte;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,6 +18,11 @@ import java.util.List;
  * ambos server-side con {@link com.frontpet.booking.AvailabilityService#resolveCombo}
  * (ADR 020) — jamás confía en lo que mande el cliente.
  *
+ * <p>{@code consentimentoLgpd}: gate de envío (ADR 024) — mismo criterio de
+ * {@code CreateOrderRequest#consentimentoLgpd} (tarea 4.16). El booking capta
+ * nome, telefone, dados do pet e observações desde o Sprint 5/6 sem nunca ter
+ * ganhado este consentimento explícito; no es una columna de {@code appointments}.
+ *
  * <p>{@code honeypot}: mismo patrón anti-bot de {@code CreateOrderRequest}
  * (tarea 4.15). Un formulário real nunca o preenche.
  */
@@ -31,6 +37,7 @@ public record CreateAppointmentRequest(
         @NotBlank @Size(max = 80) String petNome,
         @Size(max = 80) String petRaca,
         String observacoes,
+        @AssertTrue(message = "É necessário aceitar a política de privacidade.") boolean consentimentoLgpd,
         String honeypot
 ) {
     public CreateAppointmentRequest {

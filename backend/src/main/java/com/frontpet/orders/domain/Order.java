@@ -58,8 +58,14 @@ public class Order extends Auditable {
     @Column(name = "cliente_telefone", nullable = false, length = 30)
     private String clienteTelefone;
 
-    @Column(name = "cliente_telefone_norm", nullable = false, length = 20)
+    // Nullable desde V13: a anonimização LGPD (ADR 023) a apaga sem apagar o
+    // resto do pedido.
+    @Column(name = "cliente_telefone_norm", length = 20)
     private String clienteTelefoneNorm;
+
+    // Marca a anonimização LGPD (ADR 023, tarea 7.14) — null = nunca solicitada.
+    @Column(name = "anonymized_at")
+    private Instant anonymizedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "forma_pagamento", nullable = false, length = 40)

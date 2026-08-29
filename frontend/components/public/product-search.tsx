@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
+import { trackSearch } from '@/lib/analytics/pixel'
 
 // 'use client': input controlado + debounce de 300ms antes de navegar (tarea
 // 3.8) — la URL (?busca=) es la fuente de verdad, no un estado que se pierda
@@ -22,6 +23,9 @@ export function ProductSearch() {
       const params = new URLSearchParams(window.location.search)
       if (value) {
         params.set('busca', value)
+        // Só dispara com termo não vazio — evita disparar no mount inicial
+        // (quando `value` já vem de ?busca=) e ao limpar o campo.
+        trackSearch(value)
       } else {
         params.delete('busca')
       }

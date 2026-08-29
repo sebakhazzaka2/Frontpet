@@ -16,6 +16,7 @@ import { ApiFetchError } from '@/lib/api/client'
 import { checkoutSchema, type CheckoutFormValues } from '@/lib/schemas/checkout'
 import { buildOrderMessage } from '@/lib/whatsapp/templates'
 import { buildWhatsAppLink } from '@/lib/data/site'
+import { trackPurchase } from '@/lib/analytics/pixel'
 
 const FORMA_PAGAMENTO_LABELS: Record<FormaPagamento, string> = {
   DINHEIRO: 'Dinheiro',
@@ -76,6 +77,17 @@ export function CheckoutForm() {
 
     try {
       const order = await createOrder(request)
+      // Purchase dispara ANTES de clear()/location.assign(): o redirect é
+      // same-tab e pode matar o beacon do Pixel — best-effort, aceito. O
+      // arreglo robusto (Conversions API server-side) é a tarea 7.18,
+      // marcada opcional no ROADMAP — não é este o lugar pra resolver isso
+      // trocando a UX do checkout (ADR 003 já desenhou este fluxo a propósito).
+      trackPurchase({
+        publicId: order.publicId,
+        productPublicIds: order.items.map((item) => item.productPublicId),
+        numItems: order.items.reduce((sum, item) => sum + item.quantidade, 0),
+        value: order.subtotal,
+      })
       // El pedido ya quedó persistido acá — clear() y el redirect a wa.me
       // pasan DESPUÉS, nunca antes (ADR 003: se guarda aunque el cliente no
       // llegue a enviar el WhatsApp).

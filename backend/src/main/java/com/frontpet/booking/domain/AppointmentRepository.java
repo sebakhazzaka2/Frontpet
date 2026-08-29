@@ -146,4 +146,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("windowEnd") Instant windowEnd,
             @Param("cancelled") AppointmentStatus cancelled
     );
+
+    /**
+     * Direito de eliminação LGPD (V13, ADR 023) — mesmo critério de
+     * {@code OrderRepository.findByTenantIdAndClienteTelefoneNorm}: turnos já
+     * anonimizados têm {@code cliente_telefone_norm = NULL} e nunca dão match.
+     */
+    List<Appointment> findByTenantIdAndClienteTelefoneNorm(UUID tenantId, String clienteTelefoneNorm);
 }

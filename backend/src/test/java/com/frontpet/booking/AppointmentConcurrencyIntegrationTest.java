@@ -215,6 +215,7 @@ class AppointmentConcurrencyIntegrationTest extends AbstractIntegrationTest {
                 "Thor",
                 null,
                 null,
+                true,
                 null);
     }
 

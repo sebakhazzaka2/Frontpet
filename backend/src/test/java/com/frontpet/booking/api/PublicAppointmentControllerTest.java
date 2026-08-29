@@ -89,7 +89,8 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "clienteNome": "Ana Souza",
                   "clienteTelefone": "(55) 99123-4567",
                   "petNome": "Thor",
-                  "petRaca": "Vira-lata"
+                  "petRaca": "Vira-lata",
+                  "consentimentoLgpd": true
                 }
                 """.formatted(banhoBase.getId(), proximaQuarta());
 
@@ -122,6 +123,7 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "clienteNome": "Bot",
                   "clienteTelefone": "(55) 99123-4567",
                   "petNome": "Thor",
+                  "consentimentoLgpd": true,
                   "honeypot": "preenchido"
                 }
                 """.formatted(banhoBase.getId(), proximaQuarta());
@@ -141,7 +143,8 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "horario": "10:00",
                   "clienteNome": "Ana Souza",
                   "clienteTelefone": "(55) 99123-4567",
-                  "petNome": "%s"
+                  "petNome": "%s",
+                  "consentimentoLgpd": true
                 }
                 """.formatted(banhoBase.getId(), proximaQuarta(), "A".repeat(81));
 
@@ -161,7 +164,8 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "horario": "10:15",
                   "clienteNome": "Ana Souza",
                   "clienteTelefone": "(55) 99123-4567",
-                  "petNome": "Thor"
+                  "petNome": "Thor",
+                  "consentimentoLgpd": true
                 }
                 """.formatted(banhoBase.getId(), proximaQuarta());
 
@@ -184,7 +188,8 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "horario": "10:00",
                   "clienteNome": "Terceiro Cliente",
                   "clienteTelefone": "(55) 99123-4567",
-                  "petNome": "Rex"
+                  "petNome": "Rex",
+                  "consentimentoLgpd": true
                 }
                 """.formatted(banhoBase.getId(), quarta);
 
@@ -229,6 +234,7 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "clienteNome": "Cliente Malicioso",
                   "clienteTelefone": "(55) 99123-4567",
                   "petNome": "Thor",
+                  "consentimentoLgpd": true,
                   "totalPriceSnapshot": 0.01,
                   "basePriceSnapshot": 0.01,
                   "totalDurationMinutes": 5
@@ -269,7 +275,8 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
                   "horario": "%s",
                   "clienteNome": "Ana Souza",
                   "clienteTelefone": "(55) 99123-4567",
-                  "petNome": "Thor"
+                  "petNome": "Thor",
+                  "consentimentoLgpd": true
                 }
                 """.formatted(banhoBase.getId(), data, horario);
     }

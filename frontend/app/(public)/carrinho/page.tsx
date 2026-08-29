@@ -1,11 +1,13 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useCart } from '@/hooks/use-cart'
 import { CartLineItem } from '@/components/public/cart-line-item'
 import { CartSummary } from '@/components/public/cart-summary'
 import { CheckoutForm } from '@/components/public/checkout-form'
 import { EmptyCart } from '@/components/public/empty-cart'
 import { cartItemKey } from '@/lib/cart/types'
+import { trackInitiateCheckout } from '@/lib/analytics/pixel'
 
 // Tarea 4.4/4.6/4.7 (issue #30) — carrito y checkout en una sola vista, no
 // dos rutas (decisión del plan de Sprint 4: Stitch dibuja "Sua Sacola" como
@@ -15,7 +17,19 @@ import { cartItemKey } from '@/lib/cart/types'
 // useCart() (sessionStorage), no hay datos que fetchear server-side acá —
 // a diferencia de /produtos, que sí Server-rendea su primera página.
 export default function CarrinhoPage() {
-  const { items } = useCart()
+  const { items, itemCount, subtotal } = useCart()
+
+  useEffect(() => {
+    if (items.length > 0) {
+      trackInitiateCheckout({
+        productPublicIds: items.map((item) => item.productPublicId),
+        numItems: itemCount,
+        value: subtotal,
+      })
+    }
+    // Só quando a página monta com itens — não a cada mudança de quantidade.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (items.length === 0) {
     return <EmptyCart />
