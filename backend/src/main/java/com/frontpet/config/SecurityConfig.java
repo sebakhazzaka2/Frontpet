@@ -3,6 +3,7 @@ package com.frontpet.config;
 import com.frontpet.booking.AppointmentRateLimitFilter;
 import com.frontpet.identity.JwtAuthFilter;
 import com.frontpet.identity.LoginRateLimitFilter;
+import com.frontpet.identity.PasswordResetRateLimitFilter;
 import com.frontpet.orders.OrderRateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,14 +52,17 @@ public class SecurityConfig {
     private final LoginRateLimitFilter loginRateLimitFilter;
     private final OrderRateLimitFilter orderRateLimitFilter;
     private final AppointmentRateLimitFilter appointmentRateLimitFilter;
+    private final PasswordResetRateLimitFilter passwordResetRateLimitFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, LoginRateLimitFilter loginRateLimitFilter,
                           OrderRateLimitFilter orderRateLimitFilter,
-                          AppointmentRateLimitFilter appointmentRateLimitFilter) {
+                          AppointmentRateLimitFilter appointmentRateLimitFilter,
+                          PasswordResetRateLimitFilter passwordResetRateLimitFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.loginRateLimitFilter = loginRateLimitFilter;
         this.orderRateLimitFilter = orderRateLimitFilter;
         this.appointmentRateLimitFilter = appointmentRateLimitFilter;
+        this.passwordResetRateLimitFilter = passwordResetRateLimitFilter;
     }
 
     @Bean
@@ -127,6 +131,7 @@ public class SecurityConfig {
                 .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(orderRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(appointmentRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(passwordResetRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
