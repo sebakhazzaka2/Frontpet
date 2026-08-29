@@ -2,6 +2,7 @@ package com.frontpet.booking;
 
 import com.frontpet.booking.domain.AppointmentStatus;
 import com.frontpet.booking.dto.AdminAppointmentDetail;
+import com.frontpet.booking.dto.AppointmentCounts;
 import com.frontpet.booking.dto.AppointmentDetail;
 import com.frontpet.booking.dto.CreateAppointmentRequest;
 import com.frontpet.booking.dto.CreateManualAppointmentRequest;
@@ -47,6 +48,13 @@ public interface AppointmentService {
      */
     List<AdminAppointmentDetail> listForAdmin(
             UUID tenantId, LocalDate data, LocalDate desde, LocalDate hasta, AppointmentStatus status);
+
+    /**
+     * Contadores para o mini-dashboard admin (CLAUDE.md §7): turnos de hoje,
+     * dos próximos 7 dias (excluindo hoje) e quantos deles ainda aguardam
+     * confirmação (PENDING) dentro dessa janela combinada.
+     */
+    AppointmentCounts countsForAdmin(UUID tenantId);
 
     /**
      * Transições {@code PENDING → CONFIRMED|CANCELLED}, {@code CONFIRMED → CANCELLED}.

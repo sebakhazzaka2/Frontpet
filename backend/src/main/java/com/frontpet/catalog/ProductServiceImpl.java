@@ -12,6 +12,7 @@ import com.frontpet.catalog.dto.AdminProductSummary;
 import com.frontpet.catalog.dto.CreateProductRequest;
 import com.frontpet.catalog.dto.OrderLineSnapshot;
 import com.frontpet.catalog.dto.ProductDetail;
+import com.frontpet.catalog.dto.ProductStockCounts;
 import com.frontpet.catalog.dto.ProductSummary;
 import com.frontpet.catalog.dto.ProductVariantDto;
 import com.frontpet.catalog.dto.ProductVariantRequest;
@@ -75,6 +76,14 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepository.findAdminSummaries(
                 tenantId, normalizedCategory, normalizedSearch, incluirInativos, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductStockCounts countStockSummary(UUID tenantId) {
+        long ativos = productRepository.countByTenantIdAndActiveTrue(tenantId);
+        long semEstoque = productRepository.countActiveOutOfStock(tenantId);
+        return new ProductStockCounts(ativos, semEstoque);
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.frontpet.booking.domain.ServiceOfferingRepository;
 import com.frontpet.booking.domain.ServiceType;
 import com.frontpet.booking.dto.AdminAppointmentDetail;
 import com.frontpet.booking.dto.AppointmentAddonDetail;
+import com.frontpet.booking.dto.AppointmentCounts;
 import com.frontpet.booking.dto.AppointmentDetail;
 import com.frontpet.booking.dto.ComboPricing;
 import com.frontpet.booking.dto.CreateAppointmentRequest;
@@ -236,6 +237,25 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointments = appointmentRepository.findForAdmin(tenantId, status);
         }
         return toAdminDetails(appointments);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AppointmentCounts countsForAdmin(UUID tenantId) {
+        ZonedDateTime agora = ZonedDateTime.now(clock).withZoneSameInstant(SlotGrid.ZONE_ID);
+        LocalDate hoje = agora.toLocalDate();
+        Instant inicioHoje = ZonedDateTime.of(hoje, LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
+        Instant fimHoje = ZonedDateTime.of(hoje.plusDays(1), LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
+        Instant fimProximos7Dias = ZonedDateTime.of(hoje.plusDays(8), LocalTime.MIDNIGHT, SlotGrid.ZONE_ID).toInstant();
+
+        long turnosHoje = appointmentRepository.countActiveInWindow(
+                tenantId, inicioHoje, fimHoje, AppointmentStatus.CANCELLED);
+        long turnosProximos7Dias = appointmentRepository.countActiveInWindow(
+                tenantId, fimHoje, fimProximos7Dias, AppointmentStatus.CANCELLED);
+        long aguardandoConfirmacao = appointmentRepository.countByStatusInWindow(
+                tenantId, AppointmentStatus.PENDING, inicioHoje, fimProximos7Dias);
+
+        return new AppointmentCounts(turnosHoje, turnosProximos7Dias, aguardandoConfirmacao);
     }
 
     @Override

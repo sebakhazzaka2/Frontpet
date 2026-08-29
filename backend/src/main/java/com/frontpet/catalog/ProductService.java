@@ -4,6 +4,7 @@ import com.frontpet.catalog.dto.AdminProductSummary;
 import com.frontpet.catalog.dto.CreateProductRequest;
 import com.frontpet.catalog.dto.OrderLineSnapshot;
 import com.frontpet.catalog.dto.ProductDetail;
+import com.frontpet.catalog.dto.ProductStockCounts;
 import com.frontpet.catalog.dto.ProductSummary;
 import com.frontpet.catalog.dto.ProductVariantUpsertRequest;
 import com.frontpet.catalog.dto.UpdateProductRequest;
@@ -50,6 +51,12 @@ public interface ProductService {
                                         String search,
                                         boolean incluirInativos,
                                         Pageable pageable);
+
+    /**
+     * Contadores para o mini-dashboard admin (CLAUDE.md §7): total de
+     * produtos ativos e quantos deles estão sem estoque.
+     */
+    ProductStockCounts countStockSummary(UUID tenantId);
 
     /** Detalle para {@code /produtos/{slug}}. Lanza si no existe o está inactivo. */
     ProductDetail getBySlug(UUID tenantId, String slug);

@@ -7,6 +7,7 @@ import com.frontpet.catalog.domain.Product;
 import com.frontpet.catalog.domain.ProductRepository;
 import com.frontpet.catalog.domain.ProductVariant;
 import com.frontpet.catalog.dto.ProductDetail;
+import com.frontpet.catalog.dto.ProductStockCounts;
 import com.frontpet.catalog.dto.ProductSummary;
 import com.frontpet.common.UuidV7;
 import org.junit.jupiter.api.BeforeEach;
@@ -137,6 +138,38 @@ class ProductServiceIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(summary.price()).isEqualByComparingTo("59.90");
         assertThat(summary.hasVariants()).isTrue();
+    }
+
+    @Test
+    @DisplayName("countStockSummary: conta ativos e sem estoque, considerando variantes e ignorando inativos")
+    void countsStockSummary() {
+        ProductStockCounts baseline = productService.countStockSummary(TENANT);
+
+        persistProduct("Com Estoque", "com-estoque-dashboard", new BigDecimal("10.00")); // stock=10 por defecto
+        Product semEstoqueSimples = persistProduct("Sem Estoque Simples", "sem-estoque-simples-dashboard", new BigDecimal("10.00"));
+        semEstoqueSimples.setStock(0);
+        productRepository.saveAndFlush(semEstoqueSimples);
+
+        Product comVarianteEmEstoque = persistProduct("Com Variante Em Estoque", "com-variante-estoque-dashboard", null);
+        comVarianteEmEstoque.getVariants().add(variant(comVarianteEmEstoque, "Único", new BigDecimal("10.00")));
+        productRepository.saveAndFlush(comVarianteEmEstoque);
+
+        Product semVarianteEmEstoque = persistProduct("Sem Variante Em Estoque", "sem-variante-estoque-dashboard", null);
+        ProductVariant variantSemEstoque = variant(semVarianteEmEstoque, "Único", new BigDecimal("10.00"));
+        variantSemEstoque.setStock(0);
+        semVarianteEmEstoque.getVariants().add(variantSemEstoque);
+        productRepository.saveAndFlush(semVarianteEmEstoque);
+
+        Product inativoSemEstoque = persistProduct("Inativo Sem Estoque", "inativo-sem-estoque-dashboard", new BigDecimal("10.00"));
+        inativoSemEstoque.setStock(0);
+        inativoSemEstoque.setActive(false);
+        productRepository.saveAndFlush(inativoSemEstoque);
+
+        ProductStockCounts counts = productService.countStockSummary(TENANT);
+
+        // 4 produtos ativos criados (o inativo não conta); 2 sem estoque (o simples e o de variante zerada).
+        assertThat(counts.ativos()).isEqualTo(baseline.ativos() + 4);
+        assertThat(counts.semEstoque()).isEqualTo(baseline.semEstoque() + 2);
     }
 
     @Test

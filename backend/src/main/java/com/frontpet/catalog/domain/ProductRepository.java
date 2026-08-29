@@ -147,6 +147,32 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     );
 
     /**
+     * Conteo para o mini-dashboard admin ({@code ProductService.countStockSummary}):
+     * total de produtos ativos.
+     */
+    long countByTenantIdAndActiveTrue(UUID tenantId);
+
+    /**
+     * Produtos ativos com estoque efetivo zero. "Efetivo" porque
+     * {@code p.stock} só vale quando o produto NÃO tem variantes (Product.stock);
+     * quando tem, o que importa é se alguma variante ativa tem {@code stock>0}.
+     */
+    @Query("""
+            SELECT COUNT(p) FROM Product p
+            WHERE p.tenantId = :tenantId
+              AND p.active = true
+              AND NOT EXISTS (
+                    SELECT 1 FROM ProductVariant v
+                    WHERE v.product = p AND v.active = true AND v.stock > 0
+              )
+              AND (p.stock = 0 OR EXISTS (
+                    SELECT 1 FROM ProductVariant v2
+                    WHERE v2.product = p AND v2.active = true
+              ))
+            """)
+    long countActiveOutOfStock(@Param("tenantId") UUID tenantId);
+
+    /**
      * Detalle del producto para {@code /produtos/{slug}}.
      *
      * <p>Acá sí traemos la entidad con {@code @EntityGraph}, que carga marca,

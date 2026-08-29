@@ -54,6 +54,39 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
 
     /**
+     * Conteo para o mini-dashboard admin ({@code AppointmentService.countsForAdmin}):
+     * turnos ativos (≠ CANCELLED) que começam dentro de {@code [windowStart, windowEnd)}.
+     */
+    @Query("""
+            SELECT COUNT(a) FROM Appointment a
+            WHERE a.tenantId = :tenantId
+              AND a.status <> :cancelled
+              AND a.startAt >= :windowStart
+              AND a.startAt < :windowEnd
+            """)
+    long countActiveInWindow(
+            @Param("tenantId") UUID tenantId,
+            @Param("windowStart") Instant windowStart,
+            @Param("windowEnd") Instant windowEnd,
+            @Param("cancelled") AppointmentStatus cancelled
+    );
+
+    /** Igual que {@link #countActiveInWindow}, filtrado por um status puntual. */
+    @Query("""
+            SELECT COUNT(a) FROM Appointment a
+            WHERE a.tenantId = :tenantId
+              AND a.status = :status
+              AND a.startAt >= :windowStart
+              AND a.startAt < :windowEnd
+            """)
+    long countByStatusInWindow(
+            @Param("tenantId") UUID tenantId,
+            @Param("status") AppointmentStatus status,
+            @Param("windowStart") Instant windowStart,
+            @Param("windowEnd") Instant windowEnd
+    );
+
+    /**
      * Turnos vigentes que solapan la ventana consultada — el corazón del
      * cálculo de disponibilidad (ADR 020 §3).
      *
