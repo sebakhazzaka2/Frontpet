@@ -80,6 +80,18 @@
   confirmación del cliente.
 - `docs/ui/` es un export de Stitch viejo y stale — no portar desde ahí.
 - `docs/learnings.md` está gitignored — no es fuente de verdad compartida.
+- **7.12 (reset de contraseña) mergeado a `main` 2026-08-29, pero con el DoD incompleto**
+  (`pending-decisions.md` §19): falta correr el Paso 0 del plan (verificar el dominio de
+  Resend en Cloudflare/Resend — accesos que la sesión no tenía) y la validación visual real
+  a 320/768/1024px con screenshot para la issue.
+- **7.1-7.3 (mini-dashboard) mergeado a `main` 2026-08-29, también con el DoD incompleto**
+  (`pending-decisions.md` §20): se porteó mirando el export offline de `docs/ui/` porque el
+  MCP de Stitch falló por autenticación (no autorizado en la sesión) — falta comparar contra
+  la pantalla real, correr el stack local, y probar en mobile real.
+
+  > Ambos DoD incompletos son por límites de la sesión (sin acceso a Resend/Cloudflare, sin
+  > Stitch autorizado, sin Playwright), no por trabajo mal hecho — el código está mergeado,
+  > testeado (`./mvnw test` + `pnpm build/test/lint` en verde) y pusheado a `origin/main`.
 
 ## Cola activa / bloqueado por
 

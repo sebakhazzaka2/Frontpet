@@ -493,3 +493,51 @@ para el cliente de FrontPet (su email + tarjeta), migrar el dominio (cambiar nam
 bucket `frontpet-dev` en la cuenta compartida sigue sirviendo tanto para dev como para prod.
 
 **Dónde impacta**: `docs/deploy-runbook.md` D.2, D.3 y D.6.3 — anotado ahí también.
+
+---
+
+## 19. Reset de contraseña (7.12): dominio de Resend sin verificar + sin validación visual real
+
+**Estado**: código mergeado a `main` y con DoD automatizado en verde (`./mvnw test`,
+`pnpm build/test/lint`), pero dos pasos del DoD (CLAUDE.md §10) quedaron sin correr en esta
+sesión porque dependen de accesos y herramientas que la sesión no tenía.
+
+1. **Paso 0 del plan** (`docs/decisions/022-reset-senha-admin.md`, verificación del dominio
+   `frontpet.com.br` en Resend — 3 registros DNS en Cloudflare, ver `docs/deploy-runbook.md`
+   D.3) **no se ejecutó**: requiere el dashboard de Resend y de Cloudflare, a los que esta
+   sesión no tiene acceso. Sin esto, `RESEND_API_KEY`/`RESEND_FROM` en prod van a fallar en
+   el primer envío real aunque `StartupEnvValidator` deje arrancar la app (solo valida que
+   las env vars no estén vacías, no que el dominio esté verificado del lado de Resend).
+2. **Validación visual no se hizo**: sin Playwright ni herramienta de captura disponible en
+   esta sesión, no se verificaron `/admin/esqueci-senha` y `/admin/redefinir-senha` en un
+   browser real a 320/768/1024px, y no hay screenshot para la issue (CLAUDE.md §10, "UX
+   visible → screenshot en la issue"). El build/lint/test en verde confirma que compila y
+   los tests pasan, pero no que se vea bien.
+
+**Dónde impacta**: bloquea marcar 7.12 como completo según el DoD estricto. Antes de darlo
+por cerrado: (a) correr el Paso 0 completo y probar un envío real de punta a punta, (b)
+abrir las dos pantallas nuevas en Chrome/mobile real a los 3 breakpoints y sacar el
+screenshot para la issue.
+
+---
+
+## 20. Mini-dashboard (7.1-7.3): sin comparar contra Stitch en vivo + sin correr ni probar en mobile
+
+**Estado**: código mergeado a `main`, tests de integración en verde, pero el porteo se hizo
+sin poder comparar contra la fuente de verdad real (CLAUDE.md §5: "Stitch es la fuente de
+verdad del diseño, leído por MCP") y sin las validaciones manuales del DoD.
+
+1. **MCP de Stitch en vivo falló por autenticación** (no autorizado en esta sesión) — el
+   porteo del mini-dashboard se hizo mirando únicamente `docs/ui/` (export offline, marcado
+   como stale en CLAUDE.md §5) en vez de leer la pantalla real vía MCP. Puede haber desvíos
+   no documentados respecto del diseño actual en Stitch.
+2. **Los dos commits no se corrieron** (`docker-compose up` + `mvnw spring-boot:run` +
+   `pnpm dev`) para verificar el dashboard funcionando de punta a punta contra datos reales,
+   más allá de lo que cubren los tests de integración.
+3. **Sin prueba en mobile real** (CLAUDE.md §10: "Funciona en mobile real, no solo
+   DevTools") — el `<KPICard>` y el layout del mini-dashboard no se probaron en un celular.
+
+**Dónde impacta**: bloquea marcar 7.1-7.3 como completo según el DoD estricto. Antes de
+cerrarlo: (a) autorizar el MCP de Stitch (`claude mcp` o `/mcp`) y comparar la pantalla
+portada contra la real, corrigiendo desvíos si aparecen; (b) levantar el stack local y
+probar el dashboard con datos de verdad; (c) probarlo en un celular real, no solo DevTools.
