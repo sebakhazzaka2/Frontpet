@@ -3,6 +3,7 @@ package com.frontpet.config;
 import com.frontpet.identity.domain.AdminUser;
 import com.frontpet.identity.domain.AdminUserRepository;
 import com.frontpet.tenant.CurrentTenant;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +52,7 @@ public class DataInitializer implements ApplicationRunner {
         AdminUser admin = new AdminUser();
         admin.setTenantId(currentTenant.id());
         admin.setEmail(adminEmail);
-        admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+        admin.changePassword(passwordEncoder.encode(adminPassword), Instant.now());
         admin.setRole("ADMIN");
         adminUserRepository.save(admin);
         log.info("Admin user created from env: {}", adminEmail);
