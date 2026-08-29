@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
@@ -39,6 +40,16 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    /**
+     * @return el {@code iat} del token (tarea 7.12) — lo consume
+     * {@code JwtAuthFilter} para invalidar sesiones emitidas antes de un
+     * reset de contraseña. {@code JwtService} sigue sin conocer
+     * {@code AdminUser}: solo expone el claim crudo.
+     */
+    public Instant extractIssuedAt(String token) {
+        return extractClaim(token, Claims::getIssuedAt).toInstant();
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
