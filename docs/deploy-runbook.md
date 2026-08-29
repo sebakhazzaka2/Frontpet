@@ -102,6 +102,39 @@ es secuencial: cada paso depende del anterior.
 
 ---
 
+## D.3 — Verificación del dominio de e-mail en Resend
+
+Necesario para que `POST /forgot-password` (tarea 7.12) mande e-mails reales — sin esto, el
+backend cae a `LoggingEmailSender` y ningún admin recibe el link de reset. Depende de propagación
+DNS (minutos a horas): arrancarlo temprano en el día, en paralelo con otros pasos.
+
+> ⚠️ Misma nota que D.2: el dominio de Resend usado hoy corre en la **cuenta personal de
+> Cloudflare/Resend de Sebastián** (ver `pending-decisions.md` §18) — se migra en la reunión de
+> entrega, junto con el resto.
+
+1. Resend → **Domains → Add Domain** → `frontpet.com.br`.
+2. Cargar los 3 registros en Cloudflare, zona `frontpet.com.br`, todos **DNS only** (nube gris —
+   nunca proxied, Cloudflare no debe intermediar tráfico de verificación de email):
+   - **DKIM** — `TXT` en `resend._domainkey`, valor `p=MIGfMA0GCSq...` (lo da Resend).
+   - **SPF** — `TXT` en `send`, `v=spf1 include:amazonses.com ~all`.
+     ⚠️ Si ya existiera un `TXT` SPF en ese nombre, **combinar los `include:` en un solo
+     registro** — dos registros SPF en el mismo nombre invalidan los dos.
+   - **MX** — `send.frontpet.com.br` → `feedback-smtp.<region>.amazonses.com`, prioridad 10.
+     ⚠️ **Va en el subdominio `send`, NUNCA en la raíz.** Pisar los MX de la raíz deja al
+     cliente sin recibir correo en `@frontpet.com.br` — es el paso más peligroso de todos.
+   - Recomendado: **DMARC** — `TXT` en `_dmarc`, `v=DMARC1; p=none; rua=mailto:...` (modo
+     observación, no rechaza nada).
+3. **Verify** en Resend, esperar estado *Verified*.
+4. Crear un API key con permiso **solo de envío** (Sending access, no Full access) →
+   `RESEND_API_KEY` (🔒, ver tabla de D.6.2).
+5. Probar con `curl` contra `https://api.resend.com/emails` antes de dar el paso por cerrado —
+   no depender solo del check verde de Resend.
+
+**Costo**: free tier de Resend alcanza para el volumen de MVP1 (un solo admin, resets
+esporádicos). **Tiempo**: ~45 min + espera de propagación DNS.
+
+---
+
 ## D.4 — Cuentas de observabilidad
 
 1. **Sentry**: [sentry.io](https://sentry.io) → cuenta free tier → crear 2 proyectos:
@@ -177,6 +210,10 @@ esta sección sin consultar la doc primero.
    | `LOGIN_RATE_LIMIT_ENABLED` | `true` |
    | `ORDER_RATE_LIMIT_ENABLED` | `true` |
    | `APPOINTMENT_RATE_LIMIT_ENABLED` | `true` |
+   | `PASSWORD_RESET_RATE_LIMIT_ENABLED` | `true` (tarea 7.12) |
+   | `RESEND_API_KEY` | 🔒 el API key "solo envío" creado en D.3 |
+   | `RESEND_FROM` | `FrontPet <nao-responda@frontpet.com.br>` (o el remitente real que se confirme) |
+   | `APP_BASE_URL` | `https://frontpet.com` — ⚠️ debe empezar con `https://`: `StartupEnvValidator` corta el arranque si no, porque un link de reset por http manda el token en claro por la red |
    | `FORWARD_HEADERS_STRATEGY` | `FRAMEWORK` — ⚠️ **solo** si Coolify/Traefik es el único camino de entrada (lo es, en este setup). Ver el comentario de `application.yml` y ADR 019 antes de tocar esto |
 
    Todas las que faltan tiran el arranque (ver `StartupEnvValidator.java`) — mejor: si falta
@@ -268,7 +305,15 @@ instalarlo — no estaba confirmado como hecho en el ROADMAP).
 Antes de anunciar la URL al cliente o a nadie:
 
 - [ ] Correr `/security-review` sobre `main` (skill del proyecto).
-- [ ] Rate limiting activo en login/orders/appointments (env vars de D.6, ya en `true`).
+- [ ] Rate limiting activo en login/orders/appointments/password-reset (env vars de D.6, ya en `true`).
+- [ ] Dominio de e-mail *Verified* en Resend (D.3), con una prueba real de que el link de reset
+      **no cae en spam** (probar Gmail y Outlook) y apunta a `https://frontpet.com`, no a
+      `localhost`.
+- [ ] MX de la raíz de `frontpet.com.br` intactos (el registro de Resend va en `send`, ver D.3) —
+      confirmar que el cliente sigue recibiendo correo normal en `@frontpet.com.br`.
+- [ ] Un reset de prueba de punta a punta: pedir el link, usarlo, y confirmar que una sesión
+      abierta en **otro navegador** queda deslogueada (invalidación vía `password_changed_at`,
+      ADR 022) — no alcanza con probar que el login nuevo funciona.
 - [ ] Cookies con `Secure` + `HttpOnly` + `SameSite` correctos en prod (JWT en cookie).
 - [ ] CORS restringido a `https://frontpet.com` (no `*`, no localhost en prod).
 - [ ] Headers de seguridad (Coolify/Traefik o agregar vía `next.config` / Spring Security
@@ -336,5 +381,5 @@ Loom al cliente con el link.
 
 ---
 
-**Última actualización**: 2026-08-24. Escribir en este archivo cualquier ajuste real durante
+**Última actualización**: 2026-08-29 (agregado D.3 — Resend, tarea 7.12). Escribir en este archivo cualquier ajuste real durante
 la ejecución — es el runbook operativo, no debe quedar desactualizado como una foto del plan.

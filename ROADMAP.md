@@ -486,7 +486,7 @@ login y llevar todo a calidad de entrega.
 | 7.1 | Endpoint `GET /api/v1/admin/dashboard` con queries agregados | 2 |
 | 7.2 | Admin: componente `<KPICard>` reutilizable | 1 |
 | 7.3 | Admin: mini-dashboard con **conteos operacionales** — pedidos día/mes/total, turnos día/próximos, top productos, top servicios. ⚠️ **Sin métricas analíticas** (ADR 003/008): nada de conversão, faturamento, ticket médio ni trend pills | 3 |
-| 7.12 | **Recuperación de contraseña del admin**: token de un solo uso + expiración, email vía **Resend** (free tier, requiere el dominio verificado de D.2). Incluye **generar la pantalla en Stitch primero** — no existe hoy | 5 |
+| 7.12 | ✅ **Recuperación de contraseña del admin**: token de un solo uso + expiración, email vía **Resend**, invalidación de sesiones JWT activas al resetear (ADR 022). Pantallas derivadas del login existente, sin pasar por Stitch — la estimación original (5h, con generación de pantalla en Stitch) quedó baja por ~2x: la invalidación de sesión, el cliente HTTP a mano contra Resend y el doble rate limit (IP + email) no estaban en el estimado inicial | ~11,75 |
 | 7.13 | ✅ **Banner de consentimiento LGPD + gating del Pixel**: el Meta Pixel **no puede disparar antes del consentimiento**. Hecho **antes** de la 7.4. Pantalla derivada del design system, no generada en Stitch (ADR 024) | 2 |
 | 7.14 | ✅ **Derecho de eliminación (LGPD)**: endpoint admin que anonimiza (no borra) los datos de un titular por telefone, con preview + log de auditoría (ADR 023) | 1 |
 | 7.4 | ✅ Meta Pixel: instalación base + eventos estándar (Contact, ViewContent, Schedule, Purchase). Gateado por 7.13 | 2 |

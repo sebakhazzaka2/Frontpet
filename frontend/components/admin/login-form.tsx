@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import Link from 'next/link'
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -17,11 +18,11 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 // Tarea 4.11 (issue #32) — port de "Login Administrativo" (única pantalla
-// DESKTOP del proyecto). O backend de auth (1.3 JWT em cookie + 1.8 rate
-// limit) já existe: este componente é só a UI. Sem "Manter conectado" nem
-// "Esqueceu a senha": o mock de Stitch os dibuja, mas nenhum dos dois tem
-// implementação real (sessão de duração fixa; reset de senha é a tarefa 7.12,
-// ainda não existe) — mostrar um controle inerte seria pior que omiti-lo.
+// DESKTOP do projeto). O backend de auth (1.3 JWT em cookie + 1.8 rate
+// limit) já existe: este componente é só a UI. Sem "Manter conectado": o
+// mock de Stitch o desenha, mas a sessão tem duração fixa — mostrar um
+// controle inerte seria pior que omiti-lo. "Esqueceu a senha" agora aponta
+// para /admin/esqueci-senha (tarea 7.12).
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
@@ -76,7 +77,12 @@ export function LoginForm() {
         </Field>
 
         <Field data-invalid={!!errors.password}>
-          <FieldLabel htmlFor="password">Senha</FieldLabel>
+          <div className="flex items-center justify-between">
+            <FieldLabel htmlFor="password">Senha</FieldLabel>
+            <Link href="/admin/esqueci-senha" className="text-sm text-ink-muted hover:text-navy">
+              Esqueceu a senha?
+            </Link>
+          </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-outline" />
             <Input

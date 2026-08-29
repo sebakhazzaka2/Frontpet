@@ -46,7 +46,7 @@ Crear un ADR cuando:
 | [001](./001-stack-tecnologico.md) | Stack tecnológico | Aceptada | 2026-05-17 |
 | [002](./002-multi-tenant.md) | Estrategia multi-tenant | Aceptada | 2026-05-17 |
 | [003](./003-pedidos-whatsapp.md) | Pedidos vía WhatsApp click-to-chat | Aceptada | 2026-05-17 |
-| [004](./004-auth-jwt-cookie.md) | Autenticación con JWT en cookie HttpOnly | Aceptada | 2026-05-17 |
+| [004](./004-auth-jwt-cookie.md) | Autenticación con JWT en cookie HttpOnly | Aceptada, matizada por 022 | 2026-05-17 |
 | [005](./005-slots-dinamicos.md) | Cálculo dinámico de slots de booking | Aceptada, actualizada por 020 | 2026-05-17 |
 | [006](./006-frontend-layout-structure.md) | Estructura de layouts del frontend | Aceptada | 2026-05-18 |
 | [007](./007-product-language-ptbr.md) | Idioma del producto: portugués brasileño (PT-BR) | Aceptada | 2026-05-20 |
@@ -64,5 +64,6 @@ Crear un ADR cuando:
 | [019](./019-rate-limit-login-en-memoria.md) | Rate limit del login: en memoria, solo por IP | Aceptada | 2026-07-28 |
 | [020](./020-algoritmo-slots.md) | Algoritmo de cálculo de disponibilidad (Sprint 5) | Aceptada | 2026-07-29 |
 | [021](./021-turno-manual-admin.md) | Turno manual del admin: qué puede saltear (grilla/capacidad/horário) | Aceptada | 2026-07-30 |
-| [024](./024-tracking-consentimento-lgpd.md) | Tracking de terceiros y consentimiento LGPD: Meta Pixel gateado, Plausible no | Aceptada | 2026-08-29 |
+| [022](./022-reset-senha-admin.md) | Reset de contraseña del admin: token opaco + invalidación de sesión | Aceptada | 2026-08-29 |
 | [023](./023-anonimizacao-eliminacao-lgpd.md) | Anonimização (no borrado) para el direito de eliminación LGPD | Aceptada | 2026-08-29 |
+| [024](./024-tracking-consentimento-lgpd.md) | Tracking de terceiros y consentimiento LGPD: Meta Pixel gateado, Plausible no | Aceptada | 2026-08-29 |

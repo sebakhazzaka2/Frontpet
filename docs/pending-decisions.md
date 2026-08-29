@@ -462,15 +462,19 @@ de UI ya diferido en `WORKING-CONTEXT.md`.
 
 ---
 
-## 18. DNS/R2 de producción corren en la cuenta personal de Cloudflare de Sebastián, compartida con otro cliente
+## 18. DNS/R2/Resend de producción corren en la cuenta personal de Cloudflare de Sebastián, compartida con otro cliente
 
 **Estado**: decisión operativa tomada 2026-08-24, deferida a propósito — no bloquea el deploy.
+Ampliada 2026-08-29 (tarea 7.12): Resend suma un tercer servicio a la misma cuenta compartida.
 
-La cuenta de Cloudflare que se usa hoy para `frontpet.com` (DNS proxied) y el bucket R2
-(`frontpet-dev`, y el que se cree para prod) es la **cuenta personal de Sebastián**, la misma
-donde vive `turnosuy.com` (dominio de otro cliente, consultorio). El dominio de FrontPet en sí
-**no tiene este problema** — está registrado en `registro.br` a nombre del cliente,
-independiente de Cloudflare.
+La cuenta de Cloudflare que se usa hoy para `frontpet.com` (DNS proxied), el bucket R2
+(`frontpet-dev`, y el que se cree para prod) y, desde la tarea 7.12, los registros DNS de envío
+del dominio de email (`resend._domainkey`, `send.frontpet.com.br` — DKIM/SPF/MX de Resend) es la
+**cuenta personal de Sebastián**, la misma donde vive `turnosuy.com` (dominio de otro cliente,
+consultorio). El dominio de FrontPet en sí **no tiene este problema** — está registrado en
+`registro.br` a nombre del cliente, independiente de Cloudflare. La cuenta de Resend en sí
+también es personal de Sebastián (mismo criterio, mismo riesgo de facturación cruzada si se
+supera el free tier de envíos).
 
 **Por qué no se resuelve ahora**: separar en una cuenta de Cloudflare exclusiva del cliente
 de FrontPet requiere su tarjeta de crédito (Billing → Payment methods), y la próxima vez que
@@ -488,4 +492,4 @@ para el cliente de FrontPet (su email + tarjeta), migrar el dominio (cambiar nam
 `registro.br` a los nuevos) y recrear el bucket R2 de producción ahí. Hasta entonces, el
 bucket `frontpet-dev` en la cuenta compartida sigue sirviendo tanto para dev como para prod.
 
-**Dónde impacta**: `docs/deploy-runbook.md` D.2 y D.6.3 — anotado ahí también.
+**Dónde impacta**: `docs/deploy-runbook.md` D.2, D.3 y D.6.3 — anotado ahí también.

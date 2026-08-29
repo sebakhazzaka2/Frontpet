@@ -92,7 +92,10 @@ Mismo problema que localStorage. Solo cambia que se borra al cerrar la pestaña.
 ### Negativas
 - Configurar CORS con `credentials: include` requiere atención
 - Backend y frontend deben compartir el mismo dominio padre (o configurar CORS estrictamente)
-- Revocación de token no es inmediata (vive hasta su expiración natural)
+- Revocación de token no es inmediata (vive hasta su expiración natural) — **matizado por ADR
+  022**: un reset de contraseña sí revoca de inmediato, comparando el `iat` del JWT contra
+  `admin_users.password_changed_at`. Sigue sin existir un "logout remoto" genérico para
+  cualquier otro motivo de revocación.
 
 ### Mitigaciones
 - Sentry alerta si se detectan patrones de uso anómalos (Fase 2)
