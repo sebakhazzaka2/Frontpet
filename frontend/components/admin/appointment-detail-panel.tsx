@@ -7,6 +7,7 @@ import type { AdminAppointmentDetail } from '@/lib/api/admin-appointments'
 import type { AppointmentStatus } from '@/lib/api/appointments'
 import { appointmentCode, buildAppointmentMessage } from '@/lib/whatsapp/templates'
 import { buildWhatsAppLinkTo } from '@/lib/data/site'
+import { canTransitionStatus } from '@/lib/status-transitions'
 import { formatPrice } from '@/lib/utils'
 
 interface AppointmentDetailPanelProps {
@@ -140,7 +141,9 @@ export function AppointmentDetailPanel({
             <button
               key={option.value}
               type="button"
-              disabled={updatingStatus}
+              disabled={
+                updatingStatus || !canTransitionStatus(appointment.status, option.value)
+              }
               onClick={() => onStatusChange(option.value)}
               className={
                 appointment.status === option.value

@@ -5,6 +5,7 @@ import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
 import type { OrderDetail, OrderStatus } from '@/lib/api/orders'
 import { buildOrderMessage, freteLabel, modalidadeLabel } from '@/lib/whatsapp/templates'
 import { buildWhatsAppLinkTo } from '@/lib/data/site'
+import { canTransitionStatus } from '@/lib/status-transitions'
 import { formatPrice } from '@/lib/utils'
 
 interface OrderDetailPanelProps {
@@ -110,7 +111,7 @@ export function OrderDetailPanel({ order, onStatusChange, updating }: OrderDetai
             <button
               key={option.value}
               type="button"
-              disabled={updating}
+              disabled={updating || !canTransitionStatus(order.status, option.value)}
               onClick={() => onStatusChange(option.value)}
               className={
                 order.status === option.value
