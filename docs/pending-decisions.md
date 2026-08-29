@@ -459,3 +459,33 @@ visible en la identidad de marca; 2px de padding no lo es), y limpiar aparte los
 
 **Dónde impacta**: nada bloqueado. La limpieza del hero es candidata natural al pase de polish
 de UI ya diferido en `WORKING-CONTEXT.md`.
+
+---
+
+## 18. DNS/R2 de producción corren en la cuenta personal de Cloudflare de Sebastián, compartida con otro cliente
+
+**Estado**: decisión operativa tomada 2026-08-24, deferida a propósito — no bloquea el deploy.
+
+La cuenta de Cloudflare que se usa hoy para `frontpet.com` (DNS proxied) y el bucket R2
+(`frontpet-dev`, y el que se cree para prod) es la **cuenta personal de Sebastián**, la misma
+donde vive `turnosuy.com` (dominio de otro cliente, consultorio). El dominio de FrontPet en sí
+**no tiene este problema** — está registrado en `registro.br` a nombre del cliente,
+independiente de Cloudflare.
+
+**Por qué no se resuelve ahora**: separar en una cuenta de Cloudflare exclusiva del cliente
+de FrontPet requiere su tarjeta de crédito (Billing → Payment methods), y la próxima vez que
+se van a juntar en persona es recién en la reunión de entrega, cerca del final del proyecto.
+No tiene sentido bloquear el Sprint Despliegue por esto.
+
+**Riesgo aceptado mientras tanto**: la tarjeta de Sebastián queda como método de pago de la
+cuenta compartida — cualquier facturación (R2 pasando el free tier, algún plan pago que se
+active sin querer) se cobra a él, no al cliente. Mitigación: revisar el uso de R2
+periódicamente contra el free tier (10GB / 1M-10M operaciones), no delegarlo a una alerta de
+Cloudflare que no está configurada.
+
+**Acción pendiente**: en la reunión de entrega, crear cuenta de Cloudflare nueva y exclusiva
+para el cliente de FrontPet (su email + tarjeta), migrar el dominio (cambiar nameservers desde
+`registro.br` a los nuevos) y recrear el bucket R2 de producción ahí. Hasta entonces, el
+bucket `frontpet-dev` en la cuenta compartida sigue sirviendo tanto para dev como para prod.
+
+**Dónde impacta**: `docs/deploy-runbook.md` D.2 y D.6.3 — anotado ahí también.

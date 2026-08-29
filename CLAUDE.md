@@ -93,7 +93,8 @@ frontpet/
 │   └── lib/            api client, hooks; datos en lib/data/
 ├── docs/               ADRs, design-system.md, db-model.png, next16-notes.md,
 │                       stitch-implementation-workflow.md, port-landing-stitch.md,
-│                       pending-decisions.md, preguntas-cliente.md, reuse-consultorio.md,
+│                       booking-api-contracts.md, pending-decisions.md, preguntas-cliente.md,
+│                       deploy-runbook.md, WORKING-CONTEXT.md,
 │                       learnings.md [gitignored], ui/ [gitignored, export stale — ver §5]
 ├── CLAUDE.md · ROADMAP.md · README.md
 ```

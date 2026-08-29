@@ -4,7 +4,7 @@
 > (permanente) ni ROADMAP.md (planificado). Si algo de acá deja de cambiar, se promueve
 > a uno de esos dos o a un ADR; si es una decisión sin tomar, va a `pending-decisions.md`.
 
-**Última actualización**: 2026-08-03
+**Última actualización**: 2026-08-24
 
 ---
 
@@ -32,11 +32,17 @@
 
 ## Restricciones vigentes (no permanentes — revisar cada sprint)
 
-- Todo corre en localhost; sin infra comprada (gateado a Sprint Despliegue).
-- **Sprint Despliegue sigue sin ejecutarse** y tiene que cerrar antes del 05/09 con hasta
-  48 hs de propagación DNS — la ventana se está achicando. La conversación de pago con el
-  cliente (necesaria para autorizar la compra de infra) tiene que salir ya, no a fin de
-  agosto.
+- **Sprint Despliegue en curso desde 2026-08-24** (reunión con el cliente el 25/08). Estado:
+  - ✅ D.1 (VPS): cuenta Hetzner nueva y exclusiva del cliente, con saldo cargado. Servidor
+    en sí todavía no creado.
+  - ✅ D.2 (dominio): comprado en `registro.br`, a nombre del cliente — sin relación con
+    Cloudflare.
+  - ⚠️ DNS + R2 de prod: corren en la **cuenta personal de Cloudflare de Sebastián**
+    (compartida con el cliente del consultorio), decisión temporal hasta la reunión de
+    entrega — ver `pending-decisions.md` §18 y `deploy-runbook.md` D.2/D.6.3.
+  - Pendiente: D.4-D.10 completas (ver `docs/deploy-runbook.md` para el detalle paso a paso).
+  - Sigue teniendo que cerrar antes del 05/09 con hasta 48 hs de propagación DNS — la ventana
+    se sigue achicando.
 - Presupuesto de horas restante según ROADMAP: Sprints 4, 5 y 6 corrieron todos por encima
   de su estimado (+18%, +40%, ~+2x respectivamente) — el patrón es consistente: los sprints
   con más superficie nueva de UI/admin se subestiman. Vale aplicar el mismo criterio de
