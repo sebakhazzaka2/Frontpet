@@ -60,6 +60,7 @@ class OrderServiceIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(detail.publicId()).isNotNull();
         assertThat(detail.status()).isEqualTo(OrderStatus.PENDING);
+        assertThat(detail.modalidade()).isEqualTo(ModalidadeEntrega.ENTREGA);
         assertThat(detail.enderecoEntrega()).isEqualTo("Rua das Flores, 123");
         assertThat(detail.freteMode()).isEqualTo(FreteMode.GRATIS);
         assertThat(detail.items()).hasSize(2);
@@ -77,6 +78,7 @@ class OrderServiceIntegrationTest extends AbstractIntegrationTest {
                 null, FormaPagamento.DINHEIRO, null, true, null,
                 List.of(new CreateOrderItemRequest(product.getPublicId(), null, 1))));
 
+        assertThat(detail.modalidade()).isEqualTo(ModalidadeEntrega.RETIRADA);
         assertThat(detail.enderecoEntrega()).isEqualTo("Retirada na loja");
         assertThat(detail.freteMode()).isEqualTo(FreteMode.GRATIS);
     }

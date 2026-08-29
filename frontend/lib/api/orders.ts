@@ -44,6 +44,10 @@ export interface OrderItemDetail {
 // Sin `whatsappMessage`: corregido junto con el .java (Bloque B, issue #30) —
 // el mensaje lo arma el frontend con buildOrderMessage() (lib/whatsapp/templates.ts),
 // no el backend.
+//
+// `modalidade`: la deriva OrderServiceImpl de `enderecoEntrega` una sola vez
+// (no tiene columna propia, ADR 003) — consumir este campo en vez de comparar
+// contra el literal "Retirada na loja" (docs/pending-decisions.md §16).
 export interface OrderDetail {
   publicId: string
   status: OrderStatus
@@ -51,6 +55,7 @@ export interface OrderDetail {
   clienteTelefone: string
   formaPagamento: FormaPagamento
   freteMode: FreteMode
+  modalidade: ModalidadeEntrega
   enderecoEntrega: string
   horarioEntrega?: string
   subtotal: number

@@ -23,8 +23,8 @@ export const bookingDetailsSchema = z.object({
     .string()
     .trim()
     .min(1, 'Informe o nome do seu pet.')
-    .max(100, 'Nome muito longo.'),
-  petRaca: z.string().trim().max(100).optional(),
+    .max(80, 'Nome muito longo.'),
+  petRaca: z.string().trim().max(80).optional(),
   observacoes: z.string().trim().max(500).optional(),
   // Honeypot (mismo patrón anti-bot de checkout.ts / CreateOrderRequest,
   // tarea 4.15/5.8) — sin .default(), el default real lo provee

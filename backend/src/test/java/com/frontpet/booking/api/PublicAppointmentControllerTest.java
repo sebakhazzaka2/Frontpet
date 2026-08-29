@@ -131,6 +131,26 @@ class PublicAppointmentControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("petNome maior que 80 caracteres devuelve 400 con fieldErrors (VARCHAR(80) de appointments)")
+    void oversizedPetNomeReturnsBadRequest() throws Exception {
+        String body = """
+                {
+                  "baseServiceId": %d,
+                  "porte": "M",
+                  "data": "%s",
+                  "horario": "10:00",
+                  "clienteNome": "Ana Souza",
+                  "clienteTelefone": "(55) 99123-4567",
+                  "petNome": "%s"
+                }
+                """.formatted(banhoBase.getId(), proximaQuarta(), "A".repeat(81));
+
+        mockMvc.perform(post("/api/v1/appointments").contentType("application/json").content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.petNome").exists());
+    }
+
+    @Test
     @DisplayName("horário fora da grilla de 30 min devuelve 400")
     void invalidHorarioReturnsBadRequest() throws Exception {
         String body = """

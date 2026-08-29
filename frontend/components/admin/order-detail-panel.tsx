@@ -60,7 +60,7 @@ export function OrderDetailPanel({ order, onStatusChange, updating }: OrderDetai
           Modalidade de entrega
         </h3>
         <p className="text-sm text-ink">{modalidadeLabel(order)}</p>
-        {order.enderecoEntrega !== 'Retirada na loja' && (
+        {order.modalidade === 'ENTREGA' && (
           <p className="text-sm text-ink-muted">{order.enderecoEntrega}</p>
         )}
         {order.horarioEntrega && (

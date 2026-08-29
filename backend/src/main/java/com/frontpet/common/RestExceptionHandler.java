@@ -11,8 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -108,6 +110,32 @@ public class RestExceptionHandler {
         // Debug, no error: un login fallido es tráfico normal, no un incidente.
         log.debug("Falha de autenticação em {}: {}", request.getRequestURI(), ex.getMessage());
         return build(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos.", request);
+    }
+
+    // Red de seguridad final: cualquier excepción sin handler específico
+    // llegaba antes como 500 crudo de Spring (con stacktrace en el body en
+    // dev). Acá se loguea completo para Sentry/logs, pero al cliente solo
+    // llega un mensaje genérico en PT-BR.
+    //
+    // Excepciones propias de Spring MVC (405 método no permitido, 415 media
+    // type, 404 de ruta inexistente, etc.) implementan ErrorResponse y ya
+    // traen su status HTTP correcto — no son un bug real, así que se
+    // respeta ese status en vez de aplastarlo con un 500 (AdminServiceControllerTest
+    // cubre el caso 405 de "admin não cria/apaga serviços").
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
+        if (ex instanceof ErrorResponse errorResponse) {
+            HttpStatusCode status = errorResponse.getStatusCode();
+            log.debug("Erro HTTP padrão do Spring em {}: {}", request.getRequestURI(), ex.getMessage());
+            String detail = errorResponse.getBody().getDetail();
+            return ResponseEntity.status(status).body(ApiError.of(
+                    status.value(),
+                    HttpStatus.valueOf(status.value()).getReasonPhrase(),
+                    detail != null ? detail : "Requisição inválida.",
+                    request.getRequestURI()));
+        }
+        log.error("Erro não tratado em {}", request.getRequestURI(), ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Ocorreu um erro inesperado. Tente novamente.", request);
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String message,

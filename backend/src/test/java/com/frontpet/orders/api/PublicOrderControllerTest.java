@@ -56,6 +56,7 @@ class PublicOrderControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.publicId").isNotEmpty())
                 .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.modalidade").value("RETIRADA"))
                 .andExpect(jsonPath("$.items[0].nomeSnapshot").value("Ração Checkout Público"));
     }
 
@@ -92,6 +93,25 @@ class PublicOrderControllerTest extends AbstractIntegrationTest {
                   "items": [{"productPublicId": "%s", "quantidade": 1}]
                 }
                 """.formatted(UUID.randomUUID());
+
+        mockMvc.perform(post("/api/v1/orders").contentType("application/json").content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.clienteNome").exists());
+    }
+
+    @Test
+    @DisplayName("clienteNome mayor a 160 caracteres da 400 con fieldErrors (VARCHAR(160) de orders)")
+    void rejectsOversizedClientName() throws Exception {
+        String body = """
+                {
+                  "clienteNome": "%s",
+                  "clienteTelefone": "(51) 99999-8888",
+                  "modalidade": "RETIRADA",
+                  "formaPagamento": "PIX",
+                  "consentimentoLgpd": true,
+                  "items": [{"productPublicId": "%s", "quantidade": 1}]
+                }
+                """.formatted("A".repeat(161), UUID.randomUUID());
 
         mockMvc.perform(post("/api/v1/orders").contentType("application/json").content(body))
                 .andExpect(status().isBadRequest())

@@ -45,7 +45,7 @@ function itemsList(order: OrderDetail): string {
 // Exportadas: <OrderDetailPanel> (Bloque F) las reusa para no duplicar la
 // misma lógica de "cómo se infiere Entrega/Retirada" en dos lugares.
 export function modalidadeLabel(order: OrderDetail): string {
-  return order.enderecoEntrega === 'Retirada na loja' ? 'Retirada na loja' : 'Entrega'
+  return order.modalidade === 'RETIRADA' ? 'Retirada na loja' : 'Entrega'
 }
 
 export function freteLabel(order: OrderDetail): string {
@@ -54,7 +54,7 @@ export function freteLabel(order: OrderDetail): string {
 
 function pendingTemplate(order: OrderDetail): string {
   const enderecoLine =
-    order.enderecoEntrega !== 'Retirada na loja' ? `Endereço: ${order.enderecoEntrega}\n` : ''
+    order.modalidade === 'ENTREGA' ? `Endereço: ${order.enderecoEntrega}\n` : ''
 
   return `Olá ${firstName(order.clienteNome)}! Aqui é da FrontPet 🐾
 
@@ -69,7 +69,7 @@ Vamos confirmar com você o valor do frete e o horário ideal. Pode me responder
 
 function confirmedTemplate(order: OrderDetail): string {
   const previsao =
-    order.enderecoEntrega === 'Retirada na loja'
+    order.modalidade === 'RETIRADA'
       ? 'Te aviso assim que estiver pronto para retirada!'
       : order.horarioEntrega
         ? `Horário combinado: ${order.horarioEntrega}`

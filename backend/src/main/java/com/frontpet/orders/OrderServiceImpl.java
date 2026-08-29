@@ -199,6 +199,9 @@ public class OrderServiceImpl implements OrderService {
                 order.getClienteTelefone(),
                 order.getFormaPagamento(),
                 order.getFreteMode(),
+                RETIRADA_ENDERECO.equals(order.getEnderecoEntrega())
+                        ? ModalidadeEntrega.RETIRADA
+                        : ModalidadeEntrega.ENTREGA,
                 order.getEnderecoEntrega(),
                 order.getHorarioEntrega(),
                 order.getSubtotalSnapshot(),

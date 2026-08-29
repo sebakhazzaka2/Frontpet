@@ -3,6 +3,7 @@ package com.frontpet.booking.dto;
 import com.frontpet.booking.domain.Porte;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -22,10 +23,10 @@ public record CreateManualAppointmentRequest(
         @NotNull Porte porte,
         @NotNull LocalDate data,
         @NotNull LocalTime horario,
-        @NotBlank String clienteNome,
-        @NotBlank String clienteTelefone,
-        @NotBlank String petNome,
-        String petRaca,
+        @NotBlank @Size(max = 160) String clienteNome,
+        @NotBlank @Size(max = 30) String clienteTelefone,
+        @NotBlank @Size(max = 80) String petNome,
+        @Size(max = 80) String petRaca,
         String observacoes
 ) {
     public CreateManualAppointmentRequest {

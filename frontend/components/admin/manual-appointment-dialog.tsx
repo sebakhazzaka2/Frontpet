@@ -90,8 +90,12 @@ export function ManualAppointmentDialog({
     if (!data) return 'Informe a data.'
     if (!horario) return 'Informe o horário.'
     if (clienteNome.trim().length < 2) return 'Informe o nome do cliente.'
+    if (clienteNome.trim().length > 160) return 'Nome do cliente muito longo.'
     if (clienteTelefone.trim().length < 8) return 'Informe um telefone válido.'
+    if (clienteTelefone.trim().length > 30) return 'Telefone muito longo.'
     if (petNome.trim().length < 1) return 'Informe o nome do pet.'
+    if (petNome.trim().length > 80) return 'Nome do pet muito longo.'
+    if (petRaca.trim().length > 80) return 'Raça muito longa.'
     return null
   }
 
@@ -242,6 +246,7 @@ export function ManualAppointmentDialog({
                 id="clienteNome"
                 value={clienteNome}
                 onChange={(e) => setClienteNome(e.target.value)}
+                maxLength={160}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -253,19 +258,30 @@ export function ManualAppointmentDialog({
                 value={clienteTelefone}
                 onChange={(e) => setClienteTelefone(e.target.value)}
                 placeholder="(55) 99123-4567"
+                maxLength={30}
               />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-label text-ink-muted" htmlFor="petNome">
                 Nome do pet
               </label>
-              <Input id="petNome" value={petNome} onChange={(e) => setPetNome(e.target.value)} />
+              <Input
+                id="petNome"
+                value={petNome}
+                onChange={(e) => setPetNome(e.target.value)}
+                maxLength={80}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-label text-ink-muted" htmlFor="petRaca">
                 Raça (opcional)
               </label>
-              <Input id="petRaca" value={petRaca} onChange={(e) => setPetRaca(e.target.value)} />
+              <Input
+                id="petRaca"
+                value={petRaca}
+                onChange={(e) => setPetRaca(e.target.value)}
+                maxLength={80}
+              />
             </div>
           </div>
 

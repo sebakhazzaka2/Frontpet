@@ -7,6 +7,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -35,12 +36,12 @@ import java.util.List;
  * pedido sin decírselo al bot que lo mandó.
  */
 public record CreateOrderRequest(
-        @NotBlank String clienteNome,
-        @NotBlank String clienteTelefone,
+        @NotBlank @Size(max = 160) String clienteNome,
+        @NotBlank @Size(max = 30) String clienteTelefone,
         @NotNull ModalidadeEntrega modalidade,
         String enderecoEntrega,
         @NotNull FormaPagamento formaPagamento,
-        String horarioEntrega,
+        @Size(max = 120) String horarioEntrega,
         @AssertTrue(message = "É necessário aceitar a política de privacidade.") boolean consentimentoLgpd,
         String honeypot,
         @NotEmpty @Valid List<CreateOrderItemRequest> items
