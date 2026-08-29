@@ -93,6 +93,12 @@ public class SecurityConfig {
                         // anyRequest().authenticated() de abajo sin el /**.
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
+                        // Reset de contraseña (tarea 7.12): anónimo por diseño, igual
+                        // que login. CSRF sigue deshabilitado más abajo — ambos son
+                        // anónimos y reset-password exige un token de 256 bits que el
+                        // atacante no tiene, no una cookie de sesión que falsificar.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password")
+                        .permitAll()
                         // Checkout público y anónimo (tarea 4.8). POST-específico
                         // y ruta exacta: /api/v1/admin/orders sigue cayendo en el
                         // anyRequest().authenticated() de abajo. Protegido en

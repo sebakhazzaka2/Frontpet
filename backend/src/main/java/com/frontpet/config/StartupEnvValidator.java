@@ -55,6 +55,15 @@ public class StartupEnvValidator implements ApplicationListener<ContextRefreshed
     @Value("${frontpet.r2.public-url}")
     private String r2PublicUrl;
 
+    @Value("${frontpet.resend.api-key}")
+    private String resendApiKey;
+
+    @Value("${frontpet.resend.from}")
+    private String resendFrom;
+
+    @Value("${frontpet.app.base-url}")
+    private String appBaseUrl;
+
     private boolean validated = false;
 
     @Override
@@ -103,6 +112,21 @@ public class StartupEnvValidator implements ApplicationListener<ContextRefreshed
         }
         if (isBlank(r2PublicUrl)) {
             errors.add("R2_PUBLIC_URL is not set");
+        }
+
+        if (isBlank(resendApiKey)) {
+            errors.add("RESEND_API_KEY is not set");
+        }
+        if (isBlank(resendFrom)) {
+            errors.add("RESEND_FROM is not set");
+        }
+
+        if (isBlank(appBaseUrl)) {
+            errors.add("APP_BASE_URL is not set");
+        } else if (!appBaseUrl.startsWith("https://")) {
+            // Un link de reset de contraseña por http manda o token em
+            // texto puro pela rede — ver PasswordResetService.
+            errors.add("APP_BASE_URL must start with https:// (a password reset link over http leaks the token)");
         }
 
         if (!errors.isEmpty()) {

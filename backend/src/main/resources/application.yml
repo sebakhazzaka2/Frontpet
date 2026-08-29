@@ -81,6 +81,23 @@ frontpet:
     max-failures: 10
     window: 15m
 
+  password-reset:
+    # Reset de contraseña del admin (tarea 7.12, ADR 022).
+    ttl: 60m
+    ip-rate-limit:
+      # Cubre POST /forgot-password Y /reset-password — protege el server y
+      # el brute-force del token en sí.
+      enabled: ${PASSWORD_RESET_RATE_LIMIT_ENABLED:true}
+      max-attempts: 5
+      window: 15m
+    email-rate-limit:
+      # Solo POST /forgot-password (el filtro no puede leer el body — ver
+      # PasswordResetEmailAttemptService). Protege la casilla del cliente
+      # del bombardeo desde IPs rotativas, no el servidor.
+      enabled: ${PASSWORD_RESET_RATE_LIMIT_ENABLED:true}
+      max-attempts: 3
+      window: 1h
+
   order-rate-limit:
     # Rate limit de POST /api/v1/orders por IP (tarea 4.15). A diferencia del
     # login, cuenta TODAS las requests (no solo las fallidas) — ver
