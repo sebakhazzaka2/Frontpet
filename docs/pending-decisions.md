@@ -541,3 +541,69 @@ verdad del diseño, leído por MCP") y sin las validaciones manuales del DoD.
 cerrarlo: (a) autorizar el MCP de Stitch (`claude mcp` o `/mcp`) y comparar la pantalla
 portada contra la real, corrigiendo desvíos si aparecen; (b) levantar el stack local y
 probar el dashboard con datos de verdad; (c) probarlo en un celular real, no solo DevTools.
+
+---
+
+## 21. El wizard de agendamento no protege contra doble submit — un doble clic puede crear 2 turnos
+
+**Estado**: detectado 2026-08-31 probando el flujo de agenda contra el stack local (Postgres +
+backend + frontend corriendo de verdad, no solo tests). No es una suposición: se reprodujo a
+propósito mandando 2 `POST /api/v1/appointments` casi simultáneos para el mismo horário y
+ambos devolvieron `201` (dos turnos `PENDING` distintos, mismo cliente, mismo slot) porque la
+`capacidade_atendimento` del tenant es `2` — el segundo request todavía entraba dentro del
+cupo.
+
+**Por qué pasa, en las dos capas**:
+
+1. **Frontend** (`frontend/components/public/booking/booking-form.tsx:232`): el botón de
+   "Confirmar agendamento" se deshabilita con `disabled={isSubmitting}` de React Hook Form.
+   Es una mitigación razonable, pero `isSubmitting` recién pasa a `true` después de un
+   re-render — en un doble clic rápido (o un doble tap en mobile con la red lenta, que es
+   justo el caso real: "demoró en responder 1 segundo") los dos clics pueden disparar
+   `handleSubmit` antes de que el DOM refleje el botón deshabilitado.
+2. **Backend** (`AppointmentServiceImpl.create`, ver `lockTenantDay` línea ~393): SÍ hay un
+   lock real —`pg_advisory_xact_lock` por `tenant_id + día`— que serializa correctamente los
+   `POST` concurrentes y evita pasarse de la capacidad configurada. Pero ese lock protege
+   contra **sobreventa** (2 clientes distintos peleando el último cupo), no contra
+   **intención duplicada**: no existe ningún chequeo de "¿este mismo cliente/teléfono ya
+   tiene un turno pendiente para este mismo horário, creado hace unos segundos?". Si hay cupo
+   para 2, el sistema crea 2 turnos legítimos aunque el usuario solo quiso agendar 1.
+
+**Dónde impacta**: el admin ve 2 turnos `PENDING` para el mismo cliente/horário en
+`/admin/agendamentos` sin ninguna señal de que es un duplicado accidental — tiene que
+detectarlo a ojo y cancelar uno a mano. Con `capacidade_atendimento` baja (el valor de
+producción probablemente sea 1 o 2) el impacto real es acotado, pero no nulo.
+
+**Fix propuesto** (no implementado): dos opciones, no excluyentes —
+(a) frontend: además de `isSubmitting`, marcar el botón `disabled` de forma síncrona en el
+`onClick` (antes de que React re-renderice) o envolver el submit en un `useRef` de guarda;
+(b) backend: dentro de `lockTenantDay`, antes de crear, rechazar con `409` si ya existe un
+turno `PENDING`/`CONFIRMED` con el mismo `clienteTelefone` que se solape con el horário
+solicitado — mismo criterio que ya se usa para el solapamiento general. La opción (b) es la
+que realmente cierra el hueco (no depende del timing del cliente); la (a) solo lo hace menos
+probable.
+
+---
+
+## 22. `POST /admin/products` responde 500 genérico ante un body JSON con bytes UTF-8 inválidos
+
+**Estado**: detectado 2026-08-31 probando el alta de productos contra el stack local. Con un
+body bien formado (UTF-8 válido) el alta funciona correctamente — subtotal, categorías,
+espécies y snapshot de precio se verificaron end-to-end sin problemas. El hallazgo es
+puntual: si el JSON llega con un byte UTF-8 inválido a mitad de un string (en la práctica,
+un cliente HTTP mal configurado que trunca o corrompe un acento/carácter especial), Jackson
+tira `HttpMessageNotReadableException` y esa excepción no tiene handler propio en
+`RestExceptionHandler` — cae en el `@ExceptionHandler(Exception.class)` genérico y responde
+`500 "Ocorreu um erro inesperado"` en vez de un `400` de validación.
+
+**Dónde impacta**: bajo. No es explotable como bug de negocio (el propio `<AdminProductForm>`
+del frontend nunca genera JSON inválido) y no se disparó con datos reales — apareció al
+probar con un payload armado a mano desde la terminal con encoding roto. Vale documentarlo
+porque cualquier 500 en logs de producción (Sentry, D.8) dispara una alerta como si fuera un
+bug real, y este caso puntual no lo es — solo un `400` mal clasificado.
+
+**Fix propuesto** (no implementado, ~15 min): agregar
+`@ExceptionHandler(HttpMessageNotReadableException.class)` en `RestExceptionHandler` que
+devuelva `400` con un mensaje genérico ("Corpo da requisição inválido"), igual que ya existe
+para `MethodArgumentNotValidException`. Candidato a Sprint 7 (polish) o a cualquier hueco
+chico — no bloquea nada.

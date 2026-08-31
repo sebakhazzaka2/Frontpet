@@ -84,6 +84,14 @@
   (`pending-decisions.md` §19): falta correr el Paso 0 del plan (verificar el dominio de
   Resend en Cloudflare/Resend — accesos que la sesión no tenía) y la validación visual real
   a 320/768/1024px con screenshot para la issue.
+- **El wizard de agendamento no protege contra doble submit** (`pending-decisions.md` §21,
+  detectado 2026-08-31 probando el stack local real) — un doble clic/tap puede crear 2 turnos
+  `PENDING` idénticos si hay cupo (`capacidade_atendimento`) para ambos. El lock de
+  concurrencia del backend evita sobreventa, pero no detecta intención duplicada del mismo
+  cliente. Fix propuesto en el pending-decision, no implementado.
+- **`POST /admin/products` responde 500 en vez de 400 ante JSON con bytes UTF-8 inválidos**
+  (`pending-decisions.md` §22, detectado 2026-08-31) — impacto bajo, no reproducible desde el
+  form real del admin, pero ensucia Sentry con falsos positivos si algún día pasa en prod.
 - **7.1-7.3 (mini-dashboard) mergeado a `main` 2026-08-29, también con el DoD incompleto**
   (`pending-decisions.md` §20): se porteó mirando el export offline de `docs/ui/` porque el
   MCP de Stitch falló por autenticación (no autorizado en la sesión) — falta comparar contra
