@@ -1,12 +1,14 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Calendar, LayoutDashboard, LogOut, Package, Scissors, ShoppingBag } from 'lucide-react'
 import { apiFetch } from '@/lib/api/client'
+import logoHorizontal from '@/public/brand/frontpet-logo-horizontal.png'
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/produtos', label: 'Produtos', icon: Package },
   { href: '/admin/servicos', label: 'Serviços', icon: Scissors },
@@ -47,7 +49,10 @@ export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   return (
     <div className="flex h-full flex-col bg-navy text-white">
       <div className="flex h-16 items-center px-6">
-        <span className="font-display text-h3 font-semibold">FrontPet Admin</span>
+        {/* Logo real (mismo asset que <Nav> público) en vez de texto — el
+            sidebar admin no representaba la identidad de marca (feedback
+            visual 2026-08-31). Fondo navy del PNG funde igual que en <Nav>. */}
+        <Image src={logoHorizontal} alt="FrontPet Admin" className="h-8 w-auto object-contain" sizes="140px" priority />
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 px-3">
