@@ -25,6 +25,13 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.r2.dev",
       },
+      {
+        // Fotos de autor de reviews de Google (ADR 025). Wildcard, no host
+        // exacto: lh3/lh4/lh5.googleusercontent.com son subdominios válidos
+        // de Google y un host fijo rompería la card ante cualquiera de ellos.
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+      },
     ],
   },
 };

@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import { ArrowRight, Calendar } from 'lucide-react'
 import { HeroFloatingCardsLoader } from '@/components/public/hero-floating-cards-loader'
+import { getPlaceSummary } from '@/lib/google-places'
 
 // TODO: reemplazar por la foto real del cliente cuando la provea. Stitch usa una
 // URL temporal de Google (aida-public) que no es nuestra y puede dejar de existir
 // — no se hotlinkea. Gradiente navy como placeholder mientras tanto.
 
 // Server Component a propósito: el h1/p de acá es el elemento LCP de la
-// página (confirmado con Lighthouse). Sin 'use client' ni animación de
-// entrada en el contenido crítico — ver <HeroFloatingCards> para la parte
-// que sí anima (decorativa, desktop-only, no es el LCP).
-export function Hero() {
+// página (confirmado con Lighthouse). El `await` de acá se resuelve en
+// build/revalidate (ISR) — no mete 'use client' en el árbol del LCP, que es
+// lo que esa decisión protege. Ver <HeroFloatingCards> para la parte que sí
+// anima (decorativa, desktop-only, no es el LCP).
+export async function Hero() {
+  const place = await getPlaceSummary()
   return (
     <section className="relative h-[560px] w-full overflow-hidden bg-gradient-to-br from-navy to-navy-dark md:h-[600px] lg:h-[720px]">
       <div className="absolute inset-0 bg-gradient-to-r from-ink/78 via-ink/30 to-transparent" />
@@ -54,11 +57,11 @@ export function Hero() {
       </div>
 
       {/* Social proof flotante: solo desktop (lg:+). A AC de la tarea 2.2:
-          oculto en mobile. Datos estáticos — Sprint 2 no tiene backend de
-          reviews todavía (ver ADR 017). Cargado con next/dynamic (ssr:false,
-          ver el loader) para que su JS no compita con el LCP en el primer
-          paint — no aporta SEO y en mobile ni siquiera se muestra. */}
-      <HeroFloatingCardsLoader />
+          oculto en mobile. Rating real del Google Business (ADR 025), no
+          inventado. Cargado con next/dynamic (ssr:false, ver el loader) para
+          que su JS no compita con el LCP en el primer paint — no aporta SEO
+          y en mobile ni siquiera se muestra. */}
+      <HeroFloatingCardsLoader rating={place.rating} userRatingCount={place.userRatingCount} />
     </section>
   )
 }

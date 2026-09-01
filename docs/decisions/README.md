@@ -67,3 +67,4 @@ Crear un ADR cuando:
 | [022](./022-reset-senha-admin.md) | Reset de contraseña del admin: token opaco + invalidación de sesión | Aceptada | 2026-08-29 |
 | [023](./023-anonimizacao-eliminacao-lgpd.md) | Anonimização (no borrado) para el direito de eliminación LGPD | Aceptada | 2026-08-29 |
 | [024](./024-tracking-consentimento-lgpd.md) | Tracking de terceiros y consentimiento LGPD: Meta Pixel gateado, Plausible no | Aceptada | 2026-08-29 |
+| [025](./025-google-reviews-location.md) | Reviews reales del Google Business, mapa de ubicación y encabezado canónico | Aceptada | 2026-09-01 |

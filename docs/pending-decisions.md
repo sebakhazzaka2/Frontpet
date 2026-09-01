@@ -351,9 +351,14 @@ produtos).
 
 ## 15. `REVIEWS` y `TrustBar` muestran contenido inventado como si fuera real
 
-**Estado**: detectado 2026-08-03 en auditoría de release (`/release-check`). **Es el único
-hallazgo abierto con consecuencia externa al repo — hay que decidirlo antes del Sprint
-Despliegue, no después.**
+**Estado**: detectado 2026-08-03 en auditoría de release (`/release-check`). **Resuelto
+2026-09-01** (ADR 025): `<Reviews>`, `<TrustBar>` y las cards flotantes del `<Hero>` leen ahora
+de la Places API del Google Business real (5,0 · 78 avaliações verificado). `lib/data/reviews.ts`
+se borró — **sin fallback a contenido inventado**: si la API falla o el negocio no tiene reviews
+todavía, la sección se muestra sin cards en vez de mostrar testimonios de ejemplo (opción 2 de
+abajo, aplicada automáticamente en ese caso puntual, no como decisión manual). Un primer intento
+de esta integración había quedado roto en silencio (endpoint legacy dado de baja,
+`REQUEST_DENIED` sin que nadie lo notara) — detalle completo en ADR 025.
 
 `frontend/lib/data/reviews.ts` tiene 3 testimonios con **personas que no existen** ("Mariana
 L., Tutora do Thor", "Ricardo S., Tutor do Duke", "Fabiana M., Tutora da Mel") y textos de

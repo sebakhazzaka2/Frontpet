@@ -53,7 +53,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AdminPrivacyControllerTest extends AbstractIntegrationTest {
 
     private static final UUID TENANT = UUID.fromString("01924ccf-0000-7000-8000-000000000001");
-    private static final String TELEFONE = "51999998888";
+    // Teléfono exclusivo de esta clase: OrderRateLimitIntegrationTest y
+    // AppointmentRateLimitIntegrationTest son adrede no @Transactional y
+    // dejan pedidos/turnos committeados de verdad con "51999998888",
+    // lo que contaminaba los conteos de preview/anonymize acá.
+    private static final String TELEFONE = "51988887777";
 
     @Autowired MockMvc mockMvc;
     @Autowired ProductRepository productRepository;
