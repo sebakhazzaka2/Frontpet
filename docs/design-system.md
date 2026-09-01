@@ -197,6 +197,26 @@ Reusar siempre lo existente antes de crear: `WhatsAppIcon`, `InstagramIcon`,
 `buildWhatsAppLink` (`@/lib/data/site`), `formatPrice` (`@/lib/utils`). Iconos:
 `lucide-react` (mapeo desde Material Symbols: `docs/port-landing-stitch.md` §6).
 
+**Encabezado de sección**: `<SectionHeading>` (`components/public/section-heading.tsx`, ADR 025)
+es el único mecanismo para eyebrow + h2 + descrição de una sección pública — no repetir el
+markup a mano. Props: `eyebrow?`, `titulo`, `descricao?`, `align` (`'left' | 'center'`, default
+`left`), `tone` (`'light' | 'dark'`, default `light`, para secciones sobre fondo navy).
+
+```tsx
+<SectionHeading
+  eyebrow="03 — Quem já confiou"
+  titulo="Histórias de Tutores"
+  descricao="Avaliações reais de tutores no Google."
+  align="center"
+  tone="dark"
+/>
+```
+
+Ritmo fijo: eyebrow→h2 `mt-2` · h2→p `mt-3` · header→contenido siempre `mt-8` (aplicado por
+quien consume el componente, no por el componente mismo). Sin prop de acento en naranja dentro
+del título — se probó y se descartó a pedido explícito; los títulos de sección quedan en su
+color normal (`text-white` sobre navy, `text-ink` sobre superficie clara).
+
 ---
 
 ## 8. Animación

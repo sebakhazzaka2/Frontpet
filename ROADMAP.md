@@ -331,10 +331,10 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 Cosas que hoy son placeholders inofensivos en `localhost` y dejan de serlo con una URL
 pública. Ninguna se detecta con `/security-review` ni con el DoD, por eso van listadas:
 
-- [ ] **Depoimentos y métricas reales o fuera** — `lib/data/reviews.ts` y `<TrustBar>` publican
-      hoy testimonios de personas inexistentes y "4.9 Avaliação Média" / "500+ Pets Atendidos"
-      sin fuente. Con datos reales del cliente (`preguntas-cliente.md` §6.5) se reemplazan; sin
-      ellos **se sacan**. Detalle y rationale: `pending-decisions.md` §15
+- [x] **Depoimentos reales** — `<Reviews>` y `<TrustBar>` leen datos reales de la Places API
+      (ADR 025, 2026-09-01), sin fallback a testimonios inventados. Falta solo confirmar
+      periódicamente que el Google Business siga teniendo reviews (si llegan a cero, la sección
+      se queda sin cards sola). Detalle: `pending-decisions.md` §15
 - [ ] **`metadataBase` / dominio real** en `app/layout.tsx:93` — hoy TODO con dominio
       placeholder; afecta a todas las URLs absolutas de OG y canonical
 - [ ] **`/public/og-image.jpg` real** (1200x630) — `app/layout.tsx:63`, hoy sin imagen: los
@@ -345,6 +345,10 @@ pública. Ninguna se detecta con `/security-review` ni con el DoD, por eso van l
       sincronizarlo a mano acá
 - [ ] **Número de WhatsApp definitivo** en el seed (`preguntas-cliente.md` §7.3) y en
       `lib/data/site.ts` (hoy TODO)
+- [ ] **Restringir `GOOGLE_PLACES_API_KEY` por IP** en Google Cloud Console a la IP del VPS
+      (ADR 025) — hoy sin restricción de aplicación porque en dev la IP local cambia; ya está
+      restringida a la Places API únicamente, falta la restricción de IP una vez que exista la
+      IP fija de producción (Sprint Despliegue)
 - [ ] **Fotos reales** de productos, serviços y hero (`preguntas-cliente.md` §6.3) — o asumir
       explícitamente que se sale con los gradientes placeholder
 
