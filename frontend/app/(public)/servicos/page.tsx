@@ -3,6 +3,7 @@ import { Calendar, Clock, MapPin } from 'lucide-react'
 import { listServices } from '@/lib/api/services'
 import { ServiceOfferingCard } from '@/components/public/service-offering-card'
 import { FaqAccordion, type FaqItem } from '@/components/public/faq-accordion'
+import { SectionHeading } from '@/components/public/section-heading'
 import { BUSINESS_HOURS_DISPLAY, SITE_CITY } from '@/lib/data/site'
 
 // force-dynamic: diferente de produtos/page.tsx (que já é dinâmico por ler
@@ -91,11 +92,11 @@ export default async function ServicosPage() {
 
         {adicionais.length > 0 && (
           <div className="mt-10">
-            <h2 className="text-h2-mobile font-display text-ink md:text-h2">Adicionais</h2>
-            <p className="mt-1 text-sm text-ink-muted">
-              Somados a um banho na hora de agendar — não se reservam sozinhos.
-            </p>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <SectionHeading
+              titulo="Adicionais"
+              descricao="Somados a um banho na hora de agendar — não se reservam sozinhos."
+            />
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {adicionais.map((service) => (
                 <ServiceOfferingCard key={service.id} service={service} variant="compacto" />
               ))}
@@ -105,11 +106,12 @@ export default async function ServicosPage() {
       </section>
 
       <section className="bg-surface px-6 py-12 lg:px-8">
-        <div className="mx-auto max-w-content text-center">
-          <h2 className="text-h2-mobile font-display text-ink md:text-h2">Como funciona</h2>
-          <p className="mt-2 text-sm text-ink-muted">
-            4 passos simples para o dia de beleza do seu pet
-          </p>
+        <div className="mx-auto max-w-content">
+          <SectionHeading
+            align="center"
+            titulo="Como funciona"
+            descricao="4 passos simples para o dia de beleza do seu pet"
+          />
         </div>
         <div className="mx-auto mt-8 grid max-w-content grid-cols-1 gap-8 md:grid-cols-4">
           {COMO_FUNCIONA.map((passo) => (
@@ -125,17 +127,15 @@ export default async function ServicosPage() {
       </section>
 
       <section className="mx-auto max-w-[800px] px-6 py-12 lg:px-8">
-        <h2 className="mb-8 text-center text-h2-mobile font-display text-ink md:text-h2">
-          Dúvidas frequentes
-        </h2>
-        <FaqAccordion items={FAQ_ITEMS} />
+        <SectionHeading align="center" titulo="Dúvidas frequentes" />
+        <div className="mt-8">
+          <FaqAccordion items={FAQ_ITEMS} />
+        </div>
       </section>
 
-      <section className="bg-surface px-6 py-12 text-center lg:px-8">
-        <div className="mx-auto max-w-content">
-          <h2 className="text-h2-mobile font-display text-ink md:text-h2">
-            Pronto para transformar o dia do seu pet?
-          </h2>
+      <section className="bg-surface px-6 py-12 lg:px-8">
+        <div className="mx-auto max-w-content text-center">
+          <SectionHeading align="center" titulo="Pronto para transformar o dia do seu pet?" />
           <Link
             href="/agendamento"
             className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-orange px-8 py-4 text-h3 font-semibold text-white shadow-card transition-transform active:scale-95"
