@@ -11,6 +11,11 @@ const HeroFloatingCards = dynamic(
   { ssr: false }
 )
 
-export function HeroFloatingCardsLoader() {
-  return <HeroFloatingCards />
+interface HeroFloatingCardsLoaderProps {
+  rating: number | null
+  userRatingCount: number | null
+}
+
+export function HeroFloatingCardsLoader({ rating, userRatingCount }: HeroFloatingCardsLoaderProps) {
+  return <HeroFloatingCards rating={rating} userRatingCount={userRatingCount} />
 }
