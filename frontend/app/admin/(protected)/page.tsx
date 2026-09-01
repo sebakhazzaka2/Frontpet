@@ -36,6 +36,7 @@ export default function AdminDashboardPage() {
               value={data.pedidosPendentes}
               icon={ShoppingBag}
               tone="orange"
+              featured
             />
             <KPICard
               label="Turnos hoje"
