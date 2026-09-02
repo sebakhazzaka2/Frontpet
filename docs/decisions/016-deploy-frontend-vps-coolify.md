@@ -5,6 +5,11 @@
 **Sprint**: previo al Sprint Despliegue (semana 5)
 **Reemplaza**: la decisión "Cloudflare Pages para el frontend" que asumía CLAUDE.md sección 2
 
+> **Nota 2026-09-01**: Hetzner renombró su catálogo de tiers — el CX32/CX22 de este ADR
+> son hoy **CX33/CX23** en la consola, mismos specs (4 vCPU/8GB y 2 vCPU/4GB respectivamente).
+> El razonamiento de este ADR no cambia, solo el nombre. `docs/deploy-runbook.md` y
+> `ROADMAP.md` ya usan los nombres nuevos.
+
 ---
 
 ## Contexto
@@ -87,6 +92,22 @@ de comprar**):
 
 Ashburn son ~70 ms gratis contra Alemania. Y como solo afecta a las llamadas de API (no al
 contenido cacheado), no justifica pagar por São Paulo — ver alternativas.
+
+> **Revertido 2026-09-01, en ejecución (D.1)**: el tier CX32/CX33 (4 vCPU/8 GB) **no existe
+> en Ashburn/Hillsboro** — la línea CX de Hetzner en US solo llega a specs menores. La
+> equivalente que sí está en Ashburn es **CPX32** (ex-CPX31, misma RAM), pero pasó a
+> ~USD 42/mes — 4x el costo de CX33 en Alemania y fuera del presupuesto ya cargado en la
+> cuenta del cliente (USD 25, sin margen para cambiar de proveedor a esta altura).
+>
+> **Se acepta Alemania (Falkenstein o Nuremberg) con CX33**, volviendo a los ~200ms
+> originalmente descartados. La mitigación real no es el VPS — es que la mayoría del tráfico
+> de un catálogo (GET del listado/detalle de productos) se puede cachear en el borde de
+> Cloudflare (Cache Rules o `revalidate` de Next), así que esos requests dejan de tocar el
+> origin en Alemania. Lo que sí pega de lleno son las mutaciones (POST de checkout/turno) —
+> son puntuales, no de cada scroll, y el usuario tolera 70-100ms extra en un submit mucho
+> mejor que en la carga de página. **Nueva tarea agregada a D.6**: configurar el caching de
+> las rutas públicas GET antes de dar el deploy por cerrado — sin eso, cada pageview
+> dinámico paga el costo completo de la distancia a Alemania.
 
 ---
 
