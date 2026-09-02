@@ -1,6 +1,6 @@
 # Runbook de despliegue — Sprint Despliegue
 
-> Paso a paso ejecutable para levantar `frontpet.com` + `api.frontpet.com` en el VPS.
+> Paso a paso ejecutable para levantar `frontpet.com.br` + `api.frontpet.com.br` en el VPS.
 > Arquitectura y porqués: **ADR 016**. Tareas del ROADMAP que este runbook cubre: **D.1-D.10**.
 > Actualizar este archivo si algún paso cambia al ejecutarlo — es el runbook real, no un
 > plan aspiracional.
@@ -37,15 +37,23 @@ es secuencial: cada paso depende del anterior.
 
 ---
 
-## D.1 — VPS Hetzner CX32
+## D.1 — VPS Hetzner CX33
 
 1. Crear cuenta en [console.hetzner.cloud](https://console.hetzner.cloud) si no existe.
 2. **New Project** → nombre `frontpet-prod`.
 3. **Add Server**:
-   - **Location**: `Ashburn, VA (US)` — no Alemania (ADR 016: ~130ms vs ~200ms a RS, Brasil).
-   - **Image**: Ubuntu 24.04 LTS.
-   - **Type**: **CX32** (4 vCPU / 8 GB RAM / 80 GB disco). No bajar a CX22 — Coolify +
-     Spring Boot + Postgres + Next no entran cómodos en 4 GB (detalle en ADR 016).
+   - **Location**: `Falkenstein` o `Nuremberg` (Alemania) — ⚠️ **cambio de plan 2026-09-01**:
+     ADR 016 quería Ashburn (~130ms a RS, Brasil) pero el tier CX de 4 vCPU/8 GB **no existe
+     en Ashburn/Hillsboro**; la equivalente ahí (CPX32) sale ~USD 42/mes, fuera de
+     presupuesto. Se acepta Alemania (~200ms) — ver la nota de ADR 016 §3 y el paso de
+     caching agregado en D.6.3 para mitigar el impacto en las páginas públicas.
+   - **Image**: **Ubuntu 24.04 LTS** — sí es LTS aunque Hetzner no lo etiquete en la lista
+     ("Noble Numbat", soporte hasta 2029). No usar 26.04 aunque sea la LTS más nueva: el
+     instalador automático de Coolify (D.5) solo soporta oficialmente 20.04/22.04/24.04 —
+     con 26.04 el script falla y hay que instalar todo a mano.
+   - **Type**: **CX33** (4 vCPU / 8 GB RAM / 80 GB disco, x86 Intel/AMD — Hetzner renombró
+     el tier ex-CX32 a CX33, mismos specs). No bajar a CX23 (2 vCPU / 4 GB, ex-CX22) —
+     Coolify + Spring Boot + Postgres + Next no entran cómodos en 4 GB (detalle en ADR 016).
    - **SSH Key**: generar una nueva si no tenés una para este proyecto:
      ```bash
      ssh-keygen -t ed25519 -C "frontpet-deploy" -f ~/.ssh/frontpet_deploy
@@ -86,11 +94,11 @@ es secuencial: cada paso depende del anterior.
 
    | Tipo | Nombre | Contenido | Proxy status |
    |---|---|---|---|
-   | A | `@` (frontpet.com) | `<IP_DEL_VPS>` | 🟠 Proxied |
-   | A | `api` (api.frontpet.com) | `<IP_DEL_VPS>` | 🟠 Proxied |
+   | A | `@` (frontpet.com.br) | `<IP_DEL_VPS>` | 🟠 Proxied |
+   | A | `api` (api.frontpet.com.br) | `<IP_DEL_VPS>` | 🟠 Proxied |
    | A | `coolify` (opcional, dashboard) | `<IP_DEL_VPS>` | ⚪ DNS only |
 
-   Dejar `coolify.frontpet.com` **sin proxy** (DNS only) si vas a acceder al dashboard de
+   Dejar `coolify.frontpet.com.br` **sin proxy** (DNS only) si vas a acceder al dashboard de
    Coolify por subdominio — el proxy de Cloudflare puede interferir con el puerto 8000. Si
    accedés al dashboard por IP directa, ni hace falta este registro.
 
@@ -140,7 +148,7 @@ esporádicos). **Tiempo**: ~45 min + espera de propagación DNS.
 1. **Sentry**: [sentry.io](https://sentry.io) → cuenta free tier → crear 2 proyectos:
    `frontpet-backend` (Java/Spring Boot) y `frontpet-frontend` (Next.js). Anotar los 2 DSN.
 2. **Plausible** (o Umami self-hosted si preferís no pagar): [plausible.io](https://plausible.io)
-   → agregar sitio `frontpet.com`. Anotar el script tag.
+   → agregar sitio `frontpet.com.br`. Anotar el script tag.
 
 **Tiempo**: ~10 min.
 
@@ -154,7 +162,7 @@ curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
 ```
 
 - Instala Docker + Coolify. Tarda unos minutos.
-- Al terminar, accedé a `http://<IP_DEL_VPS>:8000` (o `https://coolify.frontpet.com:8000` si
+- Al terminar, accedé a `http://<IP_DEL_VPS>:8000` (o `https://coolify.frontpet.com.br:8000` si
   configuraste el subdominio) y creá el usuario admin de Coolify.
 - Coolify trae su propio proxy (Traefik) que maneja HTTPS automático vía Let's Encrypt para
   cada app que despliegues — no hace falta instalar Caddy a mano aparte.
@@ -186,7 +194,7 @@ esta sección sin consultar la doc primero.
 3. **Build pack**: Dockerfile si existe uno en `backend/`, si no, Nixpacks (Coolify detecta
    Java/Maven solo). Verificar que exista `backend/Dockerfile`; si no existe, crear uno
    simple multi-stage antes de este paso (avisar si hace falta, no está en el repo hoy).
-4. **Domain**: `api.frontpet.com`.
+4. **Domain**: `api.frontpet.com.br`.
 5. **Environment variables** (Production, marcar como *secret* las sensibles):
 
    | Variable | Valor |
@@ -195,7 +203,7 @@ esta sección sin consultar la doc primero.
    | `DB_URL` | `jdbc:postgresql://<host-interno-postgres>:5432/frontpet` |
    | `DB_USERNAME` | el que generó Coolify |
    | `DB_PASSWORD` | 🔒 el que generó Coolify |
-   | `CORS_ALLOWED_ORIGINS` | `https://frontpet.com` |
+   | `CORS_ALLOWED_ORIGINS` | `https://frontpet.com.br` |
    | `TENANT_ID` | `01924ccf-0000-7000-8000-000000000001` (o el real si se regeneró) |
    | `ADMIN_EMAIL` | email real del admin |
    | `ADMIN_PASSWORD` | 🔒 **generar uno nuevo fuerte — nunca `admin123`** (el `StartupEnvValidator` corta el arranque si lo detecta) |
@@ -213,13 +221,13 @@ esta sección sin consultar la doc primero.
    | `PASSWORD_RESET_RATE_LIMIT_ENABLED` | `true` (tarea 7.12) |
    | `RESEND_API_KEY` | 🔒 el API key "solo envío" creado en D.3 |
    | `RESEND_FROM` | `FrontPet <nao-responda@frontpet.com.br>` (o el remitente real que se confirme) |
-   | `APP_BASE_URL` | `https://frontpet.com` — ⚠️ debe empezar con `https://`: `StartupEnvValidator` corta el arranque si no, porque un link de reset por http manda el token en claro por la red |
+   | `APP_BASE_URL` | `https://frontpet.com.br` — ⚠️ debe empezar con `https://`: `StartupEnvValidator` corta el arranque si no, porque un link de reset por http manda el token en claro por la red |
    | `FORWARD_HEADERS_STRATEGY` | `FRAMEWORK` — ⚠️ **solo** si Coolify/Traefik es el único camino de entrada (lo es, en este setup). Ver el comentario de `application.yml` y ADR 019 antes de tocar esto |
 
    Todas las que faltan tiran el arranque (ver `StartupEnvValidator.java`) — mejor: si falta
    una, el contenedor no levanta y Coolify te lo muestra en los logs del deploy.
 
-6. Deploy. Verificar `https://api.frontpet.com/actuator/health` → `{"status":"UP"}`.
+6. Deploy. Verificar `https://api.frontpet.com.br/actuator/health` → `{"status":"UP"}`.
 7. Confirmar que **Flyway corrió las migraciones** (mirar logs del contenedor) — incluye
    V5/V10, que son seeds de dev marcados "não executar em produção" (ver pendiente #4 de
    `docs/pending-decisions.md`, todavía sin resolver). **Decisión a tomar antes de este
@@ -231,18 +239,25 @@ esta sección sin consultar la doc primero.
 
 1. **New Resource → Application → Public Repository**, mismo repo, **Base directory**: `frontend`.
 2. **Build pack**: Nixpacks (detecta Node/pnpm) o Dockerfile si se crea uno.
-3. **Domain**: `frontpet.com` (+ `www.frontpet.com` con redirect, opcional).
+3. **Domain**: `frontpet.com.br` (+ `www.frontpet.com.br` con redirect, opcional).
 4. **Environment variables**:
 
    | Variable | Valor |
    |---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://api.frontpet.com` |
+   | `NEXT_PUBLIC_API_URL` | `https://api.frontpet.com.br` |
    | `NEXT_PUBLIC_META_PIXEL_ID` | Pixel ID real (si ya lo dio el cliente — si no, dejar vacío, se agrega en Sprint 7) |
-   | `NEXT_PUBLIC_ANALYTICS_DOMAIN` | `frontpet.com` (Plausible) |
+   | `NEXT_PUBLIC_ANALYTICS_DOMAIN` | `frontpet.com.br` (Plausible) |
    | `NEXT_PUBLIC_WHATSAPP_NUMBER` | `555596724124` (sin `+`, confirmar si cambia — pendiente 7.3) |
 
-5. Deploy. Verificar `https://frontpet.com` carga la landing y `https://frontpet.com/produtos`
+5. Deploy. Verificar `https://frontpet.com.br` carga la landing y `https://frontpet.com.br/produtos`
    trae productos reales del backend.
+6. **Cache de las rutas públicas GET** (nuevo, 2026-09-01 — mitigación del VPS en Alemania,
+   ver ADR 016 §3): `/produtos`, `/produtos/[slug]` y `/servicos` hoy renderizan dinámico en
+   cada request (`ƒ Dynamic` en el build). Sin cachear, cada pageview paga el viaje completo
+   Cloudflare↔Falkenstein (~200ms). Configurar **Cloudflare Cache Rules** (Rules → Cache
+   Rules) para cachear esas rutas por unos minutos, o agregar `revalidate` (ISR) en esos
+   `page.tsx` si el dato no necesita estar al segundo. **No cachear** `/carrinho`,
+   `/admin/**` ni ningún POST (`/agendamento`, checkout) — ahí el dato tiene que ser real.
 
 ### 6.4 — Auto-deploy
 
@@ -307,7 +322,7 @@ Antes de anunciar la URL al cliente o a nadie:
 - [ ] Correr `/security-review` sobre `main` (skill del proyecto).
 - [ ] Rate limiting activo en login/orders/appointments/password-reset (env vars de D.6, ya en `true`).
 - [ ] Dominio de e-mail *Verified* en Resend (D.3), con una prueba real de que el link de reset
-      **no cae en spam** (probar Gmail y Outlook) y apunta a `https://frontpet.com`, no a
+      **no cae en spam** (probar Gmail y Outlook) y apunta a `https://frontpet.com.br`, no a
       `localhost`.
 - [ ] MX de la raíz de `frontpet.com.br` intactos (el registro de Resend va en `send`, ver D.3) —
       confirmar que el cliente sigue recibiendo correo normal en `@frontpet.com.br`.
@@ -315,7 +330,7 @@ Antes de anunciar la URL al cliente o a nadie:
       abierta en **otro navegador** queda deslogueada (invalidación vía `password_changed_at`,
       ADR 022) — no alcanza con probar que el login nuevo funciona.
 - [ ] Cookies con `Secure` + `HttpOnly` + `SameSite` correctos en prod (JWT en cookie).
-- [ ] CORS restringido a `https://frontpet.com` (no `*`, no localhost en prod).
+- [ ] CORS restringido a `https://frontpet.com.br` (no `*`, no localhost en prod).
 - [ ] Headers de seguridad (Coolify/Traefik o agregar vía `next.config` / Spring Security
       headers) — al menos `X-Content-Type-Options`, `X-Frame-Options`, HSTS.
 - [ ] `pnpm audit` en frontend y `mvn dependency-check` (o equivalente) en backend sin
@@ -350,14 +365,14 @@ Antes de anunciar la URL al cliente o a nadie:
 
 Una vez todo desplegado:
 
-1. `https://frontpet.com` — landing carga, imágenes se ven, Lighthouse > 90 en producción real
+1. `https://frontpet.com.br` — landing carga, imágenes se ven, Lighthouse > 90 en producción real
    (puede variar contra lo medido en local).
-2. `https://frontpet.com/produtos` — catálogo real, filtros y búsqueda funcionan.
+2. `https://frontpet.com.br/produtos` — catálogo real, filtros y búsqueda funcionan.
 3. Agregar un producto al carrito → `/carrinho` → completar form → confirmar redirect a
    WhatsApp con el mensaje armado correctamente (número real).
-4. `https://frontpet.com/agendamento` — wizard completo, reservar un turno de prueba, borrar
+4. `https://frontpet.com.br/agendamento` — wizard completo, reservar un turno de prueba, borrar
    después desde el admin.
-5. `https://frontpet.com/admin/login` — login con el `ADMIN_PASSWORD` real, no el de dev.
+5. `https://frontpet.com.br/admin/login` — login con el `ADMIN_PASSWORD` real, no el de dev.
 6. Admin: crear/editar un producto de prueba con imagen (confirma que R2 + presign funcionan
    en prod, con el dominio real en las policies de CORS del bucket si aplica).
 7. Provocar el error de prueba de Sentry (D.8) una vez más ya en el flujo real, confirmarlo,

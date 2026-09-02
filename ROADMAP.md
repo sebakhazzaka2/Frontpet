@@ -311,7 +311,7 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 
 | # | Tarea | Hs |
 |---|-------|----|
-| D.1 | Compra de VPS Hetzner **CX32** (4 vCPU / 8 GB, ~€7.50/mes) **región US East (Ashburn)** + SSH key inicial | 1 |
+| D.1 | Compra de VPS Hetzner **CX33** (ex-CX32, 4 vCPU / 8 GB, ~€10/mes) **región Falkenstein/Nuremberg** (Ashburn no tiene este tier — ver ADR 016 §3, cambio 2026-09-01) + SSH key inicial | 1 |
 | D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
 | D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
 
@@ -366,8 +366,8 @@ en vivo y empezar a recibir feedback con tráfico real.
 - Coolify es nuevo → invertir 1 hora extra fuera del sprint para leer su doc antes de arrancar
 - DNS puede tardar hasta 48hs en propagar
 - Primer deploy de Spring Boot a contenedor puede requerir ajuste de memoria del VPS
-- **Los 3 servicios (Spring Boot + Postgres + Next) comparten los 8 GB del CX32.** Vigilar
-  RAM en el primer deploy; el CX22 de 4 GB del plan original directamente no alcanzaba
+- **Los 3 servicios (Spring Boot + Postgres + Next) comparten los 8 GB del CX33.** Vigilar
+  RAM en el primer deploy; el CX23 (ex-CX22) de 4 GB del plan original directamente no alcanzaba
 - **Postergarlo demasiado también es un riesgo**: si la conversación de pago con el cliente
   se estira, este sprint (10 hs, con DNS de hasta 48hs de propagación) se termina apretando
   contra el 05/09 igual. No es un colchón infinito.
@@ -561,7 +561,7 @@ integración, validación visual, screenshot, ADR, db-model, build/lint/test des
 - ✅ Deployado y verificado en producción
 - ✅ Sin errores nuevos en Sentry post-deploy
 
-> **No hay entorno de staging.** El CX32 ya reparte 8 GB entre Spring Boot, Postgres y Next;
+> **No hay entorno de staging.** El CX33 ya reparte 8 GB entre Spring Boot, Postgres y Next;
 > un segundo stack completo no entra sin riesgo de OOM, y un VPS aparte es infra extra en un
 > proyecto de USD 500. Los cambios de frontend se validan con **preview deploys de Coolify**
 > (efímeros y livianos); el backend se valida con los tests de integración de Testcontainers

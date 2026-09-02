@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone output (Sprint Despliegue, ADR 016): el Dockerfile de
+  // producción copia solo `.next/standalone` + `.next/static` + `public`,
+  // sin `node_modules` completo en la imagen final.
+  output: "standalone",
+
   // Verificado con Lighthouse (2026-07-26): sin esto, next-devtools carga
   // ~218 KB (138 KB sin usar) incluso en `next start` — no es exclusivo de
   // `next dev`. Explicaba buena parte de mainthread-work-breakdown y
