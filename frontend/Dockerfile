@@ -44,6 +44,16 @@ ARG NEXT_PUBLIC_GOOGLE_PLACE_ID
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 ARG SENTRY_AUTH_TOKEN
+# GOOGLE_PLACES_API_KEY es server-only (sin prefijo NEXT_PUBLIC_), pero la
+# home usa <Reviews>/<TrustBar>/<Hero> con un fetch que trae `next.revalidate`
+# (lib/google-places.ts) — eso hace que Next trate la página como ISR: se
+# pre-renderiza en ESTE build y recién se regenera sola a las 24hs. Sin la
+# key acá, el build la ejecuta con `process.env.GOOGLE_PLACES_API_KEY`
+# undefined y hornea la sección vacía (EMPTY) hasta la próxima regeneración.
+# Mismo riesgo aceptado que SENTRY_AUTH_TOKEN arriba (queda en el historial
+# de capas, pero la imagen nunca sale del VPS) — verificado 2026-09-02 contra
+# un deploy real donde "Histórias de Tutores" quedó vacía por este motivo.
+ARG GOOGLE_PLACES_API_KEY
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
     NEXT_PUBLIC_META_PIXEL_ID=$NEXT_PUBLIC_META_PIXEL_ID \
@@ -52,6 +62,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
     NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY \
     NEXT_PUBLIC_GOOGLE_PLACE_ID=$NEXT_PUBLIC_GOOGLE_PLACE_ID \
+    GOOGLE_PLACES_API_KEY=$GOOGLE_PLACES_API_KEY \
     SENTRY_ORG=$SENTRY_ORG \
     SENTRY_PROJECT=$SENTRY_PROJECT \
     SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
