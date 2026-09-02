@@ -41,6 +41,11 @@ public class AuthController {
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
 
+    // Vacío en dev (front/back comparten host `localhost`, distinto puerto).
+    // En producción, `frontpet.com.br` — ver comentario largo en application.yml.
+    @Value("${frontpet.cookie.domain}")
+    private String cookieDomain;
+
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest body) {
         String token = authService.login(body.email(), body.password());
@@ -82,13 +87,16 @@ public class AuthController {
     private ResponseCookie sessionCookie(String token, Duration maxAge) {
         // HttpOnly + Secure + SameSite=Lax por ADR 004. Secure siempre (incluso
         // en dev, vía HTTPS tunnels) — el ADR exige HTTPS en todos los entornos.
-        return ResponseCookie.from(SessionCookie.NAME, token)
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(SessionCookie.NAME, token)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
                 .path("/")
-                .maxAge(maxAge)
-                .build();
+                .maxAge(maxAge);
+        if (!cookieDomain.isBlank()) {
+            builder.domain(cookieDomain);
+        }
+        return builder.build();
     }
 
     public record LoginRequest(

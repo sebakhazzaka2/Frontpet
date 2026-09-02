@@ -34,6 +34,18 @@ frontpet:
     # Orígenes del frontend. En prod se sobreescribe por env var con el dominio real.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
+  cookie:
+    # Domain de la cookie de sesión (ADR 004). Vacío en dev a propósito: front
+    # y back comparten host (`localhost`, distinto puerto — las cookies se
+    # scopean por host, no por puerto) así que no hace falta. En producción,
+    # front y back viven en subdominios reales (frontpet.com.br/
+    # api.frontpet.com.br) — sin este Domain, la cookie que setea el backend
+    # queda host-only para api.frontpet.com.br y el guard del admin
+    # (frontend, ProtectedAdminLayout) nunca la ve. Verificado 2026-09-02
+    # contra un deploy real: el login backend daba "sucesso" en el log pero
+    # el admin rebotaba a /login en loop.
+    domain: ${COOKIE_DOMAIN:}
+
   app:
     # URL pública del frontend, usada para armar el link de redefinição de
     # senha (tarea 7.12) — nunca hardcodear un dominio en el código.
