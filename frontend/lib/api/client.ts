@@ -1,4 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+// `||`, no `??`: un ARG de Docker sin --build-arg se resuelve a '' (no a
+// undefined) — con `??` el fallback nunca se dispara, y acá no tirar un
+// error (no hay new URL()) sería peor: cada request quedaría apuntando a
+// una ruta relativa rota en producción, en silencio.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
 // Espejo de TaxonRef (backend/src/main/java/com/frontpet/catalog/dto/TaxonRef.java) —
 // referencia mínima a una categoría o especie (mismo shape para las dos, ver comentario

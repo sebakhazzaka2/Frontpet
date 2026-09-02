@@ -27,13 +27,14 @@ del cliente) antes o durante D.5-D.6, con tiempo de sobra:
 ## Orden de ejecución
 
 ```
-D.1 VPS  ──┐
-D.2 Dominio ┼──► D.5 Coolify ──► D.6 Deploy apps ──► D.7 Backups ──► D.8 Sentry ──► D.9 Security review ──► D.10 Contenido ──► 🎯 URL pública
+D.1 VPS  ────────────────┐
+D.2 Dominio ──────────────┼──► D.5 Coolify ──► D.6 Deploy apps ──► D.7 Backups ──► D.8 Sentry ──► D.9 Security review ──► D.10 Contenido ──► 🎯 URL pública
+D.3 Resend (depende de D.2)┤
 D.4 Sentry/Plausible (cuentas) ┘
 ```
 
-D.1/D.2/D.4 se pueden hacer en paralelo (son compras/cuentas independientes). D.5 en adelante
-es secuencial: cada paso depende del anterior.
+D.1/D.2/D.4 se pueden hacer en paralelo (son compras/cuentas independientes); D.3 depende de que
+D.2 (DNS en Cloudflare) ya exista. D.5 en adelante es secuencial: cada paso depende del anterior.
 
 ---
 
@@ -242,12 +243,23 @@ esta sección sin consultar la doc primero.
 3. **Domain**: `frontpet.com.br` (+ `www.frontpet.com.br` con redirect, opcional).
 4. **Environment variables**:
 
+   ⚠️ **Todas las `NEXT_PUBLIC_*` (y `SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN`) se
+   hornean en el bundle durante `pnpm build`** — con el `Dockerfile` (`frontend/Dockerfile`),
+   Coolify tiene que pasarlas como **Build Variables**, no solo como env vars de runtime, o
+   quedan vacías en el JS servido sin ningún error visible en logs. Si el build pack termina
+   siendo Nixpacks en vez de Dockerfile, confirmar que Coolify las exponga igual en build time.
+
    | Variable | Valor |
    |---|---|
    | `NEXT_PUBLIC_API_URL` | `https://api.frontpet.com.br` |
+   | `NEXT_PUBLIC_BASE_URL` | `https://frontpet.com.br` (metadataBase, OG, canonical — `app/layout.tsx`) |
    | `NEXT_PUBLIC_META_PIXEL_ID` | Pixel ID real (si ya lo dio el cliente — si no, dejar vacío, se agrega en Sprint 7) |
    | `NEXT_PUBLIC_ANALYTICS_DOMAIN` | `frontpet.com.br` (Plausible) |
    | `NEXT_PUBLIC_WHATSAPP_NUMBER` | `555596724124` (sin `+`, confirmar si cambia — pendiente 7.3) |
+   | `NEXT_PUBLIC_SENTRY_DSN` | DSN del proyecto `frontpet-frontend` en Sentry (D.4/D.8) — sin esto, Sentry del lado cliente no se inicializa, sin ningún error visible |
+   | `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY` | 🔒 API key de Maps Embed API (ADR 025) — es pública igual (sale en el `src` del iframe), pero restringida por HTTP referrer en Google Cloud Console |
+   | `NEXT_PUBLIC_GOOGLE_PLACE_ID` | Place ID de FrontPet en Google Business (ADR 025) — sin esto, `<Reviews>`/`<TrustBar>` quedan sin cards, indistinguible de "el negocio no tiene reviews" |
+   | `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | 🔒 (el token) — solo para subir source maps en build time; sin ellos el build sigue funcionando, solo salta ese paso con un warning |
 
 5. Deploy. Verificar `https://frontpet.com.br` carga la landing y `https://frontpet.com.br/produtos`
    trae productos reales del backend.
@@ -391,8 +403,9 @@ Loom al cliente con el link.
 - No dejar el dashboard de Coolify (puerto 8000) abierto a `0.0.0.0/0` en el firewall.
 - No saltear D.10 (contenido) por apuro — testimonios falsos en producción es el único punto
   con riesgo legal real de todo este runbook.
-- No comprar São Paulo/AWS "para después" — la decisión de Ashburn+Cloudflare ya está tomada
-  (ADR 016) y es reversible si hace falta más adelante.
+- No comprar São Paulo/AWS "para después" — la decisión de VPS Hetzner (hoy Alemania,
+  Falkenstein/Nuremberg — ver ADR 016 §3, cambio 2026-09-01) + Cloudflare ya está tomada
+  y es reversible si hace falta más adelante.
 
 ---
 

@@ -33,6 +33,9 @@
 		     `s3-presigner` separado) — confirmado contra Maven Central,
 		     versión más reciente al 2026-07-27. -->
 		<awssdk.version>2.46.18</awssdk.version>
+		<!-- `-jakarta`: variant para Spring Boot 3 (jakarta.* en vez de javax.*).
+		     Versión más reciente confirmada contra Maven Central al 2026-09-02. -->
+		<sentry.version>8.28.0</sentry.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -72,6 +75,15 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 			<version>${awssdk.version}</version>
+		</dependency>
+
+		<!-- Sentry (D.8, Sprint Despliegue) — sin DSN configurado (dev/test)
+		     el SDK queda inerte solo, mismo criterio que R2Config/NotificationsConfig:
+		     no rompe nada correr sin la env var puesta. -->
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+			<version>${sentry.version}</version>
 		</dependency>
 
 		<!-- JWT (jjwt) -->

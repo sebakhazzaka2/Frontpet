@@ -612,3 +612,37 @@ bug real, y este caso puntual no lo es — solo un `400` mal clasificado.
 devuelva `400` con un mensaje genérico ("Corpo da requisição inválido"), igual que ya existe
 para `MethodArgumentNotValidException`. Candidato a Sprint 7 (polish) o a cualquier hueco
 chico — no bloquea nada.
+
+---
+
+## 23. Sentry backend corre con `send-default-pii` en `false` (default), pendiente de revisar cuando exista banner LGPD
+
+**Estado**: decisión tomada 2026-09-02 al activar Sentry (D.4/D.8, Sprint Despliegue) —
+deliberada, no un olvido, pero atada a que el banner LGPD (CLAUDE.md §5, "no existen...
+banner LGPD" — pendiente de generarse en Stitch, tareas 7.12/7.13 mencionadas ahí) todavía no
+existe.
+
+`sentry-spring-boot-starter-jakarta` no tiene `sentry.send-default-pii` seteado en
+`application.yml` — corre con el default del SDK (`false`). Con eso, Sentry captura stack
+traces y contexto de la excepción, pero **no** IP del request ni headers como cookies/
+autorización. Con `true`, Sentry adjunta esos datos a cada evento — que es información
+personal (IP) mandada a un tercer país (Sentry, EEUU) sin que el sitio tenga todavía ningún
+aviso al usuario de que eso pasa.
+
+**Por qué se decidió así y no al revés**: el sitio es público y comercial, a nombre de un
+negocio real en Brasil (mismo criterio que el hallazgo #15, testimonios falsos — exposición
+legal real, no un detalle técnico). Sin banner LGPD, no hay dónde informarle a un visitante
+que su IP puede terminar en un servicio de terceros. Los stack traces siguen siendo
+igual de útiles para debuggear sin ese dato — no se pierde capacidad de diagnóstico real,
+solo la correlación por IP.
+
+**Qué haría falta para poder pasarlo a `true`**: que exista el banner LGPD (o al menos una
+política de privacidad accesible) que mencione el uso de Sentry para monitoreo de errores. Si
+en algún momento se decide que hace falta correlacionar errores por IP (ej. para identificar
+un atacante specific o abuso repetido), revisar esto junto con esa necesidad concreta, no
+activarlo "por si sirve".
+
+**Dónde impacta**: `backend/src/main/resources/application.yml` (bloque `sentry:`, sin
+`send-default-pii` explícito hoy). Cuando el banner LGPD exista, volver acá y decidir si vale
+la pena agregar `sentry.send-default-pii: true` (o dejarlo como está — no es obligatorio
+activarlo solo porque ya se puede).

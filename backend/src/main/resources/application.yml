@@ -129,6 +129,14 @@ server:
   # ADR 019 y el checklist del Sprint Despliegue.
   forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:NONE}
 
+sentry:
+  # Sin DSN (dev/test), el starter se auto-desactiva solo — no hace falta
+  # el patrón de placeholder de R2Config/NotificationsConfig acá.
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:development}
+  # Sin performance tracing (APM): esto es solo captura de errores (D.8).
+  # traces-sample-rate por defecto es 0 — no hace falta ponerlo explícito.
+
 management:
   endpoints:
     web:
@@ -159,6 +167,9 @@ spring:
   config:
     activate:
       on-profile: prod
+
+sentry:
+  environment: production
 
 logging:
   level:

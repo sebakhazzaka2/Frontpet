@@ -42,10 +42,12 @@ Visión futura (no MVP1): SaaS multi-tenant para negocios locales.
 **Node.js 20.9+ obligatorio.** Toolchain corre en **WSL** (ADR 015).
 
 ### Infraestructura
-Un solo **VPS Hetzner CX32** (4 vCPU/8 GB, **región Ashburn**) con **Coolify** sirve
-Spring Boot + Next + Postgres; **Caddy** proxy/SSL; **Cloudflare** DNS+CDN+**R2**
-(imágenes); GitHub Actions CI; Sentry; Plausible. Razonamiento completo (por qué no
-Vercel/Pages/AWS, por qué CX32 y Ashburn): **ADR 016**.
+Un solo **VPS Hetzner CX33** (4 vCPU/8 GB, ex-CX32, **región Falkenstein/Nuremberg**) con
+**Coolify** sirve Spring Boot + Next + Postgres; **Caddy** proxy/SSL; **Cloudflare**
+DNS+CDN+**R2** (imágenes); GitHub Actions CI; Sentry; Plausible. Razonamiento completo
+(por qué no Vercel/Pages/AWS, por qué CX33): **ADR 016** — nota de enmienda 2026-09-01:
+el plan original pedía Ashburn (EE.UU.) por latencia a Brasil, pero ese tier no existe
+ahí; se acepta Alemania con caching de Cloudflare como mitigación (ver ADR 016 §3).
 
 ⚠️ Hoy todo corre en **localhost**. No comprar infra hasta el Sprint Despliegue
 (post-Sprint 3, gateado por conversación de pago con el cliente — ver ROADMAP).
@@ -82,15 +84,19 @@ frontpet/
 │   ├── orders/          api/ + domain/ + dto/ + OrderRateLimit
 │   ├── booking/         api/ + domain/ + dto/ (ServiceOffering, BusinessHours, ScheduleBlock,
 │   │                    Appointment) + AvailabilityService/AppointmentService/ServiceCatalogService
-│   ├── notifications/   [.gitkeep]
+│   ├── dashboard/       api/ + dto/ — GET /admin/dashboard, conteos operacionales (ADR 003/008)
+│   ├── privacy/         api/ + domain/ + dto/ — eliminação/anonimização LGPD por telefone (ADR 023)
+│   ├── notifications/   EmailSender (Resend/Logging) + PasswordResetEmailTemplate (ADR 022)
 │   └── BackendApplication.java   (en la raíz a propósito: component scan)
 ├── backend/src/main/resources/db/migration/   Flyway
 ├── frontend/
-│   ├── app/(public)/  admin/(protected)/  admin/login/  api/   ((admin)/ es placeholder sin uso, ver ADR 006)
-│   │                  Rutas de booking (Sprint 6): /servicos, /agendamento, /agendamento/[publicId],
-│   │                  /admin/agendamentos, /admin/servicos
-│   ├── components/ui/  public/  public/booking/ (wizard, Sprint 6)  admin/
-│   └── lib/            api client, hooks; datos en lib/data/
+│   ├── app/(public)/  admin/(protected)/  admin/login/  admin/esqueci-senha/  admin/redefinir-senha/
+│   │                  api/   ((admin)/ es placeholder sin uso, ver ADR 006)
+│   │                  Rutas públicas: /produtos, /servicos, /agendamento, /agendamento/[publicId],
+│   │                  /carrinho, /privacidade · Admin: /admin/agendamentos, /admin/servicos
+│   ├── components/ui/  public/  public/booking/ (wizard, Sprint 6)  admin/  consent/ (banner LGPD, ADR 024)
+│   └── lib/            api client, hooks, analytics/ (Meta Pixel + Plausible, ADR 024), google-places.ts
+│                        (ADR 025); datos en lib/data/
 ├── docs/               ADRs, design-system.md, db-model.png, next16-notes.md,
 │                       stitch-implementation-workflow.md, port-landing-stitch.md,
 │                       booking-api-contracts.md, pending-decisions.md, preguntas-cliente.md,

@@ -32,7 +32,10 @@ const fredoka = Fredoka({
 // Docs: https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://frontpet.com'
+// `||`, no `??`: un ARG de Docker sin --build-arg se resuelve a '' (no a
+// undefined) — con `??` el fallback nunca se dispara y `new URL('')`
+// revienta el build entero (verificado 2026-09-02 contra un build real).
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://frontpet.com'
 
 // Plausible es cookieless y no recolecta dados pessoais (plausible.io/data-policy)
 // — no pasa por el gate de consentimiento de <ConsentGate>. Sin fallback: un
