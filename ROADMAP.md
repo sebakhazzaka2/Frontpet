@@ -307,24 +307,27 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 > un solo VPS sirve backend + frontend vía Coolify. Cloudflare queda como DNS + CDN + R2.
 > No hay Cloudflare Pages ni adapter de OpenNext.
 
-### Compras y cuentas (~2.5 hs — D.3 se adelantó a la tarea 3.5)
+### Compras y cuentas (~2.5 hs)
 
-| # | Tarea | Hs |
-|---|-------|----|
-| D.1 | Compra de VPS Hetzner **CX33** (ex-CX32, 4 vCPU / 8 GB, ~€10/mes) **región Falkenstein/Nuremberg** (Ashburn no tiene este tier — ver ADR 016 §3, cambio 2026-09-01) + SSH key inicial | 1 |
-| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 |
-| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 |
+| # | Tarea | Hs | Estado |
+|---|-------|----|---|
+| D.1 | Compra de VPS Hetzner **CX33** (ex-CX32, 4 vCPU / 8 GB, ~€10/mes) **región Falkenstein/Nuremberg** (Ashburn no tiene este tier — ver ADR 016 §3, cambio 2026-09-01) + SSH key inicial | 1 | ✅ **hecho** |
+| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 | ✅ **hecho** — `frontpet.com.br`, DNS en Cloudflare (Full strict), A records de root/api/coolify creados |
+| D.3 | Verificación del dominio de e-mail en Resend (DKIM/SPF/MX en Cloudflare, tarea 7.12) — agregada 2026-08-29, ver `docs/deploy-runbook.md` D.3 | — | 🔄 **en curso** — registros DNS cargados en Cloudflare, verificación/propagación pendiente de confirmar |
+| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 | ❓ **sin confirmar** — el SDK de Sentry se está integrando ahora mismo (branch `feat/sentry-integration`); no asumir que las cuentas ya existen sin verificarlo |
 
 ### Configuración y deploy (~7,5 hs)
 
-| # | Tarea | Hs |
-|---|-------|----|
-| D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 |
-| D.6 | Configurar Coolify para buildear y servir el **frontend Next 16** con auto-deploy desde GitHub (junto al backend) | 1 |
-| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 |
-| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 |
-| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 |
-| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 |
+| # | Tarea | Hs | Estado |
+|---|-------|----|---|
+| D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 | ✅ **hecho** |
+| D.6.1 | Postgres como recurso de Coolify | — | ✅ **hecho** |
+| D.6.2 | Deploy del backend (Spring Boot) en Coolify | — | 🔄 **en curso** — cargando env vars en Coolify, todavía no verificado en vivo |
+| D.6.3 | Deploy del frontend (Next 16) en Coolify + Cache Rules de Cloudflare para rutas públicas GET (mitigación de latencia, ver ADR 016 §3) | — | ⏳ **no arrancado** — `frontend/Dockerfile` ya listo y verificado |
+| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 | ⏳ pendiente |
+| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 | ⏳ pendiente — depende de que el SDK (branch `feat/sentry-integration`) se mergee primero |
+| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 | ⏳ pendiente |
+| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 | 🔄 **en curso** — depoimentos reales ya resueltos (ADR 025), resto de los ítems del checklist sigue pendiente |
 
 #### D.10 — Checklist de contenido pre-público
 
@@ -353,8 +356,8 @@ pública. Ninguna se detecta con `/security-review` ni con el DoD, por eso van l
       explícitamente que se sale con los gradientes placeholder
 
 **Entregable**:
-- `https://frontpet.com` con landing + catálogo en vivo
-- `https://api.frontpet.com` respondiendo (health check OK)
+- `https://frontpet.com.br` con landing + catálogo en vivo
+- `https://api.frontpet.com.br` respondiendo (health check OK)
 - Push a `main` dispara deploy automático (frontend y backend)
 - Backups corriendo
 - Sentry recibiendo errores
