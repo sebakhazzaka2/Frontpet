@@ -646,3 +646,80 @@ activarlo "por si sirve".
 `send-default-pii` explícito hoy). Cuando el banner LGPD exista, volver acá y decidir si vale
 la pena agregar `sentry.send-default-pii: true` (o dejarlo como está — no es obligatorio
 activarlo solo porque ya se puede).
+
+---
+
+## 24. Coolify no pasa variables marcadas como "secret" al build de Docker, aunque tengan el toggle de "Available at Buildtime" activo
+
+**Estado**: descubierto 2026-09-02 debuggeando en producción por qué "Histórias de Tutores"
+seguía vacía después de agregar `GOOGLE_PLACES_API_KEY` como `ARG` en `frontend/Dockerfile`
+(D.6/D.8, Sprint Despliegue). No es un bug nuestro — es un comportamiento (¿de seguridad?, no
+documentado) de Coolify 4.3.14.
+
+`GOOGLE_PLACES_API_KEY` tenía el toggle de **"Available at Buildtime"** tildado en Production,
+pero seguía marcada como **secret** (🔒). El build igual la recibía vacía: confirmado
+inspeccionando `/data/coolify/applications/<app>/.env` en el VPS directamente — la variable
+aparecía ahí, pero con valor vacío, pese al toggle. Solo cuando se le sacó el flag de secret
+(dejando el toggle de Buildtime) el valor real llegó al build. Diagnóstico completo: comparar
+runtime (`docker exec <container> env`, sí tenía el valor) vs. el `.env` de build en el
+filesystem del VPS (vacío) aisló el problema al paso de build específicamente, no al
+container corriendo.
+
+**Por qué importa**: el propio `Dockerfile` ya tenía un comentario (junto a `SENTRY_AUTH_TOKEN`)
+que decía *"no confirmado que [Coolify] soporte secrets de build"* — este hallazgo confirma que
+efectivamente **no los soporta**, al menos en esta versión. Cualquier variable que:
+(a) el código necesite en build time (típicamente porque una página es ISR/SSG y ejecuta el
+fetch durante `pnpm build`, ver hallazgo relacionado en el mismo debugging) y (b) sea sensible,
+tiene que elegir entre quedar sin protección de "secret" en Coolify, o no funcionar en build.
+
+**Resolución aplicada**: se sacó el flag de secret a `GOOGLE_PLACES_API_KEY` en Coolify. Riesgo
+aceptado explícitamente — mismo criterio que `SENTRY_AUTH_TOKEN` (queda en el historial de
+capas de la imagen, pero la imagen nunca sale del VPS, y la key está restringida en Google
+Cloud Console por HTTP referrer/IP, no es una credencial de admin ni de DB).
+
+**Dónde impacta**: cualquier variable futura que necesite build-time + confidencialidad al
+mismo tiempo va a pisar el mismo límite. Si en algún momento se vuelve un problema real
+(rotación de claves más sensibles, ej. si `SENTRY_AUTH_TOKEN` se llegara a usar), revisar si
+Coolify agregó soporte de `--mount=type=secret` de BuildKit en una versión más nueva, en vez de
+repetir el workaround de sacar el flag de secret.
+
+---
+
+## 25. La cookie de sesión del admin no tenía `Domain`, así que el login nunca persistía entre subdominios en producción — bug crítico, no de config
+
+**Estado**: encontrado y arreglado 2026-09-02, probando el login del admin contra el sitio
+real recién deployado (Sprint Despliegue). A diferencia de los hallazgos #23/#24 (config de
+Coolify), **este es un bug real de código**, presente desde que existe el login (tarea 1.x) —
+nunca se manifestó antes porque nunca se había probado el admin contra dos subdominios reales.
+
+**Síntoma**: `/admin/login` con las credenciales correctas devolvía un `POST
+/api/v1/auth/login` que en los logs del backend decía `"Login bem-sucedido"` — pero el
+navegador quedaba en loop, rebotando de vuelta a `/admin/login` en vez de entrar al panel. Se
+probó varias veces pensando que era la contraseña (recién reseteada vía el flujo de 7.12), pero
+los logs mostraban el login aceptándose una y otra vez.
+
+**Causa real**: `AuthController.sessionCookie()` (`backend/.../identity/api/AuthController.java`)
+seteaba la cookie `frontpet_session` sin `Domain` explícito — queda "host-only" para el host que
+la emitió. En producción, el login pega contra `api.frontpet.com.br` (esa es la que recibe la
+cookie), pero el guard del admin (`ProtectedAdminLayout`, Server Component de Next.js en
+`frontend/app/admin/(protected)/layout.tsx:22-24`) lee las cookies de la request al **frontend**,
+`frontpet.com.br` — un host distinto. Una cookie host-only para `api.frontpet.com.br` **nunca**
+se manda en una request a `frontpet.com.br`, aunque sea el mismo "site" a efectos de
+SameSite/CORS. El check `cookieStore.has(SESSION_COOKIE_NAME)` siempre daba `false`.
+
+**Por qué nunca se detectó antes**: en dev, front (`localhost:3000`) y back (`localhost:8080`)
+comparten el mismo **host** (`localhost`, solo cambia el puerto) — las cookies se scopean por
+host, no por puerto, así que ahí sí se compartía sin que nadie tuviera que pensarlo. El bug es
+invisible en cualquier entorno donde front y back no estén en subdominios realmente distintos —
+exactamente el caso de producción, que es la primera vez que esto se probó de punta a punta.
+
+**Resolución**: nuevo `frontpet.cookie.domain` (`COOKIE_DOMAIN` env var), vacío por default
+(dev sigue igual). En producción, `COOKIE_DOMAIN=frontpet.com.br` (sin protocolo, sin
+subdominio — el dominio raíz, para que lo compartan `frontpet.com.br` y `api.frontpet.com.br`).
+`AuthController.sessionCookie()` aplica `.domain(cookieDomain)` solo si no está vacío.
+
+**Dónde impacta**: bloqueaba el panel admin **completo** en producción — ningún login hubiera
+funcionado nunca, con cualquier contraseña. Bug crítico para el hito de cobro del 05/09 (el
+admin es cómo el cliente gestiona pedidos/turnos/productos). Requiere: mergear esta branch,
+redeploy del backend (cambio de código Java, no alcanza con solo la env var — hace falta
+recompilar), y agregar `COOKIE_DOMAIN=frontpet.com.br` a las env vars del backend en Coolify.
