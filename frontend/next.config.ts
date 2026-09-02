@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const nextConfig: NextConfig = {
   // Standalone output (Sprint Despliegue, ADR 016): el Dockerfile de
@@ -41,4 +42,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// D.8, Sprint Despliegue. org/project/authToken vía env vars (cuenta de
+// Sentry todavía no existe — D.4) — sin SENTRY_AUTH_TOKEN, el plugin sube
+// el build igual pero salta la subida de source maps con un warning, no
+// falla. `silent: true` para no ensuciar el log de build en dev/CI mientras
+// no esté configurado.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true,
+  widenClientFileUpload: false,
+  // disableLogger está deprecado (reemplazo webpack.treeshake.removeDebugLogging
+  // no soportado con Turbopack, que es el default de este proyecto — CLAUDE.md §2).
+});
