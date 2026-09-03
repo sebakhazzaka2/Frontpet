@@ -45,10 +45,7 @@ public class SecurityConfig {
             "/api/v1/species",
             "/api/v1/services",
             "/api/v1/availability",
-            "/api/v1/appointments/**",
-            // TEMPORARY — verificación D.8 de Sentry, borrar junto con
-            // TemporarySentryTestController.
-            "/api/v1/_sentry-test"
+            "/api/v1/appointments/**"
     };
 
     private final JwtAuthFilter jwtAuthFilter;
