@@ -28,7 +28,16 @@ export function ServiceCard({ data }: { data: ServiceCardData }) {
     <article className="flex flex-col overflow-hidden rounded-lg border border-outline bg-surface-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover">
       <div className="relative h-64 overflow-hidden bg-surface">
         {imagemUrl ? (
-          <Image src={imagemUrl} alt={imagemAlt} fill className="object-cover" />
+          <Image
+            src={imagemUrl}
+            alt={imagemAlt}
+            fill
+            className="object-cover"
+            // Sin esto, Next asume 100vw incluso en el grid de 3 columnas
+            // (md:grid-cols-3 en page.tsx) — bajaría una imagen 3x más
+            // grande de la necesaria en desktop.
+            sizes="(min-width: 768px) 33vw, 100vw"
+          />
         ) : (
           // TODO: reemplazar por foto real del cliente. Sin stock inventado.
           <div className="flex h-full w-full items-center justify-center">
