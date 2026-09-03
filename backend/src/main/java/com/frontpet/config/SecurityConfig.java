@@ -45,10 +45,7 @@ public class SecurityConfig {
             "/api/v1/species",
             "/api/v1/services",
             "/api/v1/availability",
-            "/api/v1/appointments/**",
-            // TEMPORARY — verificación D.8 de Sentry, borrar junto con
-            // TemporarySentryTestController.
-            "/api/v1/_sentry-test"
+            "/api/v1/appointments/**"
     };
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -92,16 +89,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Headers de seguridad estándar (D.9, checklist pre-lanzamiento):
-                // API JSON-only que nunca debería embeberse en un iframe, y HSTS
-                // solo aplica sobre requests HTTPS (correcto: prod es HTTPS-only,
-                // dev queda sin el header).
-                .headers(headers -> headers
-                        .contentTypeOptions(contentTypeOptions -> {})
-                        .frameOptions(frameOptions -> frameOptions.deny())
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .includeSubDomains(true)
-                                .maxAgeInSeconds(31536000)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET).permitAll()
                         // Exact-match no alcanza: con management.endpoint.health.probes
