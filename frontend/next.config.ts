@@ -21,6 +21,25 @@ const nextConfig: NextConfig = {
   // dev`; no aplica a `next build`/`next start` (producción).
   allowedDevOrigins: ["192.168.1.2"],
 
+  // Headers de seguridad estándar (D.9, checklist pre-lanzamiento): mismo
+  // criterio que SecurityConfig del backend — nosniff, sin iframes, HSTS.
+  // Next no distingue HTTP/HTTPS acá, pero el sitio es HTTPS-only en prod.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
+        ],
+      },
+    ];
+  },
+
   images: {
     // Bucket R2 de fotos de producto (ADR 018) — `images.domains` está
     // deprecado en Next 16, hay que usar remotePatterns. `**.r2.dev` cubre

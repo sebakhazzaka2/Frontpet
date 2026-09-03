@@ -723,3 +723,45 @@ funcionado nunca, con cualquier contraseña. Bug crítico para el hito de cobro 
 admin es cómo el cliente gestiona pedidos/turnos/productos). Requiere: mergear esta branch,
 redeploy del backend (cambio de código Java, no alcanza con solo la env var — hace falta
 recompilar), y agregar `COOKIE_DOMAIN=frontpet.com.br` a las env vars del backend en Coolify.
+
+---
+
+## 26. `COOKIE_DOMAIN=frontpet.com.br` (hallazgo #25) amplía la cookie de sesión a TODOS los subdominios, incluido el dashboard de Coolify
+
+**Estado**: detectado 2026-09-02 en `/security-review` sobre los PRs del deploy (#75/#76/#77),
+inmediatamente después de resolver el hallazgo #25. Mitigado el mismo día con la opción A de
+abajo; la opción B queda pospuesta a propósito, candidata a Fase 2.
+
+**El problema**: el fix de #25 (`Domain=frontpet.com.br` en la cookie de sesión) resuelve que
+el admin pueda loguearse, pero como efecto secundario hace que el navegador mande esa cookie a
+**cualquier** subdominio de `frontpet.com.br` — no solo a `api.frontpet.com.br`. D.2 del
+runbook ya había creado `coolify.frontpet.com.br` (dashboard de administración de Coolify,
+software de terceros) apuntando al mismo VPS. Con la cookie ampliada, un admin logueado que
+visite ese dashboard en la misma sesión de navegador expone su JWT a esa superficie —
+cualquier vulnerabilidad ahí (logging de headers, reflexión, etc.) filtraría una sesión de
+admin válida contra la API real.
+
+**Opción A (aplicada)**: borrar el registro DNS `coolify.frontpet.com.br` en Cloudflare, acceder
+al dashboard de Coolify por IP directa (`https://<IP_VPS>:8000`) en vez del subdominio. Sin
+cambios de código, ~5 min, reduce el radio de exposición a solo `frontpet.com.br` +
+`api.frontpet.com.br` (ambos propios, sin terceros). **No cierra el problema de fondo**: sigue
+siendo una decisión de política ("todo `*.frontpet.com.br` que se agregue después confía en la
+cookie de admin"), no una garantía técnica — cualquier subdominio nuevo que se cree en el
+futuro (blog, tienda de otro producto, integración de un tercero) vuelve a entrar en el alcance
+sin que nadie tenga que acordarse de por qué.
+
+**Opción B (pospuesta, candidata a Fase 2)**: mover la API detrás de un rewrite de Next
+(`frontpet.com.br/api/* → api.frontpet.com.br/api/*`, vía `next.config.ts`), de modo que la
+cookie vuelva a ser host-only para `frontpet.com.br` — sin `Domain` ampliado, sin
+`COOKIE_DOMAIN`, sin CORS cross-origin (`CorsConfig.java` podría simplificarse o eliminarse).
+Cierra el problema de raíz para siempre, pero es un cambio de arquitectura en cómo el frontend
+habla con la API — toca `next.config.ts`, `frontend/lib/api/client.ts` (pasar a URLs relativas)
+y requiere volver a probar TODO lo que pega contra la API, público y admin. Se decidió no
+hacerlo a 2 días del hito de cobro (05/09) — el costo de un error ahí (romper login/checkout
+justo antes de cobrar) es mayor que el riesgo residual aceptado con la opción A.
+
+**Dónde impacta**: mientras siga sin resolverse la opción B, cualquier subdominio nuevo de
+`frontpet.com.br` que se agregue en el futuro tiene que evaluarse contra este riesgo antes de
+crearse — anotarlo en el checklist de "nuevo subdominio" si alguna vez existe uno. Revisar esta
+entrada cuando haya margen post-lanzamiento (candidato natural para un sprint de Fase 2 de
+hardening, junto con cualquier otra revisión de seguridad más profunda que se decida hacer).
