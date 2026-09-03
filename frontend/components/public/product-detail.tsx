@@ -65,6 +65,10 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
               fill
               className="object-contain"
               sizes="(min-width: 1024px) 50vw, 100vw"
+              // Casi seguro el elemento LCP de esta página — sin priority,
+              // Next la carga lazy por default y retrasa justo la métrica
+              // que más pesa en el Lighthouse de la página de venta.
+              priority
             />
           ) : (
             // TODO: reemplazar por foto real del producto cuando exista. Sin

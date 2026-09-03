@@ -1,5 +1,12 @@
+import type { Metadata } from 'next'
 import { listServices } from '@/lib/api/services'
 import { BookingWizard } from '@/components/public/booking/booking-wizard'
+
+export const metadata: Metadata = {
+  title: 'Agendamento',
+  description:
+    'Agende banho e tosa para o seu pet em Santana do Livramento. Escolha serviço, data e horário online.',
+}
 
 // force-dynamic: mesmo critério de app/(public)/servicos/page.tsx (issue #59,
 // commit e0eaba9). Sem sinal dinâmico próprio (não lê searchParams/params),

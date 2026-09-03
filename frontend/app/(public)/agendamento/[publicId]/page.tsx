@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2, Clock, Home, PawPrint, Scissors, User } from 'lucide-react'
@@ -5,6 +6,15 @@ import { getAppointment, type AppointmentStatus } from '@/lib/api/appointments'
 import { appointmentDate, appointmentTime } from '@/lib/booking-dates'
 import { buildWhatsAppLink } from '@/lib/data/site'
 import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+
+// noindex: esta rota expõe nome do cliente + nome do pet atrás de um UUID
+// "não adivinhável mas não garantidamente privado" (docs/pending-decisions.md
+// #11) — não pode aparecer no Google. Título genérico por defesa em
+// profundidade: mesmo noindex, o nome real do cliente nunca vai no <title>.
+export const metadata: Metadata = {
+  title: 'Confirmação de agendamento',
+  robots: { index: false, follow: false },
+}
 
 const STATUS_LABEL: Record<AppointmentStatus, string> = {
   PENDING: 'Aguardando confirmação',

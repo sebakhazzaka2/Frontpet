@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Calendar, Clock, MapPin } from 'lucide-react'
 import { listServices } from '@/lib/api/services'
@@ -6,6 +7,15 @@ import { FaqAccordion, type FaqItem } from '@/components/public/faq-accordion'
 import { SectionHeading } from '@/components/public/section-heading'
 import { BUSINESS_HOURS_DISPLAY, SITE_CITY } from '@/lib/data/site'
 
+export const metadata: Metadata = {
+  title: 'Serviços',
+  description:
+    'Banho e tosa profissional para cães e gatos em Santana do Livramento. Agende horário online em segundos.',
+}
+
+// metadata e `dynamic = 'force-dynamic'` conviven sin conflicto (Next.js
+// docs) — no tocar la razón de force-dynamic, documentada abajo.
+//
 // force-dynamic: diferente de produtos/page.tsx (que já é dinâmico por ler
 // searchParams, então nunca precisou disto). /servicos não tem nenhum sinal
 // dinâmico próprio — sem isso, Next tenta pré-renderizar a página no build
