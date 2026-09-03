@@ -765,3 +765,39 @@ justo antes de cobrar) es mayor que el riesgo residual aceptado con la opción A
 crearse — anotarlo en el checklist de "nuevo subdominio" si alguna vez existe uno. Revisar esta
 entrada cuando haya margen post-lanzamiento (candidato natural para un sprint de Fase 2 de
 hardening, junto con cualquier otra revisión de seguridad más profunda que se decida hacer).
+
+---
+
+## 27. El stock de productos nunca se descuenta automáticamente — ni al crear el pedido, ni al confirmarlo
+
+**Estado**: detectado 2026-09-03 revisando el flujo de checkout con Sebastián, al arrancar
+Sprint 7. No es un bug de timing (algo que descuenta en el momento equivocado) — es que **no
+existe ningún descuento automático en absoluto**, en ningún estado del pedido. Confirmado
+grepeando `OrderServiceImpl.java` completo: ninguna referencia a `stock`. El único lugar donde
+`stock` se toca es el CRUD de productos del admin (`ProductServiceImpl`) — es un campo que el
+admin edita a mano, desconectado por completo de los pedidos reales que van entrando.
+
+**La pregunta que motivó esto**: Sebastián propuso que el stock se descuente automáticamente,
+pero recién cuando el pedido pasa a `CONFIRMED`, no antes (evita que varios pedidos `PENDING`
+simultáneos del mismo producto dejen el stock en negativo antes de que el admin confirme
+ninguno). Es un diseño razonable **si se decide construirlo** — pero es trabajo nuevo a
+estimar, no una corrección de algo que ya funciona distinto.
+
+**Lo que falta decidir antes de estimarlo**:
+1. ¿Es requisito real para el cliente, o el criterio actual ("stock aproximado, el admin lo
+   ajusta a mano cuando vende algo") alcanza para el volumen de este negocio? Si el cliente
+   nunca lo pidió explícitamente, conviene confirmar antes de sumarlo a Sprint 7 sin que sea
+   scope acordado.
+2. Si se construye: el descuento tiene que ser atómico contra condiciones de carrera (dos
+   pedidos confirmándose casi al mismo tiempo por el último stock disponible) — mismo tipo de
+   problema que ya se resolvió para la capacidad de turnos (`pg_advisory_xact_lock` en
+   `AppointmentServiceImpl.lockTenantDay`), probablemente el mismo patrón aplique acá.
+3. Qué pasa si el stock llega a 0 o negativo con pedidos ya `CONFIRMED` en danza — ¿se bloquea
+   la compra en el catálogo público, se permite igual y el admin lo resuelve a mano? No hay
+   una respuesta obvia sin hablarlo con el cliente primero.
+4. Reversión: si un pedido `CONFIRMED` se pasa a `CANCELLED` después ¿el stock descontado se
+   devuelve? Consistente con que `CANCELLED` es un estado real y no un soft-delete.
+
+**Dónde impacta**: nada bloqueado hoy — el flujo actual funciona igual sin esto, el admin ya
+ajusta stock a mano. Candidato a Sprint 7 (si se confirma que es requisito) o a Fase 2 (si el
+volumen actual del negocio no lo justifica todavía).
