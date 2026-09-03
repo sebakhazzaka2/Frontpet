@@ -1,7 +1,14 @@
+import type { Metadata } from 'next'
 import { listProducts, listCategories } from '@/lib/api/products'
 import { LoadMoreProducts } from '@/components/public/load-more-products'
 import { CategoryFilter } from '@/components/public/category-filter'
 import { ProductSearch } from '@/components/public/product-search'
+
+export const metadata: Metadata = {
+  title: 'Produtos',
+  description:
+    'Rações, acessórios, higiene e petiscos para cães e gatos. Peça pelo WhatsApp com entrega em Santana do Livramento.',
+}
 
 // Tarea 3.6 (issue #16). Server Component: la primera página se fetchea acá
 // (SEO, sin loading state inicial); <LoadMoreProducts> toma la posta para

@@ -1,10 +1,16 @@
+import { cache } from 'react'
 import { apiFetch, type PageResponse, type TaxonRef } from './client'
 import type { ProductDetail } from '@/lib/data/product-detail'
 import type { Product } from '@/lib/data/products'
 
-export function getProductBySlug(slug: string) {
+// cache() de React (tarea 7.x, SEO): generateMetadata y el Server Component
+// de /produtos/[slug] llaman a esto por separado (patrón recomendado por
+// Next.js) — sin memoizar, sería 2 requests reales a GET /products/{slug}
+// por render. Con cache(), el segundo llamado dentro del mismo request de
+// servidor reusa la promise del primero, sin fetch duplicado.
+export const getProductBySlug = cache((slug: string) => {
   return apiFetch<ProductDetail>(`/products/${slug}`)
-}
+})
 
 interface ListProductsParams {
   page?: number
