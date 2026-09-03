@@ -12,7 +12,15 @@ export async function Reviews() {
   const place = await getPlaceSummary()
 
   return (
-    <section className="bg-navy px-6 py-16 lg:px-8">
+    // overflow-x-hidden acá, no solo confiar en el overflow-x-hidden global
+    // del <body> (layout.tsx): <ReviewsCarousel> hace bleed con márgenes
+    // negativos (-mx-6/-mx-8, cancela exactamente el px-6/lg:px-8 de esta
+    // section) para que el carrusel llegue hasta el borde — pero eso puede
+    // ensanchar documentElement.scrollWidth en Chromium pese al
+    // overflow-hidden del body. Verificado 2026-09-03: la home tenía scroll
+    // horizontal real a 320/768/1024px. Contenerlo acá, en el mismo límite
+    // que el bleed ya respeta, no corta nada intencional.
+    <section className="overflow-x-hidden bg-navy px-6 py-16 lg:px-8">
       <div className="mx-auto max-w-content">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeading
