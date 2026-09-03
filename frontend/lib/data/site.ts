@@ -40,8 +40,7 @@ export const SITE_CITY = 'Santana do Livramento, RS'
 // business_hours (solo /admin/business-hours, con auth) — texto estático
 // hasta que exista uno, mismo criterio que SITE_CITY.
 export const BUSINESS_HOURS: { dias: string; horas: string }[] = [
-  { dias: 'Seg-Sex', horas: '09h-17h' },
-  { dias: 'Sáb', horas: '09h-19h' },
+  { dias: 'Seg-Sáb', horas: '09h-19h' },
 ]
 
 export const BUSINESS_HOURS_DISPLAY = BUSINESS_HOURS.map((h) => `${h.dias}: ${h.horas}`).join(
