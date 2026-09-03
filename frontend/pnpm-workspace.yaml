@@ -19,3 +19,9 @@ allowBuilds:
   # No lo usamos: los tests son Vitest + Testing Library, sin mocks de red.
   # Si algún día entra MSW para mockear la API del backend, poner en true.
   msw: false
+
+  # Descarga el binario nativo de sentry-cli, que sube source maps en build.
+  # No lo usamos: decidimos saltear esa subida (D.8, Sprint Despliegue) para
+  # no meter SENTRY_AUTH_TOKEN como build secret sin necesidad real todavía —
+  # ver docs/deploy-runbook.md. Si algún día se activa, poner en true.
+  '@sentry/cli': false
