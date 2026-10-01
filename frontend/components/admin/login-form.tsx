@@ -42,6 +42,7 @@ export function LoginForm() {
       await apiFetch('/auth/login', { method: 'POST', body: values })
       // Navegação completa: o guard do layout protegido lê a cookie no
       // server a cada request — precisa de um request novo de verdade.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign('/admin')
     } catch (err) {
       setLoginError(
