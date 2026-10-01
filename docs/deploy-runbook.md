@@ -103,6 +103,13 @@ D.2 (DNS en Cloudflare) ya exista. D.5 en adelante es secuencial: cada paso depe
    Coolify por subdominio — el proxy de Cloudflare puede interferir con el puerto 8000. Si
    accedés al dashboard por IP directa, ni hace falta este registro.
 
+   ⚠️ **Actualización 2026-09-02**: este registro se **borró** después de crearlo. La cookie
+   de sesión del admin necesitó `Domain=frontpet.com.br` para funcionar entre subdominios
+   (hallazgo #25 de `pending-decisions.md`), lo que de paso hace que el navegador mande esa
+   cookie a *cualquier* subdominio — incluido el dashboard de Coolify si existe por DNS
+   (hallazgo #26). Mitigación aplicada: sin el registro DNS, se accede al dashboard por IP
+   directa. No recrear `coolify.frontpet.com.br` sin resolver antes el hallazgo #26.
+
 4. **SSL/TLS → Overview**: modo **Full (strict)** — Coolify/Caddy van a servir HTTPS con
    Let's Encrypt en el origin, y Cloudflare valida contra ese certificado real (no "Flexible",
    que rompe redirects y es inseguro origin→edge).
@@ -315,6 +322,11 @@ de prueba trivial después de que todo esté verde.
 ---
 
 ## D.8 — Activar Sentry
+
+> ✅ **Hecho (2026-09-02)**: SDK integrado en backend y frontend (PR #75), DSNs cargados en
+> Coolify, error de prueba provocado y confirmado en el dashboard de Sentry, endpoint de
+> prueba removido (PR #80). Pendiente real: confirmar el primer error **orgánico** (no
+> provocado a mano) una vez que haya tráfico real.
 
 1. Backend: agregar el DSN de `frontpet-backend` como env var (`SENTRY_DSN`) y la dependencia
    `sentry-spring-boot-starter` si todavía no está en `pom.xml` — confirmar antes de este paso.

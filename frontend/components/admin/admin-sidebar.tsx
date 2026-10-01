@@ -42,6 +42,7 @@ export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
       // Navegación completa (no router.push): el layout guard lee la cookie
       // en el server en cada request — un push de cliente podría no
       // re-evaluar el guard antes de mostrar contenido protegido.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign('/admin/login')
     }
   }

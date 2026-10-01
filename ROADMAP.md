@@ -312,9 +312,9 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 | # | Tarea | Hs | Estado |
 |---|-------|----|---|
 | D.1 | Compra de VPS Hetzner **CX33** (ex-CX32, 4 vCPU / 8 GB, ~€10/mes) **región Falkenstein/Nuremberg** (Ashburn no tiene este tier — ver ADR 016 §3, cambio 2026-09-01) + SSH key inicial | 1 | ✅ **hecho** |
-| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 | ✅ **hecho** — `frontpet.com.br`, DNS en Cloudflare (Full strict), A records de root/api/coolify creados |
-| D.3 | Verificación del dominio de e-mail en Resend (DKIM/SPF/MX en Cloudflare, tarea 7.12) — agregada 2026-08-29, ver `docs/deploy-runbook.md` D.3 | — | 🔄 **en curso** — registros DNS cargados en Cloudflare, verificación/propagación pendiente de confirmar |
-| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 | ❓ **sin confirmar** — el SDK de Sentry se está integrando ahora mismo (branch `feat/sentry-integration`); no asumir que las cuentas ya existen sin verificarlo |
+| D.2 | Compra de dominio + configuración DNS apuntando al VPS | 1 | ✅ **hecho** — `frontpet.com.br`, DNS en Cloudflare (Full strict); el A record de `coolify` se **borró** después (hallazgo #26 de `pending-decisions.md`, cookie de sesión ampliada a todos los subdominios) |
+| D.3 | Verificación del dominio de e-mail en Resend (DKIM/SPF/MX en Cloudflare, tarea 7.12) — agregada 2026-08-29, ver `docs/deploy-runbook.md` D.3 | — | ✅ **hecho** — reset de contraseña (7.12) ya está marcado hecho en Sprint 7, lo que implica Resend verificado y enviando; confirmar con Sebastián que no quedó sin probar en Gmail/Outlook (ver `pending-decisions.md` §19) |
+| D.4 | Cuenta Sentry (tier gratis) + Plausible o Umami | 0.5 | ✅ **hecho** — DSNs confirmados en Coolify (backend y frontend), Plausible activo (tarea 7.6) |
 
 ### Configuración y deploy (~7,5 hs)
 
@@ -322,12 +322,12 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 |---|-------|----|---|
 | D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 | ✅ **hecho** |
 | D.6.1 | Postgres como recurso de Coolify | — | ✅ **hecho** |
-| D.6.2 | Deploy del backend (Spring Boot) en Coolify | — | 🔄 **en curso** — cargando env vars en Coolify, todavía no verificado en vivo |
-| D.6.3 | Deploy del frontend (Next 16) en Coolify + Cache Rules de Cloudflare para rutas públicas GET (mitigación de latencia, ver ADR 016 §3) | — | ⏳ **no arrancado** — `frontend/Dockerfile` ya listo y verificado |
-| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 | ⏳ pendiente |
-| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 | ⏳ pendiente — depende de que el SDK (branch `feat/sentry-integration`) se mergee primero |
-| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 | ⏳ pendiente |
-| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 | 🔄 **en curso** — depoimentos reales ya resueltos (ADR 025), resto de los ítems del checklist sigue pendiente |
+| D.6.2 | Deploy del backend (Spring Boot) en Coolify | — | ✅ **hecho** — `api.frontpet.com.br` en vivo |
+| D.6.3 | Deploy del frontend (Next 16) en Coolify + Cache Rules de Cloudflare para rutas públicas GET (mitigación de latencia, ver ADR 016 §3) | — | ✅ **hecho** — `frontpet.com.br` en vivo (sitemap.xml/robots.txt verificados 200 OK el 2026-10-01); confirmar si las Cache Rules de Cloudflare llegaron a configurarse o quedaron fuera |
+| D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 | ⏳ pendiente — sin evidencia en el repo de que el script/cron se haya corrido |
+| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 | ✅ **hecho** — SDK integrado (#75), endpoints de prueba usados y removidos después de confirmar en el dashboard (#80); queda pendiente verificar el primer error **orgánico** real |
+| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 | 🔄 **en curso** — ya se corrió sobre los PRs del deploy (#75/#76/#77) y encontró 2 hallazgos reales (#25 cookie sin `Domain`, #26 cookie expuesta a `coolify.frontpet.com.br`), ambos mitigados; falta confirmar el resto del checklist completo de D.9 (`pnpm audit`, headers de seguridad, etc.) |
+| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 | 🔄 **en curso** — depoimentos reales ya resueltos (ADR 025); SEO básico (7.9: sitemap/robots/meta tags) también resuelto (#81); resto del checklist (og-image real, themeColor confirmado, fotos reales) sigue pendiente |
 
 #### D.10 — Checklist de contenido pre-público
 
@@ -490,18 +490,18 @@ login y llevar todo a calidad de entrega.
 
 | # | Tarea | Hs |
 |---|-------|----|
-| 7.1 | Endpoint `GET /api/v1/admin/dashboard` con queries agregados | 2 |
-| 7.2 | Admin: componente `<KPICard>` reutilizable | 1 |
-| 7.3 | Admin: mini-dashboard con **conteos operacionales** — pedidos día/mes/total, turnos día/próximos, top productos, top servicios. ⚠️ **Sin métricas analíticas** (ADR 003/008): nada de conversão, faturamento, ticket médio ni trend pills | 3 |
+| 7.1 | ✅ Endpoint `GET /api/v1/admin/dashboard` con queries agregados | 2 |
+| 7.2 | ✅ Admin: componente `<KPICard>` reutilizable | 1 |
+| 7.3 | ✅ Admin: mini-dashboard con **conteos operacionales** — pedidos día/mes/total, turnos día/próximos, top productos, top servicios. ⚠️ **Sin métricas analíticas** (ADR 003/008): nada de conversão, faturamento, ticket médio ni trend pills. DoD visual (320/768/1024px) todavía sin confirmar, ver `pending-decisions.md` §20 | 3 |
 | 7.12 | ✅ **Recuperación de contraseña del admin**: token de un solo uso + expiración, email vía **Resend**, invalidación de sesiones JWT activas al resetear (ADR 022). Pantallas derivadas del login existente, sin pasar por Stitch — la estimación original (5h, con generación de pantalla en Stitch) quedó baja por ~2x: la invalidación de sesión, el cliente HTTP a mano contra Resend y el doble rate limit (IP + email) no estaban en el estimado inicial | ~11,75 |
 | 7.13 | ✅ **Banner de consentimiento LGPD + gating del Pixel**: el Meta Pixel **no puede disparar antes del consentimiento**. Hecho **antes** de la 7.4. Pantalla derivada del design system, no generada en Stitch (ADR 024) | 2 |
 | 7.14 | ✅ **Derecho de eliminación (LGPD)**: endpoint admin que anonimiza (no borra) los datos de un titular por telefone, con preview + log de auditoría (ADR 023) | 1 |
 | 7.4 | ✅ Meta Pixel: instalación base + eventos estándar (Contact, ViewContent, Schedule, Purchase). Gateado por 7.13 | 2 |
 | 7.6 | ✅ Plausible: instalación con script tag en `<head>`, leyendo `NEXT_PUBLIC_ANALYTICS_DOMAIN` | 0.5 |
 | 7.7 | Auditoría mobile completa, ajustes finos | 3 |
-| 7.9 | SEO básico: meta tags, Open Graph, sitemap.xml, robots.txt | 2 |
-| 7.10 | Optimización de imágenes: WebP, lazy loading, srcset. ⚠️ Next 16: `images.domains` está deprecado → `images.remotePatterns` para el bucket R2 | 1 |
-| 7.11 | Testing manual en navegadores reales (Chrome mobile, Safari iOS, Firefox) | 2 |
+| 7.9 | ✅ SEO básico: meta tags, Open Graph, sitemap.xml, robots.txt (#81) | 2 |
+| 7.10 | 🔄 Optimización de imágenes: `priority`/`sizes` agregados en productos/servicios (#81). ⚠️ Next 16: `images.domains` está deprecado → `images.remotePatterns` para el bucket R2 | 1 |
+| 7.11 | 🔄 Testing manual en navegadores reales (Chrome mobile, Safari iOS, Firefox) — #81 incluyó fixes cross-browser (reviews carousel), confirmar si la pasada completa ya se hizo | 2 |
 
 ### Opcional — solo si sobra tiempo (6,5 hs, no bloquean la entrega)
 

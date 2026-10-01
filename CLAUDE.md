@@ -28,11 +28,11 @@ Visión futura (no MVP1): SaaS multi-tenant para negocios locales.
 
 | Paquete | Versión | Nota |
 |---|---|---|
-| `next` | **16.2.6** | App Router. Turbopack default. ⚠️ **Trampas de Next 16: `docs/next16-notes.md`** — leer antes de código de rutas/caching/imágenes. Lo más frecuente: `params`/`searchParams`/`cookies()` son **Promises** |
+| `next` | **16.3.8** | App Router. Turbopack default. Subido desde 16.2.6 el 2026-10-01 por 3 RCE críticas (D.9) — no bajar. ⚠️ **Trampas de Next 16: `docs/next16-notes.md`** — leer antes de código de rutas/caching/imágenes. Lo más frecuente: `params`/`searchParams`/`cookies()` son **Promises** |
 | `react` / `react-dom` | **19.2.4** | |
 | `typescript` | 5.9.3 | strict mode |
 | `tailwindcss` | **4.3.0** | CSS-first: tokens en `globals.css` vía `@theme`. **No existe ni se recrea `tailwind.config.ts`**. Ver ADR 014 |
-| `shadcn` (CLI) | 4.7.0 | + `radix-ui`, `cva`, `clsx`, `tailwind-merge`, `tw-animate-css` |
+| `shadcn` (CLI) | 4.7.0 | **devDependency** (es CLI, no runtime) + `radix-ui`, `cva`, `clsx`, `tailwind-merge`, `tw-animate-css` |
 | `framer-motion` | 12.38.0 | |
 | `@tanstack/react-query` | ^5.100.10 | |
 | `react-hook-form` | 7.76.0 | + `@hookform/resolvers` ^5.2.2 |
@@ -89,14 +89,18 @@ frontpet/
 │   ├── notifications/   EmailSender (Resend/Logging) + PasswordResetEmailTemplate (ADR 022)
 │   └── BackendApplication.java   (en la raíz a propósito: component scan)
 ├── backend/src/main/resources/db/migration/   Flyway
+├── backend/Dockerfile · frontend/Dockerfile   multi-stage, deploy en Coolify (ADR 016)
 ├── frontend/
 │   ├── app/(public)/  admin/(protected)/  admin/login/  admin/esqueci-senha/  admin/redefinir-senha/
 │   │                  api/   ((admin)/ es placeholder sin uso, ver ADR 006)
 │   │                  Rutas públicas: /produtos, /servicos, /agendamento, /agendamento/[publicId],
-│   │                  /carrinho, /privacidade · Admin: /admin/agendamentos, /admin/servicos
-│   ├── components/ui/  public/  public/booking/ (wizard, Sprint 6)  admin/  consent/ (banner LGPD, ADR 024)
-│   └── lib/            api client, hooks, analytics/ (Meta Pixel + Plausible, ADR 024), google-places.ts
-│                        (ADR 025); datos en lib/data/
+│   │                  /carrinho, /privacidade · Admin: /admin (dashboard), /admin/produtos,
+│   │                  /admin/pedidos, /admin/agendamentos, /admin/servicos
+│   ├── components/ui/  public/  public/booking/ (wizard, Sprint 6)  admin/  shared/  consent/ (banner LGPD, ADR 024)
+│   ├── lib/             api client, hooks, analytics/ (Meta Pixel + Plausible, ADR 024), google-places.ts
+│   │                     (ADR 025); datos en lib/data/
+│   ├── instrumentation.ts · instrumentation-client.ts · sentry.server.config.ts ·
+│   │   sentry.edge.config.ts   Sentry SDK (ADR deploy, Sprint Despliegue)
 ├── docs/               ADRs, design-system.md, db-model.png, next16-notes.md,
 │                       stitch-implementation-workflow.md, port-landing-stitch.md,
 │                       booking-api-contracts.md, pending-decisions.md, preguntas-cliente.md,
