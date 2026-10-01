@@ -191,4 +191,6 @@ explícito tras ver el preview visual — los títulos quedan en su color normal
 - Sin fallback de contenido: si Google Business no tiene reviews todavía, `<Reviews>` se ve
   "pelada" (header + badge, sin cards) en vez de mostrar algo de relleno — aceptado a propósito,
   ver "Decisión" arriba.
-- `GOOGLE_PLACES_API_KEY` sigue sin restricción de IP hasta que exista el VPS de producción.
+- ~~`GOOGLE_PLACES_API_KEY` sigue sin restricción de IP hasta que exista el VPS de producción.~~
+  **Resuelto 2026-10-01**: restringida por IP (`167.235.134.150/32`, el VPS de producción) en
+  Google Cloud Console.
