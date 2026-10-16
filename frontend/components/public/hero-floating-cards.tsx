@@ -7,8 +7,7 @@
 // a esos elementos. Estas cards son decorativas, desktop-only, no son el LCP.
 
 import { domAnimation, LazyMotion, m, useReducedMotion } from 'framer-motion'
-import { PawPrint, Star } from 'lucide-react'
-import { WhatsAppIcon } from '@/components/shared/whatsapp-icon'
+import { PawPrint, ShoppingBag, Star } from 'lucide-react'
 
 interface HeroFloatingCardsProps {
   rating: number | null
@@ -48,7 +47,7 @@ export function HeroFloatingCards({ rating, userRatingCount }: HeroFloatingCards
           initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: reduceMotion ? 0 : 1.75 }}
-          className="absolute top-[45%] right-[5%] flex rotate-1 items-center gap-3 rounded-lg bg-white p-4 shadow-card"
+          className="absolute top-[45%] right-[8%] flex rotate-1 items-center gap-3 rounded-lg bg-white p-4 shadow-card"
         >
           <div className="flex size-10 items-center justify-center rounded-full bg-orange/10">
             <PawPrint className="size-5 text-orange" />
@@ -63,9 +62,15 @@ export function HeroFloatingCards({ rating, userRatingCount }: HeroFloatingCards
           initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: reduceMotion ? 0 : 1.9 }}
-          className="absolute bottom-[20%] right-[12%] flex -rotate-1 items-center gap-3 rounded-lg bg-wa p-4 shadow-card-hover"
+          className="absolute bottom-[20%] right-[8%] flex -rotate-1 items-center gap-3 rounded-lg bg-white p-4 shadow-card"
         >
-          <WhatsAppIcon className="size-6 text-white" />
+          <div className="flex size-10 items-center justify-center rounded-full bg-orange/10">
+            <ShoppingBag className="size-5 text-orange" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold leading-none text-ink">Catálogo de produtos</p>
+            <p className="mt-1 text-caption leading-none text-ink-muted">e pedidos online</p>
+          </div>
         </m.div>
       </div>
     </LazyMotion>
