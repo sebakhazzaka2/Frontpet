@@ -4,126 +4,71 @@
 > (permanente) ni ROADMAP.md (planificado). Si algo de acá deja de cambiar, se promueve
 > a uno de esos dos o a un ADR; si es una decisión sin tomar, va a `pending-decisions.md`.
 
-**Última actualización**: 2026-10-01
+**Última actualización**: 2026-10-16 (doc-sync). `main` al día con `origin/main` hasta `a4f62c3` (PR #86).
 
 ---
 
 ## Verdad actual
 
-- Branch activa: `main`, working tree limpio. La rama `feat/sentry-integration` que figuraba
-  acá como "en curso" ya se mergeó a `main` vía PR #75 (commit `253efb5f`) — **pero** la rama
-  remota `origin/feat/sentry-integration` sigue existiendo con un commit propio
-  (`1d2087e3 docs: sync CLAUDE.md, ROADMAP, deploy runbook...`) que nunca llegó a `main`.
-  Revisar ese commit antes de borrar la rama, por si tiene contenido documental que todavía
-  falta aplicar.
+- Branch activa: `main`. Desde 2026-10-01 entraron #83 (fix hydration en `<head>`), #84 (fotos placeholder
+  de hero/servicios + `og-image.jpg`), #85 (hero con card de catálogo) y #86 (`docs/checklist-prueba-prod.md` +
+  `docs/limpieza-datos-prueba.sql`). `FrontPet.md` y `docs/estado-frontpet.md` están en `.gitignore`.
+- Ramas: solo `main` en local. En el remoto quedan ramas viejas ya mergeadas por squash (ver abajo si se limpian).
+- **Infra**: ya está comprada y en uso (VPS Hetzner CX33, dominio, Cloudflare). La restricción de
+  "no comprar infra hasta el Sprint Despliegue" ya no aplica; sí sigue vigente no sumar costos nuevos sin hablarlo.
 - **El sitio está en producción**: `https://frontpet.com.br` y `https://api.frontpet.com.br`
-  están en vivo (verificado 2026-10-01: `sitemap.xml` y `robots.txt` responden 200 OK, incluso
-  simulando el user-agent de Googlebot — sin bloqueo de Cloudflare). El Sprint Despliegue
-  (D.1-D.10, detalle en `docs/deploy-runbook.md` y la tabla de `ROADMAP.md`) está mayormente
-  cerrado:
-  - ✅ D.1-D.2 (VPS Hetzner CX33 en Falkenstein/Nuremberg, dominio + DNS en Cloudflare).
-  - ✅ D.3 (Resend) — asumido hecho porque 7.12 (reset de contraseña) está marcado hecho en
-    Sprint 7, lo que requiere el dominio verificado. **Confirmar con Sebastián** que se probó
-    de punta a punta en Gmail/Outlook (pending-decisions.md §19 lo pedía explícito).
-  - ✅ D.4 (cuentas Sentry + Plausible).
-  - ✅ D.5-D.6.3 (Coolify, Postgres, backend y frontend deployados).
-  - ⏳ D.7 (backups automáticos) — **sin evidencia de que se haya hecho**. Sigue siendo el
-    hueco más concreto del Sprint Despliegue.
-  - ✅ D.8 (Sentry activo) — SDK integrado (PR #75), error de prueba confirmado en el
-    dashboard, endpoint de prueba removido (PR #80). Falta solo el primer error orgánico real.
-  - 🔄 D.9 (security review pre-exposición) — se corrió sobre los PRs del deploy (#75/#76/#77)
-    y encontró 2 bugs reales, ya mitigados (ver "Hallazgos post-deploy" abajo). El checklist
-    completo de D.9 (`pnpm audit`, headers de seguridad, etc.) no está confirmado end-to-end.
-  - 🔄 D.10 (checklist de contenido) — depoimentos reales (ADR 025) y SEO básico/sitemap
-    (tarea 7.9, PR #81) ya resueltos. Sigue pendiente: `og-image.jpg` real, `themeColor`
-    confirmado con el cliente, fotos reales de producto/servicio/hero.
-- **Hoy, 2026-10-01, se cerraron 3 tareas operativas post-deploy** (fuera del runbook, a
-  pedido de Sebastián):
-  1. Google Search Console: property de `frontpet.com.br` verificada, sitemap reenviado.
-     Hubo un estado transitorio "no se puede obtener" al reenviarlo — diagnosticado como
-     timing (el servidor respondía 200 normal), no bloqueo de Cloudflare. Sebastián lo dejó
-     en observación, sin confirmar aún que haya pasado a "Success".
-  2. Sentry: DSNs confirmados cargados en Coolify (backend y frontend). Sin error real
-     disparado todavía — queda a la espera de uno orgánico.
-  3. `GOOGLE_PLACES_API_KEY` restringida por IP en Google Cloud Console a `167.235.134.150/32`
-     (la IP del VPS, recuperada de `~/.ssh/known_hosts` local porque no había acceso a Hetzner
-     a mano). Cierra el pendiente que dejaba ADR 025 abierto ("sin restricción hasta que
-     exista el VPS de producción").
-- **Sprint 7 en curso**: 7.1-7.4, 7.6, 7.9, 7.12, 7.13, 7.14 confirmados hechos en el código
-  (dashboard admin con `<KPICard>`, Meta Pixel + Plausible gateados por LGPD, SEO/sitemap,
-  reset de contraseña, banner de consentimiento, derecho de eliminación). 7.10 (optimización
-  de imágenes) y 7.11 (testing cross-browser) parcialmente cubiertos por PR #81, sin
-  confirmar si la pasada completa ya se hizo. 7.7 (auditoría mobile completa) no arrancada.
+  (verificado 2026-10-01: `sitemap.xml` y `robots.txt` → 200). Sprint Despliegue (D.1–D.10, detalle en
+  `docs/deploy-runbook.md` y `ROADMAP.md`) mayormente cerrado:
+  - ✅ D.1–D.2 VPS y DNS · ✅ D.3 Resend (asumido; confirmar prueba en Gmail/Outlook) · ✅ D.4 Sentry + Plausible ·
+    ✅ D.5–D.6.3 Coolify, Postgres, backend y frontend · ✅ D.8 Sentry activo (falta un error orgánico real).
+  - ⏳ D.7 backups automáticos — **sin evidencia**; es el hueco más concreto.
+  - 🔄 D.9 security review — `pnpm audit` y headers sin confirmar end-to-end; Next subido a 16.3.8 el 2026-10-01 por CVEs.
+  - 🔄 D.10 contenido — `og-image.jpg` y fotos de hero/servicios ya existen pero son **placeholders de stock**
+    (#84); faltan fotos reales y `themeColor` confirmado con el cliente.
+  - ⏳ Prueba de punta a punta en producción: `docs/checklist-prueba-prod.md` (incluye backup previo, que además
+    cierra la duda de D.7).
+- **Sprint 7 en curso**: hechos 7.1–7.4, 7.6, 7.9, 7.12–7.14. Parciales 7.10 y 7.11 (PR #81, sin confirmar pasada completa).
+  Sin arrancar: 7.7 (auditoría mobile completa).
+- **Google Search Console** verificada, sitemap reenviado (en observación). `GOOGLE_PLACES_API_KEY` restringida por IP al VPS.
+- **Ecosistema "AI SaaS Ecosystem"**: este repo adoptó el contrato común v1 (CLAUDE.md §14) y expone su estado en
+  `docs/ESTADO.md`. Fase actual del ecosistema: auditoría y diseño; no se implementa el agente todavía.
 
-## Hallazgos post-deploy (nuevos desde el 2026-09-02, documentados en pending-decisions.md)
+## Hallazgos post-deploy (documentados en pending-decisions.md)
 
-Estos 4 ítems no existían la última vez que este archivo se actualizó — vale tenerlos
-presentes porque son reales, no hipotéticos:
-
-- **§24** — Coolify no pasa variables marcadas como "secret" al build de Docker aunque tengan
-  el toggle de "Available at Buildtime" activo (comportamiento de la plataforma, no bug propio;
-  costó un rato de debugging con `GOOGLE_PLACES_API_KEY`).
-- **§25** — Bug real de código: la cookie de sesión del admin no tenía `Domain` explícito, así
-  que el login nunca persistía entre `frontpet.com.br` y `api.frontpet.com.br`. Arreglado
-  (PR #77), existía desde que existe el login.
-- **§26** — Efecto secundario del fix de §25: la cookie ampliada a `Domain=frontpet.com.br` se
-  manda también a `coolify.frontpet.com.br`. Mitigado borrando ese registro DNS (ver nota en
-  `deploy-runbook.md` D.2); la opción B (scope más fino de cookie) queda pospuesta a Fase 2.
-- **§27** — **Sin resolver, con decisión de diseño pendiente**: el stock de productos nunca se
-  descuenta automáticamente, ni al crear el pedido ni al confirmarlo. Sebastián propuso
-  descontar recién al pasar a `CONFIRMED` (evita stock negativo por varios `PENDING`
-  simultáneos) — es trabajo nuevo a estimar, no estaba en el Sprint 7 original. Decidir antes
-  de agendarlo.
+- **§24** Coolify no pasa variables "secret" al build de Docker aunque tengan "Available at Buildtime".
+- **§25** Cookie de sesión sin `Domain` → login no persistía entre subdominios. Arreglado (PR #77).
+- **§26** Efecto del fix: cookie con `Domain=frontpet.com.br` llega a todos los subdominios. Mitigado borrando el DNS de
+  `coolify.`; scope más fino de cookie pospuesto a Fase 2.
+- **§27** **Sin resolver**: el stock nunca se descuenta. Propuesta: descontar al pasar a `CONFIRMED`. Decidir antes de agendar.
 
 ## Deuda técnica y documental conocida
 
-- 🔴 `V5__seed_dev.sql` dice "não executar em produção" pero nada lo impide de verdad
-  (`pending-decisions.md` §4) — sigue sin resolver. Como el backend ya está deployado (D.6.2
-  hecho), confirmar si terminó corriendo en prod o si se separaron las migraciones por perfil.
-- La modalidade Entrega/Retirada se reconstruye comparando contra el literal "Retirada na
-  loja" en 4 puntos del frontend (`pending-decisions.md` §16, marcado resuelto en ese doc —
-  verificar si sigue siendo cierto antes de asumirlo).
-- 51 valores arbitrarios de Tailwind en código portado y ~20 spacings fuera de la escala de 4
-  (`pending-decisions.md` §17) — sin agendar.
-- `SERVICES_PREVIEW` (landing) es estático y no refleja cambios vía `/admin/servicos`
-  (`pending-decisions.md` §14) — deuda baja.
-- `<ManualAppointmentDialog>` usa inputs nativos `type="date"`/`type="time"` (`pending-decisions.md` §13).
-- Paleta de colores en `globals.css` sigue siendo placeholder, pendiente confirmación del
-  cliente — `design-system.md` sigue sin drift respecto a `globals.css` (es la fuente
-  canónica por diseño, v3.0 no duplica tablas de valores).
-- `docs/ui/` es un export de Stitch viejo y stale — no portar desde ahí.
-- `docs/learnings.md` está gitignored — no es fuente de verdad compartida.
-- **7.12 DoD** (`pending-decisions.md` §19): confirmar prueba real de reset en Gmail/Outlook
-  sin caer en spam, y la invalidación de sesión en otro navegador — no hay evidencia de que
-  se haya corrido ese checklist ya en producción real.
-- **7.3 DoD** (`pending-decisions.md` §20): mini-dashboard ya tiene código, falta validación
-  visual a 320/768/1024px.
-- **El wizard de agendamento no protege contra doble submit** (`pending-decisions.md` §21).
-- **`POST /admin/products` responde 500 en vez de 400** ante JSON con bytes UTF-8 inválidos
-  (`pending-decisions.md` §22).
-- **Sentry backend corre con `send-default-pii` en `false`** (`pending-decisions.md` §23) —
-  atado a que exista banner LGPD (ya existe, 7.13) antes de reconsiderarlo.
-- **Stock no se descuenta automáticamente** (`pending-decisions.md` §27, nuevo) — ver arriba.
-- **Referencias rotas a `docs/reuse-consultorio.md`**: sigue sin existir, sigue citado en
-  `ROADMAP.md` (tareas 1.3 y 5.3) y en comentarios Javadoc de varios archivos de
-  `identity`/`config` en el backend. No bloquea nada — Sprints 1 y 5 ya cerrados — pero son
-  links/citas rotas que quedan en el repo.
+- 🔴 `V5__seed_dev.sql` dice "não executar em produção" y nada lo impide (§4). Confirmar si corrió en prod.
+- Riesgos de seguridad y brechas multi-tenant: ver `docs/ESTADO.md` (CSRF off, sin roles, rate limit en memoria,
+  tenant fijo, login por email global).
+- La modalidad Entrega/Retirada compara contra el literal "Retirada na loja" (§16, marcado resuelto allí; no re-verificado).
+- 51 valores arbitrarios de Tailwind y ~20 spacings fuera de la escala de 4 (§17) — sin agendar.
+- `SERVICES_PREVIEW` estático (§14) · `<ManualAppointmentDialog>` con inputs nativos (§13) — deuda baja.
+- Paleta en `globals.css` sigue siendo placeholder pendiente del cliente.
+- `docs/ui/` es un export de Stitch viejo; `docs/learnings.md` está gitignored.
+- **7.12 DoD** (§19): sin evidencia de prueba real de reset en Gmail/Outlook ni de invalidación de sesión en otro navegador.
+- **7.3 DoD** (§20): falta validación visual a 320/768/1024px del dashboard.
+- Wizard sin protección de doble submit (§21) · `POST /admin/products` responde 500 ante UTF-8 inválido (§22) ·
+  Sentry backend con `send-default-pii=false` (§23; el banner LGPD ya existe).
+- **Referencias rotas**: `docs/reuse-consultorio.md` fue eliminado a propósito (recuperable con
+  `git show fbd9aa0^:docs/reuse-consultorio.md`). `ROADMAP.md` y ADR 013 ya lo indican; siguen citándolo comentarios
+  Javadoc de `identity`/`config` (SecurityConfig, DataInitializer, StartupEnvValidator, AuthService, JwtService,
+  JwtAuthFilter, AuthController, UserDetailsServiceImpl) — es código, no se tocó. No bloquea nada.
 
 ## Cola activa / bloqueado por
 
-- Nada bloqueado técnicamente en desarrollo. El hueco más concreto del Sprint Despliegue es
-  **D.7 (backups automáticos)** — sin evidencia de que se haya configurado.
-- Punto de decisión externa más urgente: el hito de cobro del 05/09/2026 ya pasó respecto a
-  la fecha de esta actualización (2026-10-01) — confirmar con Sebastián el estado real de esa
-  conversación con el cliente, este archivo no tiene información para asumir nada.
-- §27 (stock) necesita una decisión de diseño antes de poder estimarse y agendarse.
-- Ver `docs/pending-decisions.md` para el detalle completo de lo que sigue sin resolver.
+- Nada bloqueado técnicamente. Hueco más concreto: **D.7 backups**.
+- El hito de cobro del 05/09/2026 y la entrega del 30/09/2026 ya pasaron; esta doc no tiene información sobre el estado
+  real de esa conversación con el cliente — confirmar con Sebastián.
+- §27 (stock) necesita decisión de diseño antes de estimarse.
+- Ver `docs/pending-decisions.md` para el detalle completo.
 
 ## Regla de actualización
 
-Este archivo se reescribe (no se acumula) en cada corrida de `/sprint-close` y cada vez que
-`/doc-sync` detecte que algo cambió. Si una entrada de "Deuda documental conocida" deja de
-ser cierta, se borra en el momento — no se marca como resuelta y se deja.
-
-Si algo permanece igual durante 2+ sprints seguidos, probablemente no es efímero: mover a
-CLAUDE.md (si es regla/decisión estable) o a un ADR (si es una decisión tomada).
+Se reescribe (no se acumula) en cada `/sprint-close` y cada `/doc-sync`. Si una entrada deja de ser cierta, se borra.
+Si algo permanece igual durante 2+ sprints, probablemente no es efímero: mover a CLAUDE.md o a un ADR.

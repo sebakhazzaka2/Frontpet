@@ -122,7 +122,7 @@ tablas diminutas (`admin_users`, catálogo de servicios) donde el seq-scan es in
 ## Mapa de reutilización desde `consultorio-odontologico`
 
 > El detalle accionable archivo-por-archivo (qué copiar, qué adaptar, qué cambia exactamente)
-> vive en **[docs/reuse-consultorio.md](../reuse-consultorio.md)**. Acá va el resumen.
+> vive en `docs/reuse-consultorio.md` (archivo eliminado; recuperable del historial: `git show fbd9aa0^:docs/reuse-consultorio.md`). Acá va el resumen.
 
 | Del origen | En FrontPet | Estado |
 |---|---|---|

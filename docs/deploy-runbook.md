@@ -8,19 +8,14 @@
 **Antes de arrancar**: confirmar con el cliente el gasto (VPS ~€7.50/mes + dominio
 ~USD 10-15/año) y quién paga con qué tarjeta/cuenta. Sin esto no se puede ni empezar D.1.
 
-### ⚠️ Prerequisitos de código — verificado 2026-08-24, faltan hoy
+### Prerequisitos de código — resueltos
 
-Esto **no está en el repo todavía** y D.6/D.8 lo necesitan. Hacerlo vos mismo (no es tarea
-del cliente) antes o durante D.5-D.6, con tiempo de sobra:
+Verificado 2026-10-16 contra el repo (estaban pendientes en la verificación del 2026-08-24):
 
-- **No existe `backend/Dockerfile` ni `frontend/Dockerfile`.** Nixpacks de Coolify puede
-  detectar Maven/pnpm solo sin Dockerfile, así que D.6 puede arrancar igual — pero un
-  Dockerfile propio da control real sobre la imagen (JRE headless liviana para el backend,
-  build standalone de Next). Si Nixpacks falla o el build queda pesado, este es el primer
-  lugar a mirar.
-- **Sentry SDK no está en `pom.xml`** (`sentry-spring-boot-starter` ausente) ni confirmado
-  en el frontend. D.8 asume que ya está integrado — si no lo está, sumar ~1-1.5 hs de spike
-  de instalación antes de ese paso, no en el medio.
+- **Dockerfiles**: existen `backend/Dockerfile` y `frontend/Dockerfile` (multi-stage; PR #74).
+  Coolify usa el build pack **Dockerfile**, no Nixpacks.
+- **Sentry SDK**: integrado en backend y frontend (PR #75); los endpoints temporales de
+  verificación se removieron en el PR #80.
 
 ---
 
@@ -199,9 +194,7 @@ esta sección sin consultar la doc primero.
 1. **New Resource → Application → Public Repository** (o conectar el GitHub del proyecto
    con la GitHub App de Coolify para auto-deploy en push).
 2. Repo: `sebakhazzaka2/Frontpet`, branch `main`, **Base directory**: `backend`.
-3. **Build pack**: Dockerfile si existe uno en `backend/`, si no, Nixpacks (Coolify detecta
-   Java/Maven solo). Verificar que exista `backend/Dockerfile`; si no existe, crear uno
-   simple multi-stage antes de este paso (avisar si hace falta, no está en el repo hoy).
+3. **Build pack**: Dockerfile (`backend/Dockerfile`, ya en el repo).
 4. **Domain**: `api.frontpet.com.br`.
 5. **Environment variables** (Production, marcar como *secret* las sensibles):
 
@@ -246,15 +239,14 @@ esta sección sin consultar la doc primero.
 ### 6.3 — Frontend (Next 16)
 
 1. **New Resource → Application → Public Repository**, mismo repo, **Base directory**: `frontend`.
-2. **Build pack**: Nixpacks (detecta Node/pnpm) o Dockerfile si se crea uno.
+2. **Build pack**: Dockerfile (`frontend/Dockerfile`, ya en el repo).
 3. **Domain**: `frontpet.com.br` (+ `www.frontpet.com.br` con redirect, opcional).
 4. **Environment variables**:
 
    ⚠️ **Todas las `NEXT_PUBLIC_*` (y `SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN`) se
    hornean en el bundle durante `pnpm build`** — con el `Dockerfile` (`frontend/Dockerfile`),
    Coolify tiene que pasarlas como **Build Variables**, no solo como env vars de runtime, o
-   quedan vacías en el JS servido sin ningún error visible en logs. Si el build pack termina
-   siendo Nixpacks en vez de Dockerfile, confirmar que Coolify las exponga igual en build time.
+   quedan vacías en el JS servido sin ningún error visible en logs.
 
    | Variable | Valor |
    |---|---|

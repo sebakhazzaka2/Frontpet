@@ -174,3 +174,7 @@ docs/learnings.md
 
 # Carpeta de UI local (no versionada)
 docs/ui/
+
+# Auditorías locales de solo lectura (insumo para docs/ESTADO.md)
+FrontPet.md
+docs/estado-frontpet.md

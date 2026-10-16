@@ -23,7 +23,8 @@ Backend         Spring Boot 3 + Java 21 + PostgreSQL 16 + Flyway
 Frontend        Next.js 16 + TypeScript + Tailwind CSS v4 + shadcn/ui
 Auth            JWT en cookie HttpOnly + Spring Security
 Infraestructura VPS Hetzner + Coolify + Caddy · Cloudflare DNS/CDN + R2 (imágenes)
-Tracking        Meta Pixel + Plausible
+Tracking        Meta Pixel + Plausible (gateados por consentimiento LGPD)
+Errores/Email   Sentry (backend y frontend) · Resend (reset de contraseña)
 ```
 
 Razonamiento: [docs/decisions/](./docs/decisions/) (ADR 001 stack, ADR 016 deploy).
@@ -34,9 +35,10 @@ Razonamiento: [docs/decisions/](./docs/decisions/) (ADR 001 stack, ADR 016 deplo
 
 ```
 .
-├── backend/     Spring Boot (módulos: tenant, identity, catalog, booking, orders, notifications)
+├── backend/     Spring Boot (módulos: common, config, tenant, identity, catalog, orders, booking,
+│                dashboard, privacy, notifications)
 ├── frontend/    Next.js 16 (App Router)
-├── docs/        ADRs, design system, notas
+├── docs/        ADRs, design system, runbook de deploy, ESTADO.md (estado verificado)
 ├── CLAUDE.md    Contexto del proyecto: convenciones, scope, reglas
 └── ROADMAP.md   Plan de ejecución por sprints (fuente de verdad del plan)
 ```
@@ -60,14 +62,19 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Otros comandos: `./mvnw test` · `pnpm build` / `pnpm lint` / `pnpm typecheck`.
+Otros comandos: `./mvnw test` (requiere Docker, usa Testcontainers) · `pnpm build` / `pnpm test` / `pnpm lint`.
+El CI corre `mvn -B verify` y `pnpm build` + `pnpm test` + `pnpm lint`.
 
 ---
 
 ## Estado
 
-**MVP1 en desarrollo** — re-baseado jul/2026. Hito de cobro (tienda vendiendo):
-**05/09/2026** · Entrega final: **30/09/2026**. Detalle de sprints e hitos: [ROADMAP.md](./ROADMAP.md).
+**En producción** en [frontpet.com.br](https://frontpet.com.br) (API en `api.frontpet.com.br`), con
+MVP1 funcional: catálogo, pedidos por WhatsApp, agenda online, panel admin, reset de contraseña y
+LGPD. Sprint 7 (polish) en curso. El runtime es **single-tenant** (un despliegue = un negocio).
+
+Estado verificado, riesgos y deuda: [docs/ESTADO.md](./docs/ESTADO.md). Contexto efímero:
+[docs/WORKING-CONTEXT.md](./docs/WORKING-CONTEXT.md). Plan e hitos: [ROADMAP.md](./ROADMAP.md).
 
 ## Equipo y licencia
 
