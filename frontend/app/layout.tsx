@@ -155,9 +155,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
           de <ConsentGate/>, condicionado ao consentimento — não pode viver
           aqui porque este é um Server Component e o gate precisa de estado.
         */}
-        {ANALYTICS_DOMAIN && (
+        {/* Ternario, no `&&`: con la env var vacía ("") `&&` devuelve "" y React
+            lo renderiza como un nodo de texto dentro de <head> → error de
+            hidratación y se pierden los <link> de CSS. */}
+        {ANALYTICS_DOMAIN ? (
           <script defer data-domain={ANALYTICS_DOMAIN} src="https://plausible.io/js/script.js" />
-        )}
+        ) : null}
       </head>
 
       <body
