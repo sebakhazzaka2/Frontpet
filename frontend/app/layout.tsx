@@ -69,7 +69,7 @@ export const metadata: Metadata = {
       'Produtos premium, banho e tosa profissional para o seu pet em Santana do Livramento.',
     images: [
       {
-        // TODO: agregar imagen real en /public/og-image.jpg (1200x630px)
+        // TODO: reemplazar /public/og-image.jpg (stock provisório, 1200x630px) por una real
         url: '/og-image.jpg',
         width: 1200,
         height: 630,

@@ -1,11 +1,12 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, Calendar } from 'lucide-react'
 import { HeroFloatingCardsLoader } from '@/components/public/hero-floating-cards-loader'
 import { getPlaceSummary } from '@/lib/google-places'
 
-// TODO: reemplazar por la foto real del cliente cuando la provea. Stitch usa una
-// URL temporal de Google (aida-public) que no es nuestra y puede dejar de existir
-// — no se hotlinkea. Gradiente navy como placeholder mientras tanto.
+// TODO: reemplazar /placeholders/hero.jpg (stock de Unsplash) por la foto real
+// del cliente cuando la provea. Vive en public/, no se hotlinkea. El gradiente
+// navy queda de fondo mientras carga la imagen.
 
 // Server Component a propósito: el h1/p de acá es el elemento LCP de la
 // página (confirmado con Lighthouse). El `await` de acá se resuelve en
@@ -16,6 +17,14 @@ export async function Hero() {
   const place = await getPlaceSummary()
   return (
     <section className="relative h-[560px] w-full overflow-hidden bg-gradient-to-br from-navy to-navy-dark md:h-[600px] lg:h-[720px]">
+      <Image
+        src="/placeholders/hero.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+      />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/78 via-ink/30 to-transparent" />
 
       <div className="relative flex h-full max-w-[560px] flex-col justify-center px-6 lg:pl-20">

@@ -22,6 +22,7 @@ export const SERVICES_PREVIEW: ServiceCardData[] = [
   {
     numero: '01',
     nome: 'Banho Essencial',
+    imagemUrl: '/placeholders/servico-banho-essencial.jpg',
     imagemAlt: 'Banho Essencial',
     preco: 'A partir de R$ 49,00',
     precoLabel: 'Conforme o porte',
@@ -32,6 +33,7 @@ export const SERVICES_PREVIEW: ServiceCardData[] = [
   {
     numero: '02',
     nome: 'Banho Premium',
+    imagemUrl: '/placeholders/servico-banho-premium.jpg',
     imagemAlt: 'Banho Premium',
     preco: 'A partir de R$ 65,00',
     precoLabel: 'Conforme o porte',
@@ -44,6 +46,7 @@ export const SERVICES_PREVIEW: ServiceCardData[] = [
   {
     numero: '03',
     nome: 'Tosa Completa',
+    imagemUrl: '/placeholders/servico-tosa.jpg',
     imagemAlt: 'Tosa Completa',
     preco: 'Sob consulta',
     precoLabel: 'Adicional',
@@ -51,3 +54,18 @@ export const SERVICES_PREVIEW: ServiceCardData[] = [
     features: ['Tesoura ou máquina', 'Acabamento nas patas e rosto'],
   },
 ]
+
+/**
+ * Foto por nombre de serviço para `/servicos` (datos reales de la API, que no
+ * traen imagem). Placeholders de stock en `public/placeholders/` — reemplazar
+ * por fotos reales del cliente. Sin match → <ServiceOfferingCard> cae al ícono.
+ */
+const SERVICE_IMAGES: Record<string, string> = {
+  'banho essencial': '/placeholders/servico-banho-essencial.jpg',
+  'banho premium': '/placeholders/servico-banho-premium.jpg',
+  'tosa completa': '/placeholders/servico-tosa.jpg',
+}
+
+export function getServiceImage(nome: string): string | undefined {
+  return SERVICE_IMAGES[nome.trim().toLowerCase()]
+}

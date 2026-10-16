@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { PawPrint, Timer } from 'lucide-react'
 import type { ServiceOfferingDetail } from '@/lib/api/services'
+import { getServiceImage } from '@/lib/data/services'
 import { formatPrice } from '@/lib/utils'
 
 /**
@@ -25,6 +27,7 @@ export function ServiceOfferingCard({
   variant?: 'destaque' | 'compacto'
 }) {
   const porteP = service.pricing.find((p) => p.size === 'P')
+  const imagem = getServiceImage(service.nome)
 
   if (variant === 'compacto') {
     return (
@@ -52,10 +55,20 @@ export function ServiceOfferingCard({
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-outline bg-surface-card shadow-card md:flex-row">
       <div className="relative h-48 shrink-0 bg-surface md:h-auto md:w-1/3">
-        {/* Sem foto real do serviço ainda — mesmo placeholder de <ServiceCard>/<ProductCard>. */}
-        <div className="flex h-full w-full items-center justify-center">
-          <PawPrint className="size-10 text-outline" aria-hidden />
-        </div>
+        {/* Foto de stock provisória (lib/data/services.ts); sem match → ícone, igual <ServiceCard>/<ProductCard>. */}
+        {imagem ? (
+          <Image
+            src={imagem}
+            alt={service.nome}
+            fill
+            className="object-cover"
+            sizes="(min-width: 768px) 33vw, 100vw"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <PawPrint className="size-10 text-outline" aria-hidden />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col justify-between p-6">
