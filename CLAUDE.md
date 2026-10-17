@@ -347,7 +347,7 @@ CI: `.github/workflows/ci.yml` (backend: `mvn -B verify`; frontend: `pnpm build/
 ## 14. Contrato común del ecosistema
 
 <!-- BEGIN COMMON -->
-## Contrato común del ecosistema (v1 · 2026-10-16)
+## Contrato común del ecosistema (v2 · 2026-10-16)
 
 Fuente de verdad: proyecto "AI SaaS Ecosystem" (claude.ai), documento CONTRATO-COMUN.md. No editar este bloque dentro de un repo: se cambia en la fuente y se copia idéntico a TurnosUy y FrontPet.
 
@@ -381,9 +381,10 @@ Fuente de verdad: proyecto "AI SaaS Ecosystem" (claude.ai), documento CONTRATO-C
 - No se decide de antemano microservicios ni base compartida: se compara con evidencia de los repos.
 - El agente se valida primero en un producto y después se reutiliza en el otro.
 - Fase actual: auditoría y diseño; no se implementan funcionalidades del agente todavía.
+- TurnosUy: no migrar a multitenancy real hasta ~5 clientes pagando; la opción anotada es un schema MySQL por tenant (fuente: `ROADMAP.md` y `backend/CLAUDE.md` de TurnosUy).
 
 ### 6. Decisiones abiertas (PENDIENTE: no asumir)
-- Multitenancy en una instancia vs. una instancia por cliente.
+- Multitenancy en una instancia vs. una instancia por cliente para FrontPet y para el núcleo del agente (TurnosUy ya tiene decisión vigente, ver §5).
 - Núcleo de agente común (librería o servicio) vs. implementación por producto.
 - Producto en el que se valida primero el agente.
 - Canal WhatsApp (API oficial o proveedor), proveedor de LLM y política de datos personales hacia el LLM (LGPD en Brasil, Ley 18.331 en Uruguay).
@@ -398,19 +399,24 @@ Fuente de verdad: proyecto "AI SaaS Ecosystem" (claude.ai), documento CONTRATO-C
 - Contrato OpenAPI y errores semánticos para que el agente interprete resultados.
 - Aviso al negocio cuando llega un turno pendiente.
 
-### 8. Brechas comunes verificadas (auditoría 2026-10-15; revisar tras cada hito)
+### 8. Brechas comunes verificadas (auditoría 2026-10-15, ajustada 2026-10-16; revisar tras cada hito)
 - Ambos son single-tenant en ejecución (TurnosUy sin `tenant_id`; FrontPet con `tenant_id` en el esquema pero tenant fijo por configuración).
 - Ninguno tiene autorización por rol, autenticación de máquina, cancelación segura para el cliente final, ni contrato OpenAPI.
 - Ninguno envía recordatorios ni mensajes de WhatsApp desde el backend (solo enlace `wa.me`), y no hay jobs programados de notificación.
-- Marca, textos, moneda y rubro están hardcodeados en frontend y modelo; sin flags de módulos por negocio.
-- Backups: restauración no verificada en ninguno de los dos.
+- Marca (logo, paleta), moneda, locale y vocabulario del rubro siguen hardcodeados; TurnosUy ya permite configurar parte de los textos; no hay flags de módulos por negocio.
+- Backups: TurnosUy declara restore probado (2026-10-15, `tasks/lessons.md`; no reproducible desde el repo). FrontPet no tiene evidencia de backups automáticos ni de restore (D.7).
 
 ### 9. Diferencias a respetar (no unificar a ciegas)
 - Stacks distintos: TurnosUy = Java 17, Spring Boot 3.2, Angular 19, MySQL; FrontPet = Java 21, Spring Boot 3.5, Next 16, PostgreSQL. No se asume stack común.
-- Despliegue: TurnosUy = una instancia Docker Compose por cliente en DigitalOcean; FrontPet = destino Hetzner + Coolify.
+- Despliegue: TurnosUy = una instancia Docker Compose por cliente, deploy por SSH desde CI; FrontPet = VPS Hetzner + Coolify (producción declarada en `docs/WORKING-CONTEXT.md`, no verificada).
 - Sesión: TurnosUy = JWT en localStorage; FrontPet = JWT en cookie HttpOnly.
 - Modelo: TurnosUy tiene Paciente, historial y pagos; FrontPet no tiene entidad cliente y agrega catálogo y pedidos.
 - Estados de turno: TurnosUy PENDIENTE/CONFIRMADA/CANCELADA/COMPLETADA; FrontPet PENDING/CONFIRMED/CANCELLED.
+
+### Cambios respecto de v1
+- §5: se agrega la decisión vigente de multitenancy de TurnosUy. §6: se ajusta el ítem de multitenancy.
+- §8: backups por producto (TurnosUy restore declarado; FrontPet sin evidencia); marca/textos más preciso.
+- §9: se quita el proveedor del VPS de TurnosUy (dato contradictorio entre auditorías, sin verificar).
 <!-- END COMMON -->
 
 ---
