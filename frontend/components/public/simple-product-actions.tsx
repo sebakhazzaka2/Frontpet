@@ -65,7 +65,7 @@ export function SimpleProductActions({
         rel="noopener noreferrer"
         className="flex h-12 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
       >
-        <WhatsAppIcon className="size-5" />
+        <WhatsAppIcon className="size-5 shrink-0" />
         Pedir pelo WhatsApp
       </a>
     </div>

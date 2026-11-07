@@ -15,30 +15,37 @@ export function CategoryFilter({ categories, activeSlug, busca }: CategoryFilter
   const buscaQuery = busca ? `&busca=${encodeURIComponent(busca)}` : ''
 
   return (
-    <nav className="mb-6 flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
-      <Link
-        href={busca ? `/produtos?busca=${encodeURIComponent(busca)}` : '/produtos'}
-        className={
-          activeSlug
-            ? 'shrink-0 rounded-full border border-outline px-4 py-1.5 text-label text-ink-muted transition-opacity hover:opacity-80'
-            : 'shrink-0 rounded-full bg-orange px-4 py-1.5 text-label text-white'
-        }
-      >
-        Todos
-      </Link>
-      {categories.map((category) => (
+    // pr-8 = ancho del fade: al final del scroll el último chip queda fuera de él.
+    <div className="relative mb-6">
+      <nav className="flex gap-2 overflow-x-auto whitespace-nowrap pb-1 pr-8 md:flex-wrap md:pr-0">
         <Link
-          key={category.slug}
-          href={`/produtos?categoria=${category.slug}${buscaQuery}`}
+          href={busca ? `/produtos?busca=${encodeURIComponent(busca)}` : '/produtos'}
           className={
-            category.slug === activeSlug
-              ? 'shrink-0 rounded-full bg-orange px-4 py-1.5 text-label text-white'
-              : 'shrink-0 rounded-full border border-outline px-4 py-1.5 text-label text-ink-muted transition-opacity hover:opacity-80'
+            activeSlug
+              ? 'shrink-0 rounded-full border border-outline px-4 py-1.5 text-label text-ink-muted transition-opacity hover:opacity-80'
+              : 'shrink-0 rounded-full bg-orange px-4 py-1.5 text-label text-white'
           }
         >
-          {category.nome}
+          Todos
         </Link>
-      ))}
-    </nav>
+        {categories.map((category) => (
+          <Link
+            key={category.slug}
+            href={`/produtos?categoria=${category.slug}${buscaQuery}`}
+            className={
+              category.slug === activeSlug
+                ? 'shrink-0 rounded-full bg-orange px-4 py-1.5 text-label text-white'
+                : 'shrink-0 rounded-full border border-outline px-4 py-1.5 text-label text-ink-muted transition-opacity hover:opacity-80'
+            }
+          >
+            {category.nome}
+          </Link>
+        ))}
+      </nav>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-background to-transparent md:hidden"
+      />
+    </div>
   )
 }

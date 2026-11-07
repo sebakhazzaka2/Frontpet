@@ -80,10 +80,10 @@ export function ProductCard({ product }: ProductCardProps) {
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 items-center justify-center gap-2 rounded-md bg-wa text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-md bg-wa px-3 py-1 text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95"
           >
-            <WhatsAppIcon className="size-4" />
-            Pedir pelo WhatsApp
+            <WhatsAppIcon className="size-4 shrink-0" />
+            <span className="text-center leading-tight">Pedir pelo WhatsApp</span>
           </a>
         </div>
       </div>
