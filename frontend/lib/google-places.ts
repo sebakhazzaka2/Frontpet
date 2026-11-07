@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import * as Sentry from '@sentry/nextjs'
 
 // Único punto de red para datos del Google Business de FrontPet (ADR 025).
 // <Reviews>, <TrustBar>, <Hero> y <LocationMap> comparten esta función: se
@@ -101,8 +102,10 @@ function mapPlace(raw: RawPlace): PlaceSummary {
 /**
  * Único punto de red del módulo. Nunca lanza — devuelve EMPTY ante cualquier
  * falla, así ninguna sección puede tumbar la home por un problema de Google.
- * Loguea el motivo del fallo: la integración anterior fallaba en silencio
- * (endpoint legacy dado de baja) y nadie lo notó hasta una revisión manual.
+ * Loguea el motivo del fallo y lo reporta a Sentry: la integración anterior
+ * fallaba en silencio (endpoint legacy dado de baja) y en nov/2026 un 403 por
+ * la IP del VPS cambiada pasó semanas sin que nadie lo viera — console.error
+ * solo queda en los logs del contenedor.
  *
  * `cache()` de React memoiza esta llamada dentro del mismo render — Reviews,
  * TrustBar, Hero y LocationMap la invocan por separado y comparten un único
@@ -131,13 +134,16 @@ export const getPlaceSummary = cache(async (): Promise<PlaceSummary> => {
     )
 
     if (!response.ok) {
-      console.error(`[google-places] ${response.status} ${response.statusText}`)
+      const message = `[google-places] ${response.status} ${response.statusText}`
+      console.error(message)
+      Sentry.captureMessage(message, 'error')
       return EMPTY
     }
 
     return mapPlace(await response.json())
   } catch (error) {
     console.error('[google-places] fetch failed', error)
+    Sentry.captureException(error)
     return EMPTY
   }
 })

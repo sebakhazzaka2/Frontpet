@@ -11,6 +11,11 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 // TrustBar/Hero/LocationMap) — sin resetear el módulo, el resultado del
 // primer test quedaría memoizado para todos los siguientes.
 
+// El SDK real arrastra el plugin de webpack de Sentry y revienta en Vitest.
+// vi.hoisted: la misma instancia de spies sobrevive a vi.resetModules().
+const sentry = vi.hoisted(() => ({ captureMessage: vi.fn(), captureException: vi.fn() }))
+vi.mock('@sentry/nextjs', () => sentry)
+
 const ENV_KEYS = ['GOOGLE_PLACES_API_KEY', 'NEXT_PUBLIC_GOOGLE_PLACE_ID'] as const
 
 function setEnv() {
@@ -25,6 +30,8 @@ async function importFresh() {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  sentry.captureMessage.mockClear()
+  sentry.captureException.mockClear()
   for (const key of ENV_KEYS) delete process.env[key]
 })
 
@@ -154,16 +161,19 @@ describe('getPlaceSummary — fallas', () => {
 
     expect(result.reviews).toEqual([])
     expect(result.rating).toBeNull()
+    expect(sentry.captureMessage).toHaveBeenCalledWith('[google-places] 403 Forbidden', 'error')
   })
 
   it('devuelve EMPTY si fetch lanza (red caída, etc.)', async () => {
     const { getPlaceSummary } = await importFresh()
     setEnv()
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
+    const networkError = new Error('network down')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(networkError))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const result = await getPlaceSummary()
 
+    expect(sentry.captureException).toHaveBeenCalledWith(networkError)
     expect(result).toEqual({
       rating: null,
       userRatingCount: null,
