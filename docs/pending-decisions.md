@@ -801,3 +801,59 @@ estimar, no una corrección de algo que ya funciona distinto.
 **Dónde impacta**: nada bloqueado hoy — el flujo actual funciona igual sin esto, el admin ya
 ajusta stock a mano. Candidato a Sprint 7 (si se confirma que es requisito) o a Fase 2 (si el
 volumen actual del negocio no lo justifica todavía).
+
+---
+
+## 28. Reviews de Google rotas en producción (oct–nov/2026): `GOOGLE_PLACES_API_KEY` tenía cargada una key restringida por HTTP referrer — RESUELTO
+
+**Estado**: **resuelto 2026-11-07**. Se detectó ese mismo día y las reseñas volvieron a mostrarse tras
+cargar la key correcta en Coolify y redeployar el frontend.
+
+**Hechos verificados**:
+- La home es estática: el fetch a Places corre durante `next build` (el Dockerfile recibe
+  `GOOGLE_PLACES_API_KEY` como `ARG`). El build del 2026-11-07 logueó `[google-places] 403 Forbidden`.
+  No fue el bug de §24 (variable vacía en build): la key llegó y Google respondió 403.
+- La restricción de IP de la key seguía en `167.235.134.150/32` (ADR 025), pero la IPv4 real del VPS
+  es `167.233.254.140`: la dirección cambió respecto del 2026-10-01.
+- El **host** del VPS sale a internet por IPv6 de forma preferente (`api64.ipify.org`, corrido desde
+  la terminal SSH del servidor en Coolify, devolvió `2a01:4f8:1c16:4ebb::1`) y la restricción solo
+  tenía IPv4. El build usa `--network host`, así que sale por la red del host. El contenedor en
+  ejecución usa la red bridge de Docker y no se verificó por qué dirección sale.
+- El fallo duró semanas sin que nadie lo notara: `getPlaceSummary()` solo hacía `console.error`
+  (logs del contenedor, no Sentry). Las métricas de Google muestran la caída de requests exitosos
+  el 2026-10-16, día del último deploy.
+
+**Causa raíz (confirmada)**: la key cargada en Coolify como `GOOGLE_PLACES_API_KEY` estaba restringida
+por **HTTP referrer** ("Sitios web"): era la key del mapa, no la de Places restringida por IP. Una
+llamada de servidor no envía `Referer`, así que Google la rechazaba con
+`403 API_KEY_HTTP_REFERRER_BLOCKED` (`Requests from referer <empty> are blocked`), sin importar la IP
+de origen. La prueba directa desde el host devolvió ese mismo error por IPv4 y por IPv6.
+**Resolución**: se cargó la key correcta de Places en `GOOGLE_PLACES_API_KEY` y se redeployó el
+frontend (la home es estática: necesita un build nuevo para volver a pedir las reseñas).
+
+**Descartado como causa**: la IPv6 y el cambio de IPv4 del VPS. Siguen siendo hechos reales (arriba),
+pero no explican este fallo. Sí importarán mientras la key de Places esté restringida por IP, porque el
+build sale por la red del host.
+
+**Lección**: el log del build solo decía `403 Forbidden`, sin el motivo que da Google, y la terminal
+"Servers → localhost" de Coolify es una sesión SSH al **host**, no al contenedor (no tiene las variables
+de la app). Para inspeccionar la app: `docker ps` + `docker exec`, o la pestaña Terminal de la propia
+aplicación en Coolify.
+
+**Pendiente**:
+1. *(Opcional: hoy no es la causa de nada; solo evita que una key restringida por IP dependa de la
+   dirección IPv6 si el build sale por ahí.)* **Forzar IPv4 en Node en el Dockerfile** (`NODE_OPTIONS=--dns-result-order=ipv4first`, y
+   `--no-network-family-autoselection` si hace falta garantizarlo), en el build y en el runtime. Así la
+   key depende solo de la IPv4 del VPS y no de una dirección IPv6 que también puede cambiar.
+2. **Confirmar con Hetzner si la IPv4 es estática** o puede cambiar. Agregar a `deploy-runbook.md` un
+   paso de "después de reiniciar o recrear el VPS, verificar que la IP de salida coincida con la
+   restricción de la key en Google Cloud".
+3. ~~Reportar los fallos de Places a Sentry~~ **Hecho**: `google-places.ts` reporta el status y la
+   excepción. Falta loguear también el cuerpo del error de Google (`status` y `reason`), no solo el
+   código: habría evitado casi todo el diagnóstico de este incidente.
+4. Decidir si la key de Places debe seguir restringida por IP o pasar a restringirse solo por API
+   (Places API (New)), que no se rompe al cambiar la IP del servidor pero deja la key más expuesta si
+   se filtra. La key es server-only: nunca viaja al navegador.
+
+**Impacto**: `<Reviews>`, `<TrustBar>` y las cards flotantes del `<Hero>` salieron sin datos de Google
+desde ~2026-10-16 hasta 2026-11-07 (por diseño, ADR 025: sin fallback inventado).

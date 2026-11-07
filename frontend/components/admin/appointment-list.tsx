@@ -204,7 +204,7 @@ export function AppointmentList() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <StatCard label="Agendamentos da semana" value={counts.semana} />
         <StatCard label="Confirmados" value={counts.confirmados} tone="wa" />
         <StatCard label="Aguardando" value={counts.aguardando} tone="orange" />
@@ -378,9 +378,9 @@ function StatCard({
 }) {
   const valueColor = tone === 'wa' ? 'text-wa' : tone === 'orange' ? 'text-orange' : 'text-navy'
   return (
-    <div className="rounded-lg border border-outline/30 bg-surface-card p-4">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-outline/30 bg-surface-card p-4 lg:flex-col lg:items-start">
       <p className="text-caption uppercase tracking-wider text-ink-muted">{label}</p>
-      <p className={`mt-1 text-h2-mobile font-display ${valueColor}`}>{value}</p>
+      <p className={`text-h2-mobile font-display lg:mt-1 ${valueColor}`}>{value}</p>
     </div>
   )
 }

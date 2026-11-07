@@ -45,12 +45,12 @@ export function AddToCartButton({
       type="button"
       onClick={handleClick}
       className={cn(
-        'flex h-10 items-center justify-center gap-2 rounded-md bg-orange text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95',
+        'flex min-h-10 items-center justify-center gap-2 rounded-md bg-orange px-3 py-1 text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-95',
         className
       )}
     >
-      <ShoppingBag className="size-4" />
-      {label}
+      <ShoppingBag className="size-4 shrink-0" />
+      <span className="text-center leading-tight">{label}</span>
     </button>
   )
 }
