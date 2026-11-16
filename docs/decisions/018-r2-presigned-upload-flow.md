@@ -105,3 +105,43 @@ más admins, señales de abuso).
 - Nada en el código de MVP1 redimensiona ni reencodea la imagen — el spec recomendado (WebP,
   máx 1200x1200, <200KB) depende de disciplina externa. Documentado como hueco aparte en
   `docs/pending-decisions.md` §7 (candidato a resolverse client-side, Canvas API).
+
+---
+
+## Requisitos de configuración en R2 (agregado 2026-11-16)
+
+La primera subida real desde producción falló por tres errores de configuración, no de código
+(detalle en `docs/pending-decisions.md` §29). Para que el flujo funcione hacen falta las tres cosas:
+
+**1. Regla de CORS en el bucket** (el `PUT` sale del navegador, directo a R2):
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://frontpet.com.br", "http://localhost:3000"],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["content-type"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+**2. Formato de las variables** (`R2Config` las usa tal cual):
+
+| Variable | Valor correcto | Error visto |
+|---|---|---|
+| `R2_ENDPOINT` | `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com`, sin el bucket | Con `/<bucket>` al final la ruta del upload lleva el bucket duplicado |
+| `R2_ACCESS_KEY_ID` | "Access Key ID" del token de R2, 32 caracteres hexadecimales | Una URL, y después el "Token value" (`cfat_…`) |
+| `R2_SECRET_ACCESS_KEY` | "Secret Access Key" del mismo token, 64 caracteres hexadecimales (se muestra una sola vez) | — |
+
+**3. Reiniciar el backend** después de cambiar cualquiera de las variables: Spring las lee al arrancar.
+
+**Para diagnosticar:** con una credencial inválida el navegador siguió mostrando un error de CORS aun con
+la regla de CORS ya cargada, y no deja leer el cuerpo de la respuesta. Qué sirvió para encontrar la causa:
+- Comprobar los largos de las variables dentro del contenedor del backend (terminal de la app en
+  Coolify): `echo "id=${#R2_ACCESS_KEY_ID} secret=${#R2_SECRET_ACCESS_KEY} endpoint=$R2_ENDPOINT"` tiene
+  que dar `id=32 secret=64` y un endpoint sin el bucket. Un `id=53` es el "Token value".
+- Mirar el parámetro `X-Amz-Credential` de la URL firmada (en el error de consola): tiene que empezar con
+  el Access Key ID de 32 caracteres, nunca con `cfat_` ni con `https://`.
+- Repetir el `PUT` con `curl` y la URL firmada completa de la primera línea del error (dura 5 minutos)
+  para ver el XML de R2. No pegar esa URL en conversaciones.

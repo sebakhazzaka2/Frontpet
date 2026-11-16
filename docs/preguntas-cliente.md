@@ -103,14 +103,18 @@ Sigue siendo seed de **desenvolvimento** — los datos reales de producción los
 en el Sprint Despliegue (tarea 8.4/8.5), este archivo solo mantiene el ambiente local/test
 alineado con lo que el cliente confirmó.
 
-**Única pregunta real que queda pendiente**: precio y duración de **Hidratação, Banho
-Antisséptico y Banho Antipulga** — sin ningún dato de referencia todavía (a diferencia de
-Tosa/Carding, acá no hay de dónde extrapolar razonablemente).
+**Actualización 2026-11-16**: el cliente ya respondió precio y duración de **Hidratação** y **Banho
+Antipulga** (marcado como respondido en `docs/reunion-2026-11-07.md`; los valores no están en el repo:
+se cargan desde `/admin/servicos`). **Banho Antisséptico** sigue como adicional, pero **sin costo
+(R$ 0) y sumando 10 min**, y va **primero** en la lista de adicionales del wizard.
 
 ---
 
-**2.2 — Capacidad en paralelo** ✅
-> 2 animales simultáneos para cualquier servicio.
+**2.2 — Capacidad en paralelo** ✅ (cambiada el 2026-11-16)
+> **2026-11-16: ya no se pueden atender 2 baños a la vez → la capacidad pasa a 1.** Pendiente de
+> aplicar en `tenants.config` (`docs/reunion-2026-11-07.md` §4.2).
+>
+> Antes: 2 animales simultáneos para cualquier servicio.
 > Hay 1 perro extra por horario (solo mañana) pero no es el foco del MVP.
 
 _Impacto_: `tenant.config.capacidade_atendimento = 2` en V5 seed ✅.
@@ -240,8 +244,11 @@ _Impacto_: `orders` necesita `cliente_nome`, `cliente_telefone`, `endereco_entre
 
 ---
 
-**4.3 — Entrega y zonas** ✅
-> Gratis hasta 5 km. Cubren Rivera y Livramento completos.
+**4.3 — Entrega y zonas** ✅ (cambiada el 2026-11-16)
+> **2026-11-16: la entrega es siempre gratis**, ya no hay "a combinar". Registrado en el ADR 003; falta
+> reflejarlo en los mensajes de WhatsApp (`docs/reunion-2026-11-07.md` §4.5).
+>
+> Antes: gratis hasta 5 km. Cubren Rivera y Livramento completos.
 > Más de 5 km: "a combinar".
 
 _Impacto_: modalidad de frete `GRATIS / A_COMBINAR`, sin cálculo automático de distancia.

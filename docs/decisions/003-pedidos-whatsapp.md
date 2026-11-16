@@ -151,6 +151,19 @@ piden explícitamente, y `V4__orders.sql` los tiene `NOT NULL`. Al portar la pan
 (Bloque B), el form extiende el layout de Stitch con esos 3 campos adicionales — no es una
 pantalla nueva, es más campos sobre la misma.
 
+## Actualización 2026-11-16 — Entrega siempre gratis
+
+El cliente confirmó que la entrega es **siempre gratis**: deja de existir el límite de 5 km y, con él, el
+caso "a combinar". Reemplaza la regla de "Frete — regra concreta" (2026-07-09) y el ajuste manual por
+WhatsApp de "`frete_mode` no lo elige el cliente" (2026-07-28).
+
+- El checkout ya crea todos los pedidos con `GRATIS`: no cambia el comportamiento ni la base. La columna
+  `frete_mode` se mantiene; sacarla hoy no aporta nada.
+- `A_COMBINAR` queda sin uso (`FreteMode`, `freteLabel`), y los mensajes de WhatsApp tienen que dejar de
+  mencionar el valor del frete a combinar. Esa limpieza está en `docs/reunion-2026-11-07.md` §4.5
+  (ROADMAP, tarea 9.4).
+- Sigue valiendo `Total = Subtotal`.
+
 ---
 
 ## Notas para el futuro

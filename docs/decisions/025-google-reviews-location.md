@@ -194,3 +194,6 @@ explícito tras ver el preview visual — los títulos quedan en su color normal
 - ~~`GOOGLE_PLACES_API_KEY` sigue sin restricción de IP hasta que exista el VPS de producción.~~
   **Resuelto 2026-10-01**: restringida por IP (`167.235.134.150/32`, el VPS de producción) en
   Google Cloud Console.
+  **Actualización 2026-11-07**: la IP del VPS pasó a ser `167.233.254.140` y la restricción se
+  actualizó. Las reseñas estaban rotas ese día por otra causa: la variable tenía cargada la key del
+  mapa, restringida por referrer (`docs/pending-decisions.md` §28).

@@ -110,6 +110,7 @@ frontpet/
 │                       deploy-runbook.md, WORKING-CONTEXT.md,
 │                       ESTADO.md (estado verificado para el ecosistema),
 │                       checklist-prueba-prod.md, limpieza-datos-prueba.sql,
+│                       reunion-*.md (lista de trabajo de cada reunión con el cliente), postman/,
 │                       learnings.md [gitignored], ui/ [gitignored, export stale — ver §5]
 ├── CLAUDE.md · ROADMAP.md · README.md
 ```
@@ -150,14 +151,12 @@ frontpet/
 ### Design system
 - **Tokens: `frontend/app/globals.css`, bloque `@theme` — fuente canónica** (ADR 014).
   Cambios de paleta se hacen ahí, nunca hex hardcodeados en componentes.
-  ⚠️ Los valores actuales son placeholders pendientes de confirmación del cliente —
-  seguir codeando con ellos (ajustar después es tocar 1 archivo).
 - **Diseño: proyecto Stitch `projects/3403942466915386698`, leído por MCP.**
   Workflow completo de porteo: `docs/stitch-implementation-workflow.md`. Claves:
   - `docs/ui/` es un export **viejo y stale** — solo para mirar `screen.png` offline, no se porta desde ahí
   - Stitch corre Tailwind **v3**: **ninguna clase `rounded-*` sobrevive un copy-paste** (tabla de traducción: ADR 014)
   - Login es la única pantalla DESKTOP; las otras 18 son MOBILE (780px)
-  - No existen pantallas de reset de contraseña ni banner LGPD (generarlas en Stitch — tareas 7.12/7.13)
+  - Reset de contraseña y banner LGPD **no tienen pantalla en Stitch**: se derivaron del login y del design system (ROADMAP 7.12/7.13, ADR 024). No buscarlas ahí
 - **Paleta — 4 colores base** + 1 semántico:
   Navy `#011E5A` (identidad/estructura, botón "main system action") ·
   Orange `#F4640D` (acciones comerciales) · Green `#25D366` (solo WhatsApp) ·
@@ -184,6 +183,8 @@ No violarlas sin discutir primero:
 - ❌ **No abstracciones genéricas** hasta tener 3 casos de uso reales
 - ❌ **No microservicios** · ❌ **No JWT en localStorage** · ❌ **No materializar slots en DB**
 - ❌ **No hardcodear lógica de petshop** — lo específico de FrontPet va en flag de `tenant.config`
+- ❌ **No publicar contenido inventado** en el sitio público (testimonios, métricas, productos, precios): los datos de
+  ejemplo viven solo en dev o en `seed-dev/`; si falta el dato real, la sección se oculta (ADR 025; `pending-decisions.md` §15 y §30)
 - ❌ **No estados de pedido más allá de `PENDING/CONFIRMED/CANCELLED`**
 - ❌ **No auth de clientes finales** — solo admin tiene login en MVP1
 - ❌ **No lazy loading de ORM sin pensar** — preferir queries explícitos
@@ -199,7 +200,7 @@ No violarlas sin discutir primero:
 - ❌ **Sin métricas analíticas** (conversão, faturamento, ticket médio, trend pills) —
   solo **conteos operacionales**. Ver ADR 003/008
 - ⚠️ **Forma de pagamento se CAPTURA, no hay pago online** — dato operativo, sin pasarela (ADR 003)
-- ⚠️ **Frete: modalidad `GRATIS`/`A_COMBINAR`**, sin valor numérico; `Total = Subtotal` (ADR 003)
+- ⚠️ **Entrega siempre gratis**: sin valor de frete ni "a combinar"; `Total = Subtotal` (ADR 003, act. 2026-11-16)
 - ❌ **No "Imprimir Pedido"** · ❌ **No selector de loja** (single-location en MVP1)
 - ❌ **No CRUD completo de servicios**: admin **edita**, no crea/borra. Catálogo real:
   2 banhos base + adicionais, preço/duração por porte P/M/G/GG (ADR 011)
@@ -426,17 +427,19 @@ Fuente de verdad: proyecto "AI SaaS Ecosystem" (claude.ai), documento CONTRATO-C
 > Se actualiza al cerrar cada sesión (junto con `docs/ESTADO.md`), **sin tocar el bloque COMMON**.
 > Detalle verificado, hipótesis y deuda: `docs/ESTADO.md`.
 
-**Última actualización de esta sección**: 2026-10-16
+**Última actualización de esta sección**: 2026-11-16
 
-- MVP1 implementado: catálogo + pedidos por WhatsApp, booking con slots dinámicos, panel admin, reset de contraseña,
-  LGPD (anonimización + consentimiento), Meta Pixel + Plausible, Sentry. Next 16.3.8 (parche de seguridad del 2026-10-01).
-- Según `docs/WORKING-CONTEXT.md` (2026-10-01) el sitio está en producción en `frontpet.com.br`; no verificado en esta revisión.
-- Sprint 7 en curso (polish/mobile/imágenes); abierto: backups (D.7), stock que no se descuenta (§27 de `pending-decisions.md`),
-  checklist de contenido (D.10).
+- MVP1 implementado y **en producción** en `frontpet.com.br` (verificado el 2026-11-16): catálogo + pedidos por WhatsApp,
+  booking con slots dinámicos, panel admin, reset de contraseña, LGPD (anonimización + consentimiento), Meta Pixel +
+  Plausible, Sentry. Next 16.3.8 (parche de seguridad del 2026-10-01).
+- Último PR: #87 (2026-11-07, polish mobile + reporte a Sentry de Google Places). Resueltos en noviembre, ambos de
+  configuración: reseñas de Google (§28 de `pending-decisions.md`) y subida de fotos a R2 (§29).
+- Abierto: cuenta de Cloudflare propia del cliente para R2 (**urgente**, §18), backups (D.7), verificación en vivo de
+  D.9, contenido de D.10 (incluye productos inventados en la home, §30) y los pedidos del cliente del 2026-11-16
+  (`docs/reunion-2026-11-07.md` §4).
 - Sin clientes/mascotas como entidad, sin recordatorios ni WhatsApp Business API, sin roles ni API key para agentes.
-- Hoy (2026-10-16): documentación de ecosistema — se agregaron §12–§15 (con el bloque COMMON v1 pegado) y `docs/ESTADO.md`;
-  doc-sync reescribió `docs/WORKING-CONTEXT.md` y sacó de este archivo el estado efímero de infra/producción;
-  se corrigieron README, deploy-runbook y las citas a `reuse-consultorio.md`. Sin cambios de código.
+- Hoy (2026-11-16): doc-sync de ROADMAP, CLAUDE.md, ESTADO, WORKING-CONTEXT, pending-decisions, preguntas-cliente,
+  ADR 018 y 025, runbook y checklist de prueba en producción. Sin cambios de código.
 
 ---
 

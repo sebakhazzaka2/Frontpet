@@ -209,11 +209,11 @@ esta sección sin consultar la doc primero.
    | `ADMIN_EMAIL` | email real del admin |
    | `ADMIN_PASSWORD` | 🔒 **generar uno nuevo fuerte — nunca `admin123`** (el `StartupEnvValidator` corta el arranque si lo detecta) |
    | `R2_ACCOUNT_ID` | de la cuenta Cloudflare ya creada (tarea 3.5) |
-   | `R2_ACCESS_KEY_ID` | 🔒 ídem |
-   | `R2_SECRET_ACCESS_KEY` | 🔒 ídem |
+   | `R2_ACCESS_KEY_ID` | 🔒 **Access Key ID** del token de R2: 32 caracteres hexadecimales. No es el "Token value" (`cfat_…`) ni una URL |
+   | `R2_SECRET_ACCESS_KEY` | 🔒 **Secret Access Key** del mismo token: 64 caracteres hexadecimales, se muestra una sola vez |
    | `R2_BUCKET_NAME` | ⚠️ el bucket real hoy es **`frontpet-dev`** (único que existe, cuenta personal de Sebastián — ver D.2 y `pending-decisions.md` §18), no `frontpet-products` como decía el default viejo del `application.yml`. Usar ese nombre hasta que se migre a la cuenta del cliente |
-   | `R2_ENDPOINT` | endpoint de la cuenta R2 |
-   | `R2_PUBLIC_URL` | dominio público del bucket (r2.dev o custom) |
+   | `R2_ENDPOINT` | `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com`, **sin el nombre del bucket** (con él, la ruta del upload lleva el bucket duplicado) |
+   | `R2_PUBLIC_URL` | dominio público del bucket (r2.dev o custom). El bucket además necesita una regla de CORS que permita `PUT` desde `https://frontpet.com.br` (ADR 018) |
    | `JWT_SECRET` | 🔒 generar con `openssl rand -base64 48`, mín. 32 caracteres |
    | `JWT_EXPIRATION` | `3600000` (1h, o ajustar) |
    | `LOGIN_RATE_LIMIT_ENABLED` | `true` |
@@ -298,7 +298,7 @@ de prueba trivial después de que todo esté verde.
    chmod +x /root/scripts/backup-db.sh
    ```
    Reemplazar `<container-postgres>` por el nombre real del contenedor (`docker ps` para verlo).
-   Crear el bucket `frontpet-backups` en R2 (separado de `frontpet-products`) antes de esto.
+   Crear el bucket `frontpet-backups` en R2 (separado del bucket de fotos, hoy `frontpet-dev`) antes de esto.
 2. Instalar `aws-cli` en el VPS (`apt install awscli` o `pip install awscli`) y configurar
    credenciales R2 (mismas del backend, o un token separado solo de escritura — mejor).
 3. Cron diario:

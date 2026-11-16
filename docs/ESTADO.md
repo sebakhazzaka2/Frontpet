@@ -1,6 +1,6 @@
 # ESTADO — FrontPet
 
-**Fecha**: 2026-10-16 · **Rama**: `main` (HEAD `3ba78a5`) · **Alcance**: lectura de código, migraciones, config, CI y docs. No se ejecutó build, tests, `pnpm audit` ni la app; no se tocó producción. No se lee ningún `.env` real ni se muestra ningún valor sensible.
+**Fecha**: 2026-11-16 (actualización parcial sobre la auditoría del 2026-10-16) · **Rama**: `main` (HEAD `6a6e89a`) · **Alcance de esta actualización**: estado de producción verificado con `curl` el 2026-11-16 y hallazgos de la sesión; `pnpm build/test/lint` corrieron en WSL el 2026-11-07 (PR #87). No se lee ningún `.env` real ni se muestra ningún valor sensible.
 
 > Auditoría detallada previa (más extensa, sin trackear): `docs/estado-frontpet.md`. Esta ficha es el resumen para el proyecto de planificación. Al cerrar sesión se actualiza junto con la sección "Estado actual" de `CLAUDE.md`.
 
@@ -55,15 +55,15 @@ Entidad cliente/mascota (son columnas de texto en `appointments`/`orders`), hist
 
 ## 2. HIPÓTESIS / DUDAS
 
-- **Producción**: `docs/WORKING-CONTEXT.md` (2026-10-01) dice que `frontpet.com.br` y `api.frontpet.com.br` están en vivo. No se verificó contra la URL.
+- **Producción**: verificada el 2026-11-16 con `curl` (home, `/produtos` y API responden); pasa a hecho. Detalle en `docs/WORKING-CONTEXT.md`.
 - **Perfil `prod`**: si `SPRING_PROFILES_ACTIVE=prod` no está activo en el VPS, `StartupEnvValidator` no corre y rigen los defaults de desarrollo.
 - **Seed de desarrollo en producción**: `V5`/`V10`/`V11` (seeds, incluido un admin y datos reales del negocio) pueden haberse ejecutado en prod; nada lo impide (`docs/pending-decisions.md` §4).
 - **IP real tras Caddy**: `FORWARD_HEADERS_STRATEGY` por defecto es `NONE`; si no se configura, el rate limit vería la IP del proxy.
 - **Backups (D.7)**: sin evidencia de que existan ni de restauración probada.
 - **Email de reset**: no confirmado que el dominio de Resend esté verificado ni que llegue a Gmail/Outlook sin caer en spam.
-- **Cuentas compartidas**: `pending-decisions.md` §18 indica una cuenta de Cloudflare personal compartida con otro cliente.
+- **Cuentas compartidas**: `pending-decisions.md` §18 indica una cuenta de Cloudflare personal compartida con otro cliente, con R2, DNS y Resend de producción. **Urgente** desde el 2026-11-16.
 - **Cobertura numérica**: desconocida (sin JaCoCo). CI en verde según `gh run list` de la auditoría previa; no se re-ejecutó.
-- **Precios de adicionais** provisorios y contenido de reseñas/trust-bar parcialmente inventado (`pending-decisions.md` §15).
+- **Contenido**: reseñas y trust-bar leen datos reales de Google (ADR 025, funcionando desde el 2026-11-07); sigue inventado "Produtos em destaque" de la home (`pending-decisions.md` §30). Precios de adicionais: el cliente los respondió (marcado el 2026-11-16), sin verificar que estén cargados en producción.
 - **Estimaciones** de esfuerzo para multi-tenant (3–5 semanas) y por vertical (1–2 semanas por fork) son del análisis previo, sin validar.
 
 ---
@@ -80,6 +80,8 @@ Entidad cliente/mascota (son columnas de texto en `appointments`/`orders`), hist
 8. **Para un agente externo**: API key por negocio con scopes, cancelación/reprogramación segura, auditoría humano vs agente, OpenAPI.
 9. **Marca y rubro hardcodeados** en ~41 archivos del frontend (`lib/data/site.ts`, metadata, plantillas WhatsApp, `Porte` P/M/G/GG en modelo): mover a `tenant.config`.
 10. **Cobertura de pruebas**: frontend con 7 tests y sin E2E (Playwright instalado sin specs); sin JaCoCo; doble submit del wizard sin proteger (§21).
+11. **Pedidos del cliente del 2026-11-16** (capacidad 1, teléfonos de Uruguay, mensaje del pedido, horarios liberados a mano y otros): `docs/reunion-2026-11-07.md` §4 y `pending-decisions.md` §31.
+12. **Contenido inventado en la home**: "Produtos em destaque" con 4 productos y precios que no existen (`pending-decisions.md` §30).
 
 Menores (fuera del top 10): `POST /admin/products` responde 500 ante UTF-8 inválido (§22); `.githooks/` y `docs/ui/` obsoletos; hay un checklist de prueba en producción pendiente de correr (`docs/checklist-prueba-prod.md`, con `docs/limpieza-datos-prueba.sql`).
 

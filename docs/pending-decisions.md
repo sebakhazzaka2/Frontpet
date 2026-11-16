@@ -98,7 +98,9 @@ gitignoreado y no está en disco — hay que mirarlo por MCP si esto se retoma.
 
 ## 4. El seed V5 dice "no ejecutar en producción" pero nada lo impide
 
-**Estado**: detectado, sin resolver.
+**Estado**: detectado, sin resolver. **Verificado de forma indirecta (2026-11-16)**: V5 corrió en
+producción. El tenant que usa producción es el que inserta V5 (`01924ccf-0000-7000-8000-000000000001`, se
+ve en las claves de las fotos en R2) y no existe otro mecanismo de alta de tenants.
 
 `V5__seed_dev.sql` arranca con *"NÃO executar em produção"*. Pero `application.yml` tiene
 `flyway.locations: classpath:db/migration` a secas, así que **Flyway la va a correr en
@@ -391,10 +393,12 @@ del deploy — el deploy no debería esperar por esto, pero tampoco salir con lo
 
 ---
 
-## 16. La modalidade Entrega/Retirada se reconstruye por string mágico en el frontend
+## 16. La modalidade Entrega/Retirada se reconstruye por string mágico en el frontend — RESUELTO (2026-08-29)
 
-**Estado**: detectado 2026-08-03 en auditoría de release. Fix chico y cerrado, sin decisión
-de diseño pendiente — está acá para que no se pierda, no porque haya que debatirlo.
+**Estado**: **resuelto** con el commit `0c8a945f` (2026-08-29): `OrderDetail` expone `modalidade` y el
+frontend la usa (`templates.ts`, `modalidadeLabel`, que también consume `order-detail-panel.tsx`). Ya no
+se compara contra el literal en el frontend (verificado 2026-11-16). Detectado 2026-08-03 en auditoría de
+release; lo de abajo queda como historial.
 
 ADR 003 (act. 2026-07-28) decidió que `modalidade` **no tiene columna propia**: vive en el DTO
 de entrada y `OrderServiceImpl` la mapea al persistir (`RETIRADA` → `enderecoEntrega =
@@ -467,10 +471,12 @@ de UI ya diferido en `WORKING-CONTEXT.md`.
 
 ---
 
-## 18. DNS/R2/Resend de producción corren en la cuenta personal de Cloudflare de Sebastián, compartida con otro cliente
+## 18. DNS/R2/Resend de producción corren en la cuenta personal de Cloudflare de Sebastián, compartida con otro cliente — URGENTE
 
-**Estado**: decisión operativa tomada 2026-08-24, deferida a propósito — no bloquea el deploy.
-Ampliada 2026-08-29 (tarea 7.12): Resend suma un tercer servicio a la misma cuenta compartida.
+**Estado**: **URGENTE desde 2026-11-16.** Decisión operativa tomada 2026-08-24 y deferida a propósito,
+pero el catálogo real está por cargarse y cada foto de producto queda guardada con la URL pública
+completa del bucket actual (`main_image_url`): migrar después obliga a reescribir esas URLs en la
+base. Ampliada 2026-08-29 (tarea 7.12): Resend suma un tercer servicio a la misma cuenta compartida.
 
 La cuenta de Cloudflare que se usa hoy para `frontpet.com` (DNS proxied), el bucket R2
 (`frontpet-dev`, y el que se cree para prod) y, desde la tarea 7.12, los registros DNS de envío
@@ -492,10 +498,35 @@ active sin querer) se cobra a él, no al cliente. Mitigación: revisar el uso de
 periódicamente contra el free tier (10GB / 1M-10M operaciones), no delegarlo a una alerta de
 Cloudflare que no está configurada.
 
-**Acción pendiente**: en la reunión de entrega, crear cuenta de Cloudflare nueva y exclusiva
-para el cliente de FrontPet (su email + tarjeta), migrar el dominio (cambiar nameservers desde
-`registro.br` a los nuevos) y recrear el bucket R2 de producción ahí. Hasta entonces, el
-bucket `frontpet-dev` en la cuenta compartida sigue sirviendo tanto para dev como para prod.
+**Acción pendiente (URGENTE, antes de cargar el catálogo real)**: dejar R2 facturado al cliente.
+
+Cambiar solo la tarjeta de la cuenta compartida **no sirve**: la cuenta seguiría siendo de Sebastián
+y el cliente terminaría pagando también lo de TurnosUy. El camino es una **cuenta de Cloudflare
+propia de FrontPet** (su mail y su tarjeta) con su propio bucket de R2:
+
+1. El cliente crea la cuenta de Cloudflare con su mail y carga su tarjeta (Billing → Payment
+   methods). Sebastián queda como administrador (Manage Account → Members).
+2. En esa cuenta: activar R2 y crear el bucket (por ejemplo `frontpet-products`). Habilitar el acceso
+   público de lectura y **decidir ahora el dominio público**: uno propio (por ejemplo
+   `cdn.frontpet.com.br`) evita tener que cambiar las URLs otra vez si el bucket se mueve de nuevo.
+3. En el bucket: regla de CORS que permita `PUT` desde `https://frontpet.com.br` (ADR 018).
+4. Crear el token de API de R2 (*Object Read & Write*, limitado a ese bucket) y copiar el **Access Key
+   ID** y el **Secret Access Key**. No el "Token value".
+5. Si ya hay fotos reales subidas: copiarlas al bucket nuevo con las mismas claves de objeto
+   (`products/{tenant}/{uuid}.webp`) y reescribir el prefijo de `main_image_url` en `products` con un
+   `UPDATE` (backup antes). Con el catálogo todavía de prueba es mucho más barato: se carga después de
+   migrar.
+6. Actualizar en Coolify `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`
+   (sin el bucket) y `R2_PUBLIC_URL`, y reiniciar el backend. Si el dominio público no es `*.r2.dev`,
+   agregar ese host a `images.remotePatterns` de `frontend/next.config.ts` y redeployar el frontend.
+7. Probar una subida de foto y recién entonces borrar el bucket y el token viejos de la cuenta de
+   Sebastián.
+
+Lo mismo, aparte, para DNS y Resend: migrar el dominio (nameservers desde `registro.br`) y recrear los
+registros de Resend en la cuenta nueva. Hasta que se haga, el bucket `frontpet-dev` en la cuenta
+compartida sigue sirviendo tanto para dev como para prod, y lo único que podría generar un cargo es
+pasarse del free tier de R2 (10 GB de almacenamiento, 1 M de operaciones de clase A y 10 M de clase B
+por mes): revisar el uso de forma periódica.
 
 **Dónde impacta**: `docs/deploy-runbook.md` D.2, D.3 y D.6.3 — anotado ahí también.
 
@@ -617,10 +648,9 @@ chico — no bloquea nada.
 
 ## 23. Sentry backend corre con `send-default-pii` en `false` (default), pendiente de revisar cuando exista banner LGPD
 
-**Estado**: decisión tomada 2026-09-02 al activar Sentry (D.4/D.8, Sprint Despliegue) —
-deliberada, no un olvido, pero atada a que el banner LGPD (CLAUDE.md §5, "no existen...
-banner LGPD" — pendiente de generarse en Stitch, tareas 7.12/7.13 mencionadas ahí) todavía no
-existe.
+**Estado**: decisión tomada 2026-09-02 al activar Sentry (D.4/D.8, Sprint Despliegue), deliberada y
+atada a que existiera un banner LGPD. **El banner ya existe** (tarea 7.13, ADR 024): la condición se
+cumplió y queda **por decidir** si se activa `send-default-pii`. Lo de abajo explica el porqué original.
 
 `sentry-spring-boot-starter-jakarta` no tiene `sentry.send-default-pii` seteado en
 `application.yml` — corre con el default del SDK (`false`). Con eso, Sentry captura stack
@@ -857,3 +887,106 @@ aplicación en Coolify.
 
 **Impacto**: `<Reviews>`, `<TrustBar>` y las cards flotantes del `<Hero>` salieron sin datos de Google
 desde ~2026-10-16 hasta 2026-11-07 (por diseño, ADR 025: sin fallback inventado).
+
+---
+
+## 29. La subida de fotos de producto a R2 falló en producción por configuración (nov/2026)
+
+**Estado**: detectado y **resuelto el 2026-11-16**. Hasta entonces, subir una foto desde el admin de
+producción daba `Failed to fetch`.
+
+El `PUT` va directo del navegador a R2 con una URL firmada por el backend (ADR 018). Fallaban tres cosas
+independientes, cada una escondida detrás de la anterior:
+
+1. **El bucket `frontpet-dev` no tenía una regla de CORS para `https://frontpet.com.br`.** Error en
+   consola: `Response to preflight request doesn't pass access control check`. Resuelto agregando la
+   regla (ADR 018).
+2. **`R2_ENDPOINT` llevaba el nombre del bucket al final** (`…cloudflarestorage.com/frontpet-dev`): la
+   ruta de la URL firmada tenía el bucket duplicado (`/frontpet-dev/frontpet-dev/products/…`), así que
+   R2 habría guardado el objeto bajo un prefijo extra y la URL pública habría dado 404. Resuelto.
+3. **`R2_ACCESS_KEY_ID` tenía un valor inválido**: primero una URL (la del endpoint con el bucket) y
+   después el "Token value" del token (`cfat_…`) en lugar del Access Key ID. Se ve en el parámetro
+   `X-Amz-Credential` de la URL firmada. **Resuelto**: se cargó el Access Key ID real (32 caracteres
+   hexadecimales) y el Secret Access Key (64) del token y se reinició el backend. Lo que lo delató fue
+   comprobar los largos dentro del contenedor del backend (`id=53` en vez de `id=32`).
+
+**Confirmado**: con una credencial inválida, R2 responde 403 sin cabeceras CORS y el navegador lo muestra
+como "No 'Access-Control-Allow-Origin' header is present", un síntoma que lleva a seguir tocando el CORS;
+la subida funcionó recién al corregir el Access Key ID. Pista: cuando el mensaje deja de mencionar el
+"preflight", la regla de CORS ya está bien y el problema es la respuesta del `PUT`.
+
+**Pendiente**:
+- Que `StartupEnvValidator` rechace al arrancar un `R2_ENDPOINT` con ruta y un `R2_ACCESS_KEY_ID` que no
+  sea de 32 caracteres hexadecimales (hoy solo exige que no estén vacíos). Los errores 2 y 3 de arriba
+  habrían fallado al arrancar; el 1 (CORS) no se puede validar así.
+- Rotar el token de R2 una vez más si no se hizo después del último intento fallido: el valor `cfat_…`
+  apareció en la consola del navegador mientras estaba mal cargado.
+- Los formatos correctos ya están en `.env.example`, `deploy-runbook.md` (D.6.2) y ADR 018.
+- Migrar R2 a una cuenta del cliente (§18): hacerlo antes de cargar el catálogo real.
+
+---
+
+## 30. "Produtos em destaque" de la home muestra 4 productos inventados, con precios que no existen
+
+**Estado**: detectado 2026-11-16, **sin resolver**. Misma familia que §15 (testimonios inventados):
+contenido falso en un sitio público y comercial.
+
+`frontend/lib/data/products.ts` define `FEATURED_PRODUCTS` con 4 productos que no existen en el catálogo
+real: Ração Premium Adulto 15kg (R$ 185,00), Mordedor Interativo Resistente (R$ 42,90), Guia e Coleira
+Premium Soft (R$ 89,00) y Cama Nuvem Luxo Ultra Macia (R$ 159,90), sin foto. `<FeaturedProducts>` los
+muestra en la home (eyebrow "02 — Para o dia a dia"). Es estático por diseño desde el Sprint 2 (ADR 017) y
+nunca se hizo el swap a la API; §14 anota lo mismo para `SERVICES_PREVIEW`, pero esos datos sí son reales.
+
+**Verificado en producción (2026-11-16)**:
+- La home sirve los 4 nombres.
+- Al tocar una card se abre `/produtos/<slug>` con "Produto não encontrado" (la pantalla 404 de Next,
+  con estado HTTP 200 por el streaming y marcada `noindex`).
+- El botón "Pedir pelo WhatsApp" arma `Olá! Tenho interesse no produto "…" (R$ …)` con el nombre y el
+  precio inventados (`product-card.tsx`), y ese mensaje le llega al cliente como si fuera un pedido real.
+- La API real tenía **1 producto** cargado (`BIONATURAL PRIME CÃES RAÇAS PEQUENAS ADULTOS CORDEIRO`,
+  R$ 209,00): la home promete un catálogo que la tienda no tiene.
+
+**Opciones**:
+1. Reemplazarlos por productos reales de `GET /api/v1/products` (por ejemplo los 4 activos más recientes)
+   y **ocultar la sección si no hay ninguno**. Sin cambios de esquema.
+2. Agregar un flag `featured` por producto con un interruptor en el admin (migración y
+   `db-model.png`). Da control al cliente, pero es más alcance: "landings editables" está en Fase 2
+   (CLAUDE.md §7).
+3. Provisorio, hasta que el catálogo real esté cargado: ocultar la sección.
+
+**Recomendación**: la 3 ya, para que no salga contenido falso, y la 1 apenas esté cargado el catálogo.
+La 2 solo si el cliente pide elegir cuáles se destacan.
+
+**Dónde impacta**: la home pública, que es lo primero que ve el cliente en la reunión.
+
+---
+
+## 31. Horarios liberados manualmente: cerrado por defecto, el admin abre (pedido del cliente, 2026-11-16)
+
+**Estado**: pedido nuevo, **sin decidir el diseño**. Funcionalidad nueva fuera del MVP1 original
+(CLAUDE.md §7): confirmarla con el cliente antes de implementarla. Detalle en
+`docs/reunion-2026-11-07.md` §4.1.
+
+El cliente tiene la agenda real en su ERP y desde la web no se sabe qué horarios están libres. Hoy la
+disponibilidad es **abierta por defecto** (`business_hours`, menos `schedule_blocks` de día completo y la
+capacidad ocupada; ADR 012 y 020). El pedido es **cerrada por defecto**: el admin libera los horarios
+que de verdad puede atender.
+
+**Decidido el 2026-11-16** (propuesta de Sebastián, a validar con el cliente): se liberan **horarios
+sueltos**, no rangos, porque los turnos varían mucho en duración. El diseño se planifica al desarrollarlo;
+el ADR tiene que explicar cómo convive con la regla de no materializar slots (CLAUDE.md §6).
+
+**Preguntas abiertas**:
+1. ¿Cerrado por defecto siempre, o un interruptor (por ejemplo, un flag en `tenants.config`) para no dejar
+   el sitio sin turnos hasta que el cliente haya liberado horarios?
+2. ~~¿Rango de horas o slots sueltos?~~ **Resuelto: sueltos.** Falta ver si hace falta copiar un día a otro
+   ("repetir la semana tipo") para no liberar horario por horario.
+3. ¿Qué pasa con `business_hours`: queda como límite máximo o deja de usarse?
+4. Relación con la capacidad (que baja de 2 a 1, ver el punto 4.2 del documento) y con los turnos manuales
+   del admin (ADR 021).
+5. Si nadie libera horarios, el wizard queda vacío: ¿qué mensaje ve el cliente final?
+6. ¿Quién libera, con qué frecuencia y desde qué pantalla (celular incluido)?
+
+**Dónde impacta**: `AvailabilityServiceImpl`, el admin de horarios y el wizard. Requiere un ADR nuevo que
+reemplace partes de ADR 012 y 020, una migración y `docs/db-model.png` actualizado. §10 sigue valiendo
+para lo que no cambie.

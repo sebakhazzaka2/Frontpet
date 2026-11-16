@@ -188,7 +188,7 @@ Recorrido de punta a punta sobre `https://frontpet.com.br` y `https://api.frontp
 
 ## 7. Fuera de la BD
 
-- [ ] **R2**: en Cloudflare → bucket `frontpet-products`, carpeta `products/<tenant-id>/` → borrar los objetos de las URLs copiadas en el paso 4 (la BD no borra el archivo).
+- [ ] **R2**: en Cloudflare → bucket `frontpet-dev` (el real hoy; `frontpet-products` era el default viejo, ver `deploy-runbook.md` D.6.2), carpeta `products/<tenant-id>/` → borrar los objetos de las URLs copiadas en el paso 4 (la BD no borra el archivo).
 - [ ] Restaurar horarios/precios si se tocaron (§3.6).
 - [ ] Si se completó el reset de contraseña: guardar la contraseña nueva en el gestor.
 - [ ] Verificar en el sitio público que ya no aparece ningún `ZZ-TEST` (productos, marca en filtros) y que el dashboard del admin vuelve a los conteos reales.

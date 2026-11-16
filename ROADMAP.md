@@ -51,12 +51,13 @@ apostando la entrega a que septiembre salga perfecto.
 | **A** | 3 | Catálogo + backend de productos | 24 | ✅ **cerrado (2026-07-27)** — 3.1-3.12 hechas, mergeado a `main` (PR #26) |
 | **A** | 4 | **Carrito + pedidos WhatsApp + Admin productos** | 30 | ✅ **cerrado (2026-07-29)** — Bloques 0/A/B/C/D/E/F mergeados a `main` (PRs #36-42) + G (este cierre documental), incluye §6/§7 de `pending-decisions.md`. Ver Registro de decisiones de plan |
 | **A→B** | 5 | Booking backend (disponibilidad + reservas) | 19 | ✅ **cerrado (2026-07-30)** — Bloques 0/A/B/C/D/E/F/G mergeados a `main` (PRs #52-56), corrió ~26,5 hs vs 19 estimadas. Ver Registro de decisiones de plan |
-| **A** | Despliegue | **Compra infra + despliegue inicial** — landing + catálogo + venta + booking backend en vivo | 10 | ⏸️ pospuesta otra vez: ahora va **después del Sprint 4 y 5**, no inmediatamente post-Sprint 3 (decisión 2026-07-27, ver nota abajo) |
+| **A** | Despliegue | **Compra infra + despliegue inicial** — landing + catálogo + venta + booking backend en vivo | 10 | 🔄 **casi cerrado** — en producción desde 2026-10-01; D.1–D.6 y D.8 hechos, D.7 (backups) pendiente, D.9 y D.10 en curso (ver la tabla del sprint) |
 | | | 🎯 **05/09 — hito de cobro: la tienda vende** (requiere Sprint 4 + Despliegue cerrados; el orden 4→5→Despliegue debe dejar margen para que Despliegue cierre antes de esta fecha) | | |
-| **B** | 6 | Booking frontend + Admin de turnos | 16 | |
-| **B** | 7 | Dashboard + LGPD + Marketing + Reset de senha + Polish | 24.5 | |
+| **B** | 6 | Booking frontend + Admin de turnos | 16 | ✅ **cerrado** (issue #64) |
+| **B** | 7 | Dashboard + LGPD + Marketing + Reset de senha + Polish | 24.5 | 🔄 **en curso** — 7.1–7.4, 7.6, 7.9 y 7.12–7.14 hechas; 7.7, 7.10 y 7.11 parciales |
 | **B** | 8 | Capacitación + entrega formal | 14 | |
 | | | 🎯 **30/09 — entrega final** | | |
+| | 9 (colchón) | Bugs y feedback post-entrega + pedidos del cliente del 2026-11-16 | hasta 21 | ⏳ por empezar — ver la sección Colchón |
 | | Opcional | Solo si sobra tiempo (ver abajo) | 6.5 | |
 | **Total** | | **~85 hs restantes** (Sprints 1-8: 1, 3, 4 y 5 cerrados —4 y 5 corrieron por encima de su estimado, ver Registro de decisiones de plan—, 2 al ~94%) **+ 6,5 opcionales** | **~91,5** | |
 
@@ -323,11 +324,11 @@ ahora en vivo** (landing + catálogo) con dominio propio. Este sprint dura 1 sem
 | D.5 | Instalar Coolify en el VPS, HTTPS automático con Caddy | 3 | ✅ **hecho** |
 | D.6.1 | Postgres como recurso de Coolify | — | ✅ **hecho** |
 | D.6.2 | Deploy del backend (Spring Boot) en Coolify | — | ✅ **hecho** — `api.frontpet.com.br` en vivo |
-| D.6.3 | Deploy del frontend (Next 16) en Coolify + Cache Rules de Cloudflare para rutas públicas GET (mitigación de latencia, ver ADR 016 §3) | — | ✅ **hecho** — `frontpet.com.br` en vivo (sitemap.xml/robots.txt verificados 200 OK el 2026-10-01); confirmar si las Cache Rules de Cloudflare llegaron a configurarse o quedaron fuera |
+| D.6.3 | Deploy del frontend (Next 16) en Coolify + Cache Rules de Cloudflare para rutas públicas GET (mitigación de latencia, ver ADR 016 §3) | — | ✅ **hecho** — `frontpet.com.br` en vivo (sitemap.xml/robots.txt verificados 200 OK el 2026-10-01; home, `/produtos` y API verificados el 2026-11-16). Cache Rules, medido el 2026-11-16: los JS de `/_next/static/` salen `HIT` y las imágenes de `/public` se cachean 4 h, pero `/_next/image` sale `DYNAMIC` (no hay regla para esa ruta) |
 | D.7 | Backups automáticos: cron + `pg_dump` + upload a Cloudflare R2 | 2 | ⏳ pendiente — sin evidencia en el repo de que el script/cron se haya corrido |
-| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 | ✅ **hecho** — SDK integrado (#75), endpoints de prueba usados y removidos después de confirmar en el dashboard (#80); queda pendiente verificar el primer error **orgánico** real |
-| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 | 🔄 **en curso** — ya se corrió sobre los PRs del deploy (#75/#76/#77) y encontró 2 hallazgos reales (#25 cookie sin `Domain`, #26 cookie expuesta a `coolify.frontpet.com.br`), ambos mitigados; falta confirmar el resto del checklist completo de D.9 (`pnpm audit`, headers de seguridad, etc.) |
-| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 | 🔄 **en curso** — depoimentos reales ya resueltos (ADR 025); SEO básico (7.9: sitemap/robots/meta tags) también resuelto (#81); resto del checklist (og-image real, themeColor confirmado, fotos reales) sigue pendiente |
+| D.8 | Sentry activado en backend y frontend, probar primer error capturado intencionalmente | 0.5 | ✅ **hecho** — SDK integrado (#75), endpoints de prueba usados y removidos después de confirmar en el dashboard (#80); desde #87 los fallos de Google Places también se reportan a Sentry; queda pendiente verificar el primer error **orgánico** real |
+| D.9 | Correr `/security-review` sobre el branch antes de exponer la URL pública: rate limiting en login, headers de seguridad (Caddy), CORS restrictivo al dominio real, cookies `Secure`, validación de upload de imágenes (tipo/tamaño), `pnpm audit` / dependencias | 0.5 | 🔄 **en curso** — se corrió sobre los PRs del deploy (#75/#76/#77) con 2 hallazgos reales (#25 cookie sin `Domain`, #26 cookie expuesta a `coolify.frontpet.com.br`), ambos mitigados. El 2026-10-01 `pnpm audit` encontró 3 RCE críticas en Next 16.2.6 → subido a 16.3.8 (#82); headers, cookies, CORS, rate limit y validación de upload revisados en el código. Falta la verificación en vivo (Resend en Gmail/Outlook, reset con logout cruzado, `curl -I`, puerto 8000, `mvn dependency-check`): lista en `docs/reunion-2026-11-07.md` §3 |
+| D.10 | **Checklist de contenido antes de exponer la URL** (agregada 2026-08-03, auditoría de release) — ver detalle abajo | 0.5 | 🔄 **en curso** — hechos: depoimentos reales (ADR 025), SEO básico (7.9, #81), `metadataBase`, Search Console y restricción de IP de la key de Places. Faltan: `og-image` real (hoy de stock, #84), `themeColor`, WhatsApp definitivo, fotos reales y sacar los productos inventados de la home (`pending-decisions.md` §30) |
 
 #### D.10 — Checklist de contenido pre-público
 
@@ -338,22 +339,24 @@ pública. Ninguna se detecta con `/security-review` ni con el DoD, por eso van l
       (ADR 025, 2026-09-01), sin fallback a testimonios inventados. Falta solo confirmar
       periódicamente que el Google Business siga teniendo reviews (si llegan a cero, la sección
       se queda sin cards sola). Detalle: `pending-decisions.md` §15
-- [ ] **`metadataBase` / dominio real** en `app/layout.tsx:93` — hoy TODO con dominio
-      placeholder; afecta a todas las URLs absolutas de OG y canonical
-- [ ] **`/public/og-image.jpg` real** (1200x630) — `app/layout.tsx:63`, hoy sin imagen: los
-      links compartidos por WhatsApp salen sin preview
-- [ ] **Código de verificación de search console** — `app/layout.tsx:99`, hoy placeholder
+- [x] **`metadataBase` / dominio real** — `BASE_URL` cae a `https://frontpet.com.br` si falta la env
+      var, en `app/layout.tsx`, `robots.ts` y `sitemap.ts` (verificado 2026-10-01)
+- [ ] **`/public/og-image.jpg` real** (1200x630) — desde #84 hay una foto de stock como placeholder;
+      falta la foto real del cliente
+- [x] **Search Console** — verificada por registro TXT en el DNS, sin código: el bloque
+      `verification` de `app/layout.tsx` queda comentado a propósito
 - [ ] **`themeColor` de `app/layout.tsx:117`** — hex hardcodeado (`#F8F9FF`) que la API
       `Viewport` de Next no deja leer de `@theme`; si el cliente confirmó paleta (§6.1),
       sincronizarlo a mano acá
 - [ ] **Número de WhatsApp definitivo** en el seed (`preguntas-cliente.md` §7.3) y en
       `lib/data/site.ts` (hoy TODO)
-- [ ] **Restringir `GOOGLE_PLACES_API_KEY` por IP** en Google Cloud Console a la IP del VPS
-      (ADR 025) — hoy sin restricción de aplicación porque en dev la IP local cambia; ya está
-      restringida a la Places API únicamente, falta la restricción de IP una vez que exista la
-      IP fija de producción (Sprint Despliegue)
-- [ ] **Fotos reales** de productos, serviços y hero (`preguntas-cliente.md` §6.3) — o asumir
-      explícitamente que se sale con los gradientes placeholder
+- [x] **Restringir `GOOGLE_PLACES_API_KEY` por IP** — hecho el 2026-10-01; la IP del VPS cambió
+      después a `167.233.254.140` y la restricción se actualizó el 2026-11-07 (`pending-decisions.md`
+      §28). Verificado el 2026-11-16
+- [ ] **Fotos reales** de productos, serviços y hero (`preguntas-cliente.md` §6.3) — hoy hay fotos de
+      stock (#84) en hero, servicios y `og-image`
+- [ ] **Productos inventados en la home** — "Produtos em destaque" muestra 4 productos y precios que
+      no existen en el catálogo (`pending-decisions.md` §30)
 
 **Entregable**:
 - `https://frontpet.com.br` con landing + catálogo en vivo
@@ -498,7 +501,7 @@ login y llevar todo a calidad de entrega.
 | 7.14 | ✅ **Derecho de eliminación (LGPD)**: endpoint admin que anonimiza (no borra) los datos de un titular por telefone, con preview + log de auditoría (ADR 023) | 1 |
 | 7.4 | ✅ Meta Pixel: instalación base + eventos estándar (Contact, ViewContent, Schedule, Purchase). Gateado por 7.13 | 2 |
 | 7.6 | ✅ Plausible: instalación con script tag en `<head>`, leyendo `NEXT_PUBLIC_ANALYTICS_DOMAIN` | 0.5 |
-| 7.7 | Auditoría mobile completa, ajustes finos | 3 |
+| 7.7 | 🔄 Auditoría mobile completa, ajustes finos — #87 corrigió tres problemas (botones de las cards, chips de categoría, cards de estadísticas del admin), probados en celular real contra producción; falta la auditoría completa | 3 |
 | 7.9 | ✅ SEO básico: meta tags, Open Graph, sitemap.xml, robots.txt (#81) | 2 |
 | 7.10 | 🔄 Optimización de imágenes: `priority`/`sizes` agregados en productos/servicios (#81). ⚠️ Next 16: `images.domains` está deprecado → `images.remotePatterns` para el bucket R2 | 1 |
 | 7.11 | 🔄 Testing manual en navegadores reales (Chrome mobile, Safari iOS, Firefox) — #81 incluyó fixes cross-browser (reviews carousel), confirmar si la pasada completa ya se hizo | 2 |
@@ -552,6 +555,36 @@ Buffer para:
 
 **Importante**: si se consume el colchón completo, **no se agrega scope adicional**. Las
 features extras que el cliente pida durante el colchón se documentan y se cotizan como Fase 2.
+
+### Pedidos del cliente del 2026-11-16
+
+Correcciones y ajustes que pidió el cliente, más un hallazgo propio (9.6). Sin estimación en horas
+todavía: cada módulo se planifica al empezar a desarrollarlo (plan en prosa, AC y DoD de CLAUDE.md §10).
+Detalle y hallazgos en el código: `docs/reunion-2026-11-07.md` §4. Tamaños sin validar: chico (menos de
+medio día), medio (1 o 2 días), grande (más de 2 días).
+
+**Prerrequisito urgente** (Sprint Despliegue, `pending-decisions.md` §18): la cuenta de Cloudflare propia
+del cliente para R2, antes de cargar el catálogo real.
+
+| # | Tarea | Tipo | Tamaño | Estado |
+|---|---|---|---|---|
+| 9.1 | Capacidad de atención de 2 a 1 (`tenants.config`, sin deploy) | ajuste | chico | ⏳ |
+| 9.2 | Banho Antisséptico a R$ 0 y +10 min desde `/admin/servicos` (sin deploy) | ajuste | chico | ⏳ |
+| 9.3 | Raça y observaciones del pet en el detalle del turno | bug | chico | ⏳ |
+| 9.4 | Mensaje del pedido: voz del cliente, entrega siempre gratis y forma de pago | bug | chico o medio | ⏳ |
+| 9.5 | Sacar la patita del selector de tamaño del wizard | ajuste | chico | ⏳ |
+| 9.6 | Sacar los productos inventados de "Produtos em destaque" (`pending-decisions.md` §30) | bug | chico | ⏳ |
+| 9.7 | Banho Antisséptico primero en la lista de adicionales y "Sem custo" | ajuste | chico | ⏳ |
+| 9.8 | Teléfonos de Uruguay y Brasil (backend, frontend y anonimización LGPD) | bug | medio | ⏳ |
+| 9.9 | Liberación manual de horarios (`pending-decisions.md` §31) | funcionalidad nueva | grande | ⏳ a acordar |
+
+Orden propuesto: 9.1 y 9.2 (sin deploy), después 9.3 a 9.6 en un PR chico de frontend, y luego 9.7, 9.8
+y 9.9.
+
+9.8 se trata como bug y no como pedido nuevo: el cliente ya había dicho que reparte en Rivera
+(`preguntas-cliente.md` §4.3), así que los teléfonos uruguayos estaban dentro del alcance. 9.9 es
+funcionalidad nueva: por la regla de esta sección y CLAUDE.md §7, se cotiza como Fase 2 o se acuerda
+con el cliente antes de empezar.
 
 ---
 
