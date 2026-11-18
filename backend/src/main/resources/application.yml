@@ -77,7 +77,7 @@ frontpet:
     account-id: ${R2_ACCOUNT_ID:}
     access-key-id: ${R2_ACCESS_KEY_ID:}
     secret-access-key: ${R2_SECRET_ACCESS_KEY:}
-    bucket-name: ${R2_BUCKET_NAME:frontpet-products}
+    bucket-name: ${R2_BUCKET_NAME:frontpet-dev}
     endpoint: ${R2_ENDPOINT:}
     # Dominio público de lectura (r2.dev habilitado en el bucket, o el
     # dominio custom cuando llegue Sprint Despliegue). Vacío en dev hasta

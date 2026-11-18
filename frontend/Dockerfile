@@ -1,13 +1,17 @@
 # Sprint Despliegue (ADR 016) — build multi-stage con output standalone de
 # Next 16 (ver next.config.ts): la imagen final no lleva node_modules
 # completo, solo lo que Next empaqueta para correr el server standalone.
-# Node 20.9+ requerido (CLAUDE.md §2).
+# Node: la misma versión que frontend/.nvmrc (CI y WSL); actualizar las dos juntas.
 
-FROM node:20-slim AS base
-# corepack sin fijar versión resuelve el pnpm más nuevo del índice (11.x a
-# la fecha), que usa `node:sqlite` — requiere Node 22.5+ y rompe en node:20.
-# Fijamos 10.18.0 a mano, la misma mayor que usa el equipo en WSL (ADR 015).
-RUN corepack enable && corepack prepare pnpm@10.18.0 --activate
+FROM node:24.15.0-slim AS base
+# pnpm: la versión sale de "packageManager" en package.json, la misma que usan
+# el CI y WSL (ADR 015, act. 2026-11-16). corepack la instala una vez acá y la
+# heredan todas las etapas. La variable evita la confirmación interactiva de
+# descarga de corepack.
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+WORKDIR /app
+COPY package.json ./
+RUN corepack enable && corepack install
 
 FROM base AS deps
 WORKDIR /app
