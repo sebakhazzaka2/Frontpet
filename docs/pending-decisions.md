@@ -972,21 +972,54 @@ disponibilidad es **abierta por defecto** (`business_hours`, menos `schedule_blo
 capacidad ocupada; ADR 012 y 020). El pedido es **cerrada por defecto**: el admin libera los horarios
 que de verdad puede atender.
 
-**Decidido el 2026-11-16** (propuesta de Sebastián, a validar con el cliente): se liberan **horarios
-sueltos**, no rangos, porque los turnos varían mucho en duración. El diseño se planifica al desarrollarlo;
-el ADR tiene que explicar cómo convive con la regla de no materializar slots (CLAUDE.md §6).
+**Decidido el 2026-11-16** (Sebastián, a validar con el cliente): se liberan **rangos de horario** (por
+ejemplo, 10:45 a 12:10), no horarios sueltos. Razones:
+1. El ERP del cliente muestra lo libre como rangos: el admin copia lo que ve, con menos toques.
+2. El final del rango protege contra turnos que solo están en el ERP: el wizard ofrece solo los inicios
+   donde el servicio elegido termina antes del final, que es lo que el cálculo de slots ya hace dentro del
+   horario del negocio (ADR 020). Con un horario suelto, un servicio largo podría pisar uno de esos turnos.
+3. Un rango liberado funciona como una ventana de horario de ese día, así que no choca con la regla de no
+   materializar slots (CLAUDE.md §6).
+
+**Pantalla de admin: desktop-first.** Mobile no es prioridad y se pule después. Referencia visual: una
+agenda por días con turnos, bloqueos y rangos libres en la misma grilla (captura de otra app, no guardada
+en el repo porque tiene datos de terceros). El diseño se planifica al desarrollarlo.
 
 **Preguntas abiertas**:
 1. ¿Cerrado por defecto siempre, o un interruptor (por ejemplo, un flag en `tenants.config`) para no dejar
    el sitio sin turnos hasta que el cliente haya liberado horarios?
-2. ~~¿Rango de horas o slots sueltos?~~ **Resuelto: sueltos.** Falta ver si hace falta copiar un día a otro
-   ("repetir la semana tipo") para no liberar horario por horario.
+2. ~~¿Rango de horas o slots sueltos?~~ **Resuelto: rangos.** Falta ver si hace falta copiar un día a otro
+   ("repetir la semana tipo").
 3. ¿Qué pasa con `business_hours`: queda como límite máximo o deja de usarse?
 4. Relación con la capacidad (que baja de 2 a 1, ver el punto 4.2 del documento) y con los turnos manuales
    del admin (ADR 021).
 5. Si nadie libera horarios, el wizard queda vacío: ¿qué mensaje ve el cliente final?
-6. ¿Quién libera, con qué frecuencia y desde qué pantalla (celular incluido)?
+6. ¿Quién libera y con qué frecuencia? (La pantalla es desktop-first; mobile se pule después.)
 
 **Dónde impacta**: `AvailabilityServiceImpl`, el admin de horarios y el wizard. Requiere un ADR nuevo que
 reemplace partes de ADR 012 y 020, una migración y `docs/db-model.png` actualizado. §10 sigue valiendo
 para lo que no cambie.
+
+---
+
+## 32. El build puede fallar al azar por `next/font/google` (Google Fonts devuelve URLs `/l/font?kit=`)
+
+**Estado**: detectado 2026-11-16, **sin resolver**. Bug externo: vercel/next.js#99114 (cerrado, pero según
+su último comentario todavía no hay arreglo del lado de Turbopack, ni en 16.4.0-canary.59).
+
+Google Fonts a veces responde el CSS de una familia con URLs sin extensión
+(`https://fonts.gstatic.com/l/font?kit=…`) en vez de `/s/…/*.woff2`: en el issue, cerca de 1 de cada 60
+respuestas, a veces en rachas de unos 20 minutos. Turbopack falla con `next/font/google queries have
+exactly one entry`. Nos pasó con Fredoka el 2026-11-16 en el build local.
+
+**Cuidado con la caché local**: después de un fallo así, la caché persistente de Turbopack en
+`frontend/.next/cache` repitió el error en tres reintentos seguidos, aunque Google ya respondía bien. Hay
+que borrar `frontend/.next/cache` y volver a construir. Coolify construye con `--no-cache`, así que allá no
+aplica (el `docker build` limpio del mismo código compiló bien ese mismo día).
+
+**Impacto en producción**: un deploy de Coolify puede fallar por esto. Como el despliegue es rolling, el
+contenedor anterior sigue sirviendo y alcanza con reintentar el deploy.
+
+**Mitigación propuesta**: servir las fuentes desde el repo con `next/font/local`. Fredoka y Plus Jakarta Sans
+tienen licencia OFL, así que se pueden autoalojar, y se elimina la dependencia de Google Fonts en el build.
+Requiere actualizar el ADR 014 y `docs/design-system.md` si citan `next/font/google`.

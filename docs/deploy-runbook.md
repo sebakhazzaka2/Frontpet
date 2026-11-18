@@ -211,7 +211,7 @@ esta sección sin consultar la doc primero.
    | `R2_ACCOUNT_ID` | de la cuenta Cloudflare ya creada (tarea 3.5) |
    | `R2_ACCESS_KEY_ID` | 🔒 **Access Key ID** del token de R2: 32 caracteres hexadecimales. No es el "Token value" (`cfat_…`) ni una URL |
    | `R2_SECRET_ACCESS_KEY` | 🔒 **Secret Access Key** del mismo token: 64 caracteres hexadecimales, se muestra una sola vez |
-   | `R2_BUCKET_NAME` | ⚠️ el bucket real hoy es **`frontpet-dev`** (único que existe, cuenta personal de Sebastián — ver D.2 y `pending-decisions.md` §18), no `frontpet-products` como decía el default viejo del `application.yml`. Usar ese nombre hasta que se migre a la cuenta del cliente |
+   | `R2_BUCKET_NAME` | **`frontpet-dev`**: el único bucket que existe hoy, en la cuenta personal de Sebastián (ver D.2 y `pending-decisions.md` §18). También es el default de `application.yml` desde el 2026-11-16 (antes decía `frontpet-products`, un bucket que nunca existió). Cambia cuando se migre a la cuenta del cliente |
    | `R2_ENDPOINT` | `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com`, **sin el nombre del bucket** (con él, la ruta del upload lleva el bucket duplicado) |
    | `R2_PUBLIC_URL` | dominio público del bucket (r2.dev o custom). El bucket además necesita una regla de CORS que permita `PUT` desde `https://frontpet.com.br` (ADR 018) |
    | `JWT_SECRET` | 🔒 generar con `openssl rand -base64 48`, mín. 32 caracteres |

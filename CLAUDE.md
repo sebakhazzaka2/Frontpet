@@ -43,7 +43,8 @@ Visión futura (no MVP1): SaaS multi-tenant para negocios locales.
 | `zod` | **4.4.3** | ⚠️ v4, API distinta a v3. No copiar snippets de v3 |
 | `lucide-react` | ^1.16.0 | iconos |
 
-**Node.js 20.9+ obligatorio.** Toolchain corre en **WSL** (ADR 015).
+**Node.js 24.15** (`frontend/.nvmrc`; Next 16 exige 20.9+) y **pnpm 10.34.9** (`packageManager` en
+`frontend/package.json`): la misma versión en WSL, CI y Docker. Toolchain corre en **WSL** (ADR 015).
 
 ### Infraestructura
 Un solo **VPS Hetzner CX33** (4 vCPU/8 GB, ex-CX32, **región Falkenstein/Nuremberg**) con
@@ -305,7 +306,8 @@ postergados · compras de infra anticipadas.
 
 ## 12. Cómo correrlo (comandos reales)
 
-Requisitos: Java 21 · Node 20.9+ y pnpm 10 (en WSL, ADR 015) · Docker. Variables: plantillas en
+Requisitos: Java 21 · Node 24.15 (`frontend/.nvmrc`) y pnpm 10.34.9 (`packageManager` de `frontend/package.json`:
+un pnpm global de otra versión se cambia solo a esa dentro de `frontend/`), en WSL (ADR 015) · Docker. Variables: plantillas en
 `backend/.env.example` y `frontend/.env.example` (nunca commitear `.env*` reales).
 
 ```bash

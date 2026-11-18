@@ -153,3 +153,24 @@ Se elimina `ignoredBuiltDependencies`, que contradecía a `allowBuilds`.
 - **Usar npm o yarn** en vez de pnpm: el problema no es pnpm, es la frontera Windows/WSL.
   npm tendría el mismo síntoma con las optionalDependencies de plataforma.
 - **Commitear `node_modules`**: no.
+
+---
+
+## Actualización 2026-11-16 — La misma versión de Node y pnpm en WSL, CI y Docker
+
+Cada entorno usaba una combinación distinta: producción (Dockerfile) Node 20 con pnpm 10.18.0 fijo, el CI
+Node 24.15.0 (`.nvmrc`) con pnpm "10" sin fijar, y WSL Node 24.15.0 con pnpm 11.1.2 global.
+
+**Decisión**:
+- **Node 24.15.0** en los tres: `frontend/.nvmrc` (CI y WSL) y `node:24.15.0-slim` en el Dockerfile. Al
+  actualizar, cambiar los dos juntos.
+- **pnpm 10.34.9**, con una sola fuente: `"packageManager"` en `frontend/package.json`.
+  - El Dockerfile lo instala con `corepack install`.
+  - El CI lo lee con `pnpm/action-setup` (`package_json_file: frontend/package.json`), sin `version`.
+  - En WSL no hace falta nada: un pnpm global de otra versión detecta `packageManager` y dentro de
+    `frontend/` se cambia solo a 10.34.9 (verificado con el pnpm 11.1.2 global). `corepack pnpm` también
+    resuelve 10.34.9.
+- pnpm 11 queda para después: exige Node 22.13 o más y hoy no hace falta.
+- La primera vez después del cambio, `pnpm install` pide borrar y recrear `node_modules` (lo había creado
+  pnpm 11): aceptar. Sin terminal interactiva aborta con `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`; ahí se
+  pasa `--config.confirm-modules-purge=false`.

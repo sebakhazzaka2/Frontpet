@@ -39,9 +39,11 @@ jobs:
         id: node_version
         run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
 
+      # Sin `version`: la toma de `packageManager` en frontend/package.json, la
+      # misma que usan corepack en WSL y el Dockerfile (ADR 015, act. 2026-11-16).
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          package_json_file: frontend/package.json
 
       - uses: actions/setup-node@v4
         with:

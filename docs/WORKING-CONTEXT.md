@@ -52,7 +52,8 @@ Detalle y hallazgos en `docs/reunion-2026-11-07.md` §4; tareas 9.1 a 9.9 en el 
 - Mensaje del pedido al revés, entrega siempre gratis y falta la forma de pago.
 - Quitar la patita del selector de tamaño del wizard.
 - Banho Antisséptico: adicional sin costo (R$ 0), +10 min, primero en la lista (decidido el 2026-11-16).
-- Horarios liberados a mano (§31): decidido liberar **horarios sueltos**; el diseño se planifica al desarrollarlo.
+- Horarios liberados a mano (§31): decidido liberar **rangos de horario**, con la pantalla de admin
+  desktop-first (mobile después); el diseño se planifica al desarrollarlo.
 
 ## Deuda técnica y documental conocida
 
@@ -70,8 +71,10 @@ Detalle y hallazgos en `docs/reunion-2026-11-07.md` §4; tareas 9.1 a 9.9 en el 
   §17 (valores arbitrarios de Tailwind), §14 (`SERVICES_PREVIEW` estático), §13 (inputs nativos de fecha).
 - Local: la base `frontpet` de desarrollo quedó desfasada de V12 y V13 (otro checksum en V12; la columna de
   V13 ya existía). Recrearla desde cero borra sus datos locales.
-- Toolchain: WSL tiene Node 24.15 y pnpm 11.1.2; el CI y CLAUDE.md §12 dicen pnpm 10. Build, test y lint
-  pasaron con las dos versiones.
+- Toolchain alineado el 2026-11-16 (branch `chore/align-node-pnpm`, sin mergear): Node 24.15 y pnpm 10.34.9
+  en WSL, CI y Docker (ADR 015). La primera vez, `pnpm install` en WSL pide recrear `node_modules`: aceptar.
+- El build puede fallar al azar por `next/font/google` (§32): reintentar; en local, borrar antes
+  `frontend/.next/cache`. Mitigación propuesta: autoalojar las fuentes.
 - Referencias: `docs/reuse-consultorio.md` fue eliminado a propósito (recuperable con
   `git show fbd9aa0^:docs/reuse-consultorio.md`) y lo siguen citando comentarios Javadoc de `identity` y
   `config`. `docs/estado-frontpet.md` y `FrontPet.md` están en `.gitignore` y no existen en esta máquina,
