@@ -576,7 +576,7 @@ del cliente para R2, antes de cargar el catálogo real.
 | 9.6 | Sacar los productos inventados de "Produtos em destaque" (`pending-decisions.md` §30) | bug | chico | ⏳ |
 | 9.7 | Banho Antisséptico primero en la lista de adicionales y "Sem custo" | ajuste | chico | ⏳ |
 | 9.8 | Teléfonos de Uruguay y Brasil (backend, frontend y anonimización LGPD) | bug | medio | ⏳ |
-| 9.9 | Liberación manual de horarios (`pending-decisions.md` §31) | funcionalidad nueva | grande | ⏳ a acordar |
+| 9.9 | Liberación manual de horarios por rangos, admin desktop-first (`pending-decisions.md` §31) | funcionalidad nueva | grande | ⏳ a acordar |
 
 Orden propuesto: 9.1 y 9.2 (sin deploy), después 9.3 a 9.6 en un PR chico de frontend, y luego 9.7, 9.8
 y 9.9.
